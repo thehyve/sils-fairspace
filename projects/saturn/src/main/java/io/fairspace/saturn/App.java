@@ -18,7 +18,11 @@ public class App {
     public static void main(String[] args) {
         log.info("Saturn is starting");
 
-        var ds = SaturnDatasetFactory.connect(CONFIG.jena, CONFIG.features.contains(Feature.MetadataEditing));
+        var ds = SaturnDatasetFactory.connect(
+                CONFIG.jena,
+                CONFIG.features.contains(Feature.MetadataEditing),
+                CONFIG.features.contains(Feature.Views)
+        );
 
         var svc = new Services(API_PREFIX, CONFIG, ds);
 
