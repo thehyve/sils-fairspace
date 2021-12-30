@@ -21,7 +21,7 @@
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "4.0.0-alpha.58",
     "@material-ui/pickers": "^3.2.8",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "body-parser": "^1.19.0",
     "classnames": "^2.2.6",
     "cors": "^2.8.5",
