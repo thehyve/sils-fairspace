@@ -56,9 +56,9 @@ public class UserService {
                 .realm(config.realm)
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .clientId(config.clientId)
-                .clientSecret(getenv("KEYCLOAK_CLIENT_SECRET"))
+                .clientSecret(config.clientSecret)
                 .username(config.clientId)
-                .password(getenv("KEYCLOAK_CLIENT_SECRET"))
+                .password(config.clientSecret)
                 .build()
                 .realm(config.realm)
                 .users());

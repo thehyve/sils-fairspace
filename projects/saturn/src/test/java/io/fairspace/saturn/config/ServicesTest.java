@@ -21,7 +21,7 @@ public class ServicesTest {
             = new EnvironmentVariables();
     @Before
     public void before() {
-        environmentVariables.set("KEYCLOAK_CLIENT_SECRET", "secret");
+        config.clientSecret('secret');
         svc = new Services(config, viewsConfig, dataset, null);
     }
 

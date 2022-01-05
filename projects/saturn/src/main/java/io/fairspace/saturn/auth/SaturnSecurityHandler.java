@@ -30,7 +30,7 @@ public class SaturnSecurityHandler extends ConstraintSecurityHandler {
         adapterConfig.setCors(true);
         adapterConfig.setAuthServerUrl(CONFIG.auth.authServerUrl);
         adapterConfig.setTokenStore(TokenStore.SESSION.name());
-        adapterConfig.setCredentials(Map.of("secret",  getenv("KEYCLOAK_CLIENT_SECRET")));
+        adapterConfig.setCredentials(Map.of("secret",  config.clientSecret));
         adapterConfig.setEnableBasicAuth(config.enableBasicAuth);
 
         var unsecure = CONFIG.auth.authServerUrl.startsWith("http://");
