@@ -17,7 +17,6 @@ env:
      - ACCOUNT_CONFIG_DIR="./.travis"
      - RELEASE_BRANCH="release"
      - SNAPSHOT_BRANCH="dev"
-     - DOCUMENTATION_REPO="thehyve/fairspace-docs"
      - DOCKER_USERNAME="fairspace"
      - GITHUB_USERNAME="fairspace-ci"
      - GCP_PROJECT="fairspace-207108"
