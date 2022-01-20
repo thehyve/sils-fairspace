@@ -187,6 +187,11 @@ required:
     bash deploy.sh
     ```
 
+To stop all containers run:
+```bash
+bash stop_all.sh
+```
+
 ## Logs
 
 Logs are written to `journald` by default. The logs can be inspected with
