@@ -33,7 +33,7 @@ security:
   oidc:
     redirect-after-logout-url: ${FAIRSPACE_URL}/login
     clientId: ${KEYCLOAK_CLIENT_ID}
-    clientSecret: ${KEYCLOAK_CLIENT_SECRET}
+    clientSecret: "${KEYCLOAK_CLIENT_SECRET}"
 
 zuul:
   retryable: false
