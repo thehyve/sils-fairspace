@@ -6,7 +6,7 @@ PROJECT=$1
 SUBPROJECTS=$2
 
 # Set variables for use in build scripts
-export APPNAME=$(basename $PROJECT)
+export APPNAME="sils-$(basename $PROJECT)"
 export CONTAINER_NAME="${DOCKER_REPO}/${ORG}/${APPNAME}:${VERSION}"
 
 # If we are building a PR, use the target branch as 'commit range'.

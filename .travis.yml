@@ -13,7 +13,6 @@ env:
      - ORG="fairspace"
      - ARTIFACT_BUILD_FILE=""
      - BUILD_SCRIPTS_REPO="thehyve/fairspace-build-scripts"
-     - DEPLOYMENT_CONFIG_REPO="thehyve/fairspace-config-private"
      - ACCOUNT_CONFIG_DIR="./.travis"
      - RELEASE_BRANCH="release"
      - SNAPSHOT_BRANCH="dev"
@@ -24,6 +23,7 @@ env:
      - GIT_TAG_FILES_OVERRIDE="charts/fairspace/Chart.yaml charts/fairspace/values.yaml projects/"
      - SHOULD_DEPLOY=false
      # DEPLOYMENT RELATED VARIABLES - REQUIRED IF SHOULD_DEPLOY=true
+     # - DEPLOYMENT_CONFIG_REPO="thehyve/fairspace-config-private"
      # - SNAPSHOT_CONTEXT="gke_fairspace-207108_europe-west1-b_fairspacecicluster"
      # - SNAPSHOT_CLUSTER_NAME="fairspacecicluster"
      # - SNAPSHOT_CLUSTER_ZONE="europe-west1-b"
