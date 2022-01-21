@@ -41,7 +41,7 @@ auth:
   authServerUrl: ${KEYCLOAK_SERVER_URL}/auth/
   realm: ${KEYCLOAK_REALM}
   clientId: ${KEYCLOAK_CLIENT_ID}
-  clientSecret: "${KEYCLOAK_CLIENT_SECRET}"
+  clientSecret: ${KEYCLOAK_CLIENT_SECRET}
   enableBasicAuth: true
   superAdminUser: organisation-admin
 webDAV:

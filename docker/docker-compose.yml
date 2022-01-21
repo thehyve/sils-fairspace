@@ -86,7 +86,6 @@ services:
 
 
 volumes:
-  fairspace-keycloak-postgres-data:
   fairspace-postgres-data:
   database:
   files:

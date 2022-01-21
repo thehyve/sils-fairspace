@@ -9,6 +9,7 @@ This folder contains `docker-compose` scripts for running:
 Fairspace uses Keycloak for authentication. It is preferred to have a Keycloak instance at organisation level,
 Keycloak `docker-compose` script can be excluded, and an existing Keycloak instance can be used, 
 configured as described in the main Fairspace documentation.
+By default, a predefined `fairspace` realm configuration is imported to Keycloak using [realm template](./keycloak/realm-template.json).
 
 Please ensure that you have a recent version of Docker (>= `18`).
 If you do not have `docker-compose` installed,
@@ -33,7 +34,7 @@ Variable                   | Description
 `SATURN_IMAGE`             | Path to the docker image of Mercury, e.g. `eu.gcr.io/fairspace-207108/mercury:0.7.25` or `mercury-local:latest` if deploying the local build
 `FAIRSPACE_SSL_PROXY_IMAGE`| Path to the docker image of SSL proxy, e.g. `eu.gcr.io/fairspace-207108/fairspace-ssl-proxy:0.0.1` or `fairspace-ssl-proxy-local:latest` if deploying the local build
 `KEYCLOAK_HOSTNAME`        | FQDN of the Keycloak server, e.g., `keycloak.example.com`
-`FAIRSPACE_HOSTNAME`       | FQDN of the Fairpsace server, e.g., `fairspace.example.com`
+`FAIRSPACE_HOSTNAME`       | FQDN of the Fairspace server, e.g., `fairspace.example.com`
 
 ## Certificates
 
@@ -131,6 +132,9 @@ following the instructions from [Fairspace documentation](../README.adoc) on how
 ## Running everything together 
 
 After configuring the `.env` file and certificates, the `docker-compose` script can be run.
+Before running the script, make sure that the ports configured to be exposed are not occupied 
+(default ones are `:80`, `:443`, `8080` and `:9080`). 
+
 To start a component use the following command:
 ```bash
 docker-compose -f <config-file.yml> up
