@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  fairspace-ssl-proxy:
+    image: ${FAIRSPACE_SSL_PROXY_IMAGE}
+    container_name: fairspace-ssl-proxy
+    environment:
+      FAIRSPACE_HOSTNAME: ${FAIRSPACE_HOSTNAME:?Please configure FAIRSPACE_HOSTNAME.}
+      KEYCLOAK_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+    volumes:
+      - ./ssl/server.pem:/etc/nginx/server.pem
+      - ./ssl/server.key:/etc/nginx/server.key
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    logging:
+      driver: ${DOCKER_LOGGING_DRIVER:-journald}
+      options:
+        labels: application
+        tag: fairspace-ssl-proxy

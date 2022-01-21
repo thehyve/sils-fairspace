@@ -1,8 +1,12 @@
 FROM openjdk:15
 
 ADD build/distributions/*.tar /opt/
-
+COPY entrypoint.sh /entrypoint.sh
 EXPOSE 8090
 
+USER root
+
+RUN chmod u+x /entrypoint.sh
+
 WORKDIR "/opt/config"
-CMD ["/bin/sh", "-c", "/opt/saturn-*/bin/saturn"]
+ENTRYPOINT ["/entrypoint.sh"]
