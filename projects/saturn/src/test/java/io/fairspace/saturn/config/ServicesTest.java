@@ -21,7 +21,7 @@ public class ServicesTest {
             = new EnvironmentVariables();
     @Before
     public void before() {
-        config.clientSecret('secret');
+        config.auth.clientSecret = "secret";
         svc = new Services(config, viewsConfig, dataset, null);
     }
 
