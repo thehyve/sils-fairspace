@@ -110,8 +110,7 @@ export const FileOperations = ({
         return Promise.resolve();
     };
 
-    /* eslint-disable no-unused-vars */
-    const handleCreateDirectory = (name, type) => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name)))
+    const handleCreateDirectory = (name, directoryType) => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name), directoryType))
         .catch((err) => {
             if (err.message.includes('status code 409')) {
                 ErrorDialog.showError(
