@@ -37,6 +37,7 @@ export const FileOperations = ({
     isExternalStorage = false,
     openedPath,
     selectedPaths,
+    openedPathEntityType,
     clearSelection,
     fileActions = {},
     classes,
@@ -109,7 +110,8 @@ export const FileOperations = ({
         return Promise.resolve();
     };
 
-    const handleCreateDirectory = name => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name)))
+    /* eslint-disable no-unused-vars */
+    const handleCreateDirectory = (name, type) => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name)))
         .catch((err) => {
             if (err.message.includes('status code 409')) {
                 ErrorDialog.showError(
@@ -193,8 +195,9 @@ export const FileOperations = ({
                     <>
                         <ProgressButton active={activeOperation === Operations.MKDIR}>
                             <CreateDirectoryButton
-                                onCreate={name => handleCreateDirectory(name)}
+                                onCreate={(name, directoryType) => handleCreateDirectory(name, directoryType)}
                                 disabled={busy}
+                                parentEntityType={openedPathEntityType}
                             >
                                 <IconButton
                                     aria-label="Create directory"

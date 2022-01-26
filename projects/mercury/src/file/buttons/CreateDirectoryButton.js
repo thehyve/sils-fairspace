@@ -1,12 +1,26 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import useIsMounted from "react-is-mounted-hook";
 import FileNameDialog from "./FileNameDialog";
 import {useFormField} from "../../common/hooks/UseFormField";
 import {isValidFileName} from "../fileUtils";
+import VocabularyContext from "../../metadata/vocabulary/VocabularyContext";
 
-const CreateDirectoryButton = ({children, disabled, onCreate}) => {
+const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType}) => {
     const [opened, setOpened] = useState(false);
     const isMounted = useIsMounted();
+
+    const {hierarchy} = useContext(VocabularyContext);
+    // eslint-disable-next-line no-unused-vars
+    let allowedTypes = "";
+    if (!hierarchy) {
+        allowedTypes = ["Error"];
+    } else if (!parentEntityType) {
+        allowedTypes = hierarchy.filter(node => node.isRoot)[0].children;
+    } else {
+        allowedTypes = hierarchy.filter(node => node.nodeType === parentEntityType)[0].children;
+    }
+
+    const directoryType = allowedTypes[0];
 
     const nameControl = useFormField('', value => (
         !!value && isValidFileName(value)
@@ -23,7 +37,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate}) => {
     };
 
     const createDirectory = () => {
-        onCreate(nameControl.value)
+        onCreate(nameControl.value, directoryType)
             .then(shouldClose => isMounted() && shouldClose && closeDialog());
     };
 
@@ -43,7 +57,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate}) => {
                         validateAndCreate();
                     }}
                     submitDisabled={Boolean(!nameControl.valid)}
-                    title="Create new directory"
+                    title={"Create new " + directoryType}
                     control={nameControl}
                 />
             ) : null}

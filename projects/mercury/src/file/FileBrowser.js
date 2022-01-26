@@ -13,6 +13,8 @@ import UploadsContext, {showCannotOverwriteDeletedError} from "./UploadsContext"
 import {generateUuid} from "../metadata/common/metadataUtils";
 import ConfirmationDialog from "../common/components/ConfirmationDialog";
 import type {Collection} from "../collections/CollectionAPI";
+import {LocalFileAPI} from "./FileAPI";
+import useAsync from "../common/hooks/UseAsync";
 
 const styles = (theme) => ({
     container: {
@@ -80,6 +82,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
     const {
         openedCollection = {},
         openedPath = "",
+        openedPathEntityType = "",
         isOpenedPathDeleted = false,
         files = [],
         showDeleted = false,
@@ -284,6 +287,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
                 selectedPaths={selection.selected}
                 files={files}
                 openedPath={openedPath}
+                openedPathEntityType={openedPathEntityType}
                 isWritingEnabled={isWritingEnabled}
                 showDeleted={showDeleted}
                 fileActions={fileActions}
@@ -327,10 +331,16 @@ const ContextualFileBrowser = (props: ContextualFileBrowserProperties) => {
     const {openedPath, showDeleted, loading, error} = props;
     const {files, loading: filesLoading, error: filesError, refresh, fileActions} = useFiles(openedPath, showDeleted);
 
-    if (error || filesError) {
+    /* eslint-disable no-unused-vars */
+    const {loading: singleFileLoading, error: singleFileError, data: singleFileData} = useAsync(
+        () => LocalFileAPI.stat(openedPath, showDeleted, false),
+        [openedPath, showDeleted, LocalFileAPI]
+    );
+
+    if (error || filesError || singleFileError) {
         return (<MessageDisplay message="An error occurred while loading files" />);
     }
-    if (loading || filesLoading) {
+    if (loading || filesLoading || singleFileLoading) {
         return <LoadingInlay />;
     }
 
@@ -341,6 +351,7 @@ const ContextualFileBrowser = (props: ContextualFileBrowserProperties) => {
             refreshFiles={refresh}
             fileActions={fileActions}
             openedPath={openedPath}
+            openedPathEntityType={singleFileData.entityType}
             {...props}
         />
     );

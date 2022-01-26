@@ -29,6 +29,7 @@ export type File = {
     dateCreated: string;
     dateModified?: string;
     dateDeleted?: string;
+    entityType?: string;
     access?: string;
     metadataLinks?: string[];
 }
@@ -83,10 +84,13 @@ class FileAPI {
         if (showDeleted) {
             options.headers = {...options.headers, "Show-Deleted": "on"};
         }
-        return this.client().getDirectoryContents(path, options)
+
+        const filelist = this.client().getDirectoryContents(path, options)
             .then(result => result.data
                 .sort(comparing(compareBy('type'), compareBy('filename')))
                 .map(this.mapToFile));
+
+        return filelist;
     }
 
     /**
@@ -96,7 +100,8 @@ class FileAPI {
      * @returns {*}
      */
     createDirectory(path, options = defaultOptions) {
-        return this.client().createDirectory(path, options)
+        options.headers = {...options.headers, "Entity-Type": "SILS"};
+        return this.client().createDirectory((path), options)
             .catch(e => {
                 if (e && e.response) {
                     // eslint-disable-next-line default-case
