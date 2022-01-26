@@ -53,6 +53,26 @@ class LinkedDataAPI {
             .then(normalizeTypes)
             .catch(() => null);
     }
+
+    parseHierachyNodes(json) {
+        if (!json) {
+            throw Error(`Cannot parse empty response`);
+        }
+
+        return json.map(hierarchyItem => {
+            const nodeType = hierarchyItem.TypeName;
+            const children = hierarchyItem.ChildNodes;
+            const isRoot = hierarchyItem.IsRoot;
+            return {nodeType, children, isRoot};
+        });
+    }
+
+    getHierarchyNodes() {
+        return axios.get(`${this.getStatementsUrl()}hierarchy/`, requestOptions)
+            .then(extractJsonData)
+            .then(this.parseHierachyNodes)
+            .catch(handleHttpError("Failure when retrieving metadata"));
+    }
 }
 
 export default LinkedDataAPI;

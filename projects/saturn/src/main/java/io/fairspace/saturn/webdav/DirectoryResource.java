@@ -62,7 +62,10 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
 
     @Override
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
+        var type = io.fairspace.saturn.webdav.WebDAVServlet.entityType();
         var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
+        System.out.println("DEBUG - type: " + type);
+        //subj.addProperty(FS.entityType, type);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
     }

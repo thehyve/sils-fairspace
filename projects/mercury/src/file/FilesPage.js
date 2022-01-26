@@ -212,6 +212,7 @@ const ContextualFilesPage = (props: ContextualFilesPageProperties) => {
     const {views} = useContext(MetadataViewContext);
     const {params} = props.match;
     const {collectionName, openedPath} = getPathInfoFromParams(params);
+    // for SILS 'collection' is root-folder. Functionaly a folder, but has access management
     const collection = collections.find(c => c.name === collectionName) || {};
 
     return showDeleted ? (

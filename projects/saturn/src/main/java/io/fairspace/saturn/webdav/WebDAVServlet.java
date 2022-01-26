@@ -136,6 +136,15 @@ public class WebDAVServlet extends HttpServlet {
         return "on".equalsIgnoreCase(getCurrentRequest().getHeader("Show-Deleted"));
     }
 
+    static String entityType() {
+        try {
+            return getCurrentRequest().getHeader("Entity-Type");
+        }
+        catch(Exception e) {
+            return "error" + e.getMessage();
+        }
+    }
+
     static boolean includeMetadataLinks() {
         return "true".equalsIgnoreCase(getCurrentRequest().getHeader("With-Metadata-Links"));
     }
