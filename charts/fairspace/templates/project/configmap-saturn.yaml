@@ -21,6 +21,7 @@ data:
       authServerUrl: {{ .Values.external.keycloak.baseUrl }}/auth/
       realm: {{ .Values.external.keycloak.realm }}
       clientId: {{ .Values.external.keycloak.clientId }}
+      clientSecret: {{ .Values.external.keycloak.clientSecret }}
       enableBasicAuth: {{ .Values.saturn.auth.enableBasicAuth }}
       superAdminUser: organisation-admin-{{ .Values.external.keycloak.realm }}
     webDAV:

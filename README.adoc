@@ -1,11 +1,11 @@
-= Fairspace
+= SILS-Fairspace
 The Hyve
 VERSION, {docdate}
 :description: Fairspace documentation.
 :author: The Hyve
 :doctype: book
 :showtitle!:
-:url-repo: https://github.com/thehyve/fairspace
+:url-repo: https://github.com/thehyve/sils-fairspace
 :source-highlighter: rouge
 :icons: font
 :toc: macro
@@ -25,6 +25,9 @@ VERSION, {docdate}
 :jsonld-schema: https://raw.githubusercontent.com/json-ld/json-ld.org/master/schemas/jsonld-schema.json
 :turtle: https://www.w3.org/TR/turtle/
 :n-triples: https://www.w3.org/TR/n-triples/
+:fairspace-repository: https://github.com/thehyve/fairspace/
+
+This repository is based on {fairspace-repository}[thehyve/fairspace].
 
 image:docs/images/Fairspace.png[Fairspace]
 

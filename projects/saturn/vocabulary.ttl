@@ -7,184 +7,168 @@
 @prefix schema: <http://www.schema.org/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dash: <http://datashapes.org/dash#> .
-@prefix curie: <https://institut-curie.org/ontology#> .
+@prefix sils: <https://sils.uva.nl/ontology#> .
 
 ########################
 ###   User shapes    ###
 ########################
 
-curie:aboutSubject a rdf:Property .
-curie:aboutEvent a rdf:Property .
-curie:sample a rdf:Property .
-curie:analysisType a rdf:Property .
-curie:workspaceType a rdf:Property .
-curie:principalInvestigator a rdf:Property .
-curie:projectCode a rdf:Property .
-curie:analysisCode a rdf:Property .
-curie:analysisDate a rdf:Property .
-curie:platformName a rdf:Property .
-curie:analyticPipelineCode a rdf:Property .
-
-curie:WorkspaceType a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "The type of the workspace. " ;
-    sh:name "Workspace type" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique workspace type label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
 ## Augmented system class shapes
-fs:Workspace sh:property
-    [
-        sh:name "Type" ;
-        sh:description "Workspace type." ;
-        sh:maxCount 1 ;
-        sh:class curie:WorkspaceType ;
-        sh:path curie:workspaceType
-    ],
-    [
-        sh:name "Project code" ;
-        sh:description "Project code related to the workspace." ;
-        sh:datatype xsd:string ;
-        dash:singleLine true ;
-        sh:maxCount 1 ;
-        sh:path curie:projectCode
-    ],
-    [
-        sh:name "Principal investigator" ;
-        sh:description "Name of the PI or team leader." ;
-        sh:datatype xsd:string ;
-        dash:singleLine true ;
-        sh:maxCount 1 ;
-        sh:path curie:principalInvestigator
-    ] .
+
+# Project               > File, Directory, Collection
+# Investigation         > File, Directory, Collection
+# Study                 > File, Directory, Collection
+# Observation unit      > File
+# Sample                > File
+# Assay                 > File
+
+sils:aboutProject a rdf:Property .
+sils:aboutInvestigation a rdf:Property .
+sils:aboutStudy a rdf:Property .
+sils:aboutObservationUnit a rdf:Property .
+sils:aboutSample a rdf:Property .
+sils:aboutAssay a rdf:Property .
 
 fs:File sh:property
     [
-        sh:name "Is about subject" ;
-        sh:description "Subjects that are featured in this file." ;
-        sh:class curie:Subject ;
-        sh:path curie:aboutSubject
+        sh:name "Is about project" ;
+        sh:description "Projects that are featured in this collection." ;
+        sh:class sils:Project ;
+        sh:path sils:aboutProject
     ],
     [
-        sh:name "Is about biological sample" ;
-        sh:description "Biological samples that are featured in this file." ;
-        sh:class curie:BiologicalSample ;
-        sh:path curie:sample
+        sh:name "Is about investigation" ;
+        sh:description "Investigations that are featured in this collection." ;
+        sh:class sils:Investigation ;
+        sh:path sils:aboutInvestigation
     ],
     [
-        sh:name "Is about tumor pathology event" ;
-        sh:description "Events that are featured in this file." ;
-        sh:class curie:TumorPathologyEvent ;
-        sh:path curie:aboutEvent
+        sh:name "Is about study" ;
+        sh:description "Studies that are featured in this collection." ;
+        sh:class sils:Study ;
+        sh:path sils:aboutStudy
     ],
     [
-        sh:name "Type of analysis" ;
-        sh:description "Type of analysis associated to this file" ;
-        sh:maxCount 1 ;
-        sh:class curie:AnalysisType ;
-        sh:path curie:analysisType
+        sh:name "Is about observation unit" ;
+        sh:description "Observation units that are featured in this collection." ;
+        sh:class sils:ObservationUnit ;
+        sh:path sils:aboutObservationUnit
     ],
     [
-        sh:name "Analysis code" ;
-        sh:description "The analysis code (could be the sequencing run identifier for instance, or the imaging identifier, etc.)" ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path curie:analysisCode
+        sh:name "Is about sample" ;
+        sh:description "Samples that are featured in this collection." ;
+        sh:class sils:Sample ;
+        sh:path sils:aboutSample
     ],
     [
-        sh:name "Analysis date" ;
-        sh:description "" ;
-        sh:datatype xsd:date ;
-        sh:maxCount 1 ;
-        sh:path curie:analysisDate
-    ],
-    [
-        sh:name "Platform name" ;
-        sh:description "The name of the technology platform on which the analysis has been processed." ;
-        sh:class curie:TechnologyPlatformName ;
-        sh:maxCount 1 ;
-        sh:path curie:platformName
-    ],
-    [
-        sh:name "Analytic pipeline code" ;
-        sh:description "The analytic pipeline code (which is helpful for data traceability and comparison)." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path curie:analyticPipelineCode
+        sh:name "Is about assay" ;
+        sh:description "Assays that are featured in this collection." ;
+        sh:class sils:Assay ;
+        sh:path sils:aboutAssay
     ] .
 
 fs:Directory sh:property
     [
-        sh:name "Is about subject" ;
-        sh:description "Subjects that are featured in this directory." ;
-        sh:class curie:Subject ;
-        sh:path curie:aboutSubject
+        sh:name "Is about project" ;
+        sh:description "Projects that are featured in this collection." ;
+        sh:class sils:Project ;
+        sh:path sils:aboutProject
     ],
     [
-        sh:name "Is about biological sample" ;
-        sh:description "Biological samples that are featured in this directory." ;
-        sh:class curie:BiologicalSample ;
-        sh:path curie:sample
+        sh:name "Is about investigation" ;
+        sh:description "Investigations that are featured in this collection." ;
+        sh:class sils:Investigation ;
+        sh:path sils:aboutInvestigation
     ],
     [
-        sh:name "Is about tumor pathology event" ;
-        sh:description "Events that are featured in this directory." ;
-        sh:class curie:TumorPathologyEvent ;
-        sh:path curie:aboutEvent
-    ],
-    [
-        sh:name "Type of analysis" ;
-        sh:description "Type of analysis associated to this directory" ;
-        sh:class curie:AnalysisType ;
-        sh:path curie:analysisType
+        sh:name "Is about study" ;
+        sh:description "Studies that are featured in this collection." ;
+        sh:class sils:Study ;
+        sh:path sils:aboutStudy
     ] .
 
 fs:Collection sh:property
     [
-        sh:name "Is about subject" ;
-        sh:description "Subjects that are featured in this collection." ;
-        sh:class curie:Subject ;
-        sh:path curie:aboutSubject
+        sh:name "Is about project" ;
+        sh:description "Projects that are featured in this collection." ;
+        sh:class sils:Project ;
+        sh:path sils:aboutProject
     ],
     [
-        sh:name "Is about biological sample" ;
-        sh:description "Biological samples that are featured in this collection." ;
-        sh:class curie:BiologicalSample ;
-        sh:path curie:sample
+        sh:name "Is about investigation" ;
+        sh:description "Investigations that are featured in this collection." ;
+        sh:class sils:Investigation ;
+        sh:path sils:aboutInvestigation
     ],
     [
-        sh:name "Is about tumor pathology event" ;
-        sh:description "Events that are featured in this collection." ;
-        sh:class curie:TumorPathologyEvent ;
-        sh:path curie:aboutEvent
-    ],
-    [
-        sh:name "Type of analysis" ;
-        sh:description "Type of analysis associated to this collection" ;
-        sh:class curie:AnalysisType ;
-        sh:path curie:analysisType
+        sh:name "Is about study" ;
+        sh:description "Studies that are featured in this collection." ;
+        sh:class sils:Study ;
+        sh:path sils:aboutStudy
     ] .
 
 ## User class Shapes
 
-curie:AnalysisType a rdfs:Class, sh:NodeShape ;
+sils:projectIdentifier a rdf:Property .
+sils:projectTitle a rdf:Property .
+sils:projectDescription a rdf:Property .
+
+sils:Project a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The type of analysis." ;
-    sh:name "Analysis type" ;
+    sh:description "A research programme or a grant-funded programme of work." ;
+    sh:name "Project" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique analysis type label." ;
+        sh:description "Unique project label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the project." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:projectIdentifier
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the project." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:projectTitle
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the project." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:projectDescription
+    ],
+    [
+        sh:name "Investigations" ;
+        sh:description "Linked investigations" ;
+        sh:path [sh:inversePath sils:project]
+    ],
+    [
+        sh:name "Files" ;
+        sh:description "Linked files" ;
+        sh:path [sh:inversePath sils:aboutProject]
+    ] .
+
+sils:Organization a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "An organization is an entity – such as a company, an institution, or an association – comprising one or more people and having a particular purpose." ;
+    sh:name "Organization" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique organization label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
@@ -192,31 +176,15 @@ curie:AnalysisType a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-curie:TechnologyPlatformName a rdfs:Class, sh:NodeShape ;
+sils:Department a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "" ;
-    sh:name "Technology platform name" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-           [
-         sh:name "Label" ;
-         sh:description "Unique technology platform name." ;
-         sh:datatype xsd:string ;
-         sh:maxCount 1 ;
-         dash:singleLine true ;
-         fs:importantProperty true ;
-         sh:path rdfs:label
-     ] .
-
-curie:Gender a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "The gender of the subject." ;
-    sh:name "Gender" ;
+    sh:description "A division of a large organization such as a government, university, or business, dealing with a specific area of activity." ;
+    sh:name "Department" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique gender label." ;
+        sh:description "Unique department label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
@@ -224,9 +192,321 @@ curie:Gender a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-curie:Species a rdfs:Class, sh:NodeShape ;
+sils:investigationIdentifier a rdf:Property .
+sils:investigationTitle a rdf:Property .
+sils:investigationDescription a rdf:Property .
+sils:firstName a rdf:Property .
+sils:lastName a rdf:Property .
+sils:email a rdf:Property .
+sils:ORCID a rdf:Property .
+sils:organization a rdf:Property .
+sils:department a rdf:Property .
+
+sils:project a rdf:Property .
+
+sils:Investigation a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The species of the subject." ;
+    sh:description "An investigation." ;
+    sh:name "Investigation" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique investigation label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the investigation." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:investigationIdentifier
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the investigation." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:investigationTitle
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the investigation." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:investigationDescription
+    ],
+    [
+        sh:name "Project" ;
+        sh:description "The project this investigation belongs to." ;
+        sh:maxCount 1 ;
+        sh:class sils:Project ;
+        sh:path sils:project
+    ],
+    [
+        sh:name "First name" ;
+        sh:description "The first name of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:firstName
+    ],
+    [
+        sh:name "Last name" ;
+        sh:description "The last name of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:lastName
+    ],
+    [
+        sh:name "Email" ;
+        sh:description "The email address of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:email
+    ],
+    [
+        sh:name "ORCID" ;
+        sh:description "The Open Researcher and Contributor ID (ORCID) of the investigator. It is a nonproprietary alphanumeric code to uniquely identify scientific and other academic authors and contributors." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:ORCID
+    ],
+    [
+        sh:name "Organization" ;
+        sh:description "The organization the investigator belongs to." ;
+        sh:maxCount 1 ;
+        sh:class sils:Organization ;
+        sh:path sils:organization
+    ],
+    [
+        sh:name "Department" ;
+        sh:description "The department the investigator belongs to." ;
+        sh:maxCount 1 ;
+        sh:class sils:Department ;
+        sh:path sils:department
+    ],
+    [
+        sh:name "Studies" ;
+        sh:description "Linked studies" ;
+        sh:path [sh:inversePath sils:investigation]
+    ],
+    [
+        sh:name "Files" ;
+        sh:description "Linked files" ;
+        sh:path [sh:inversePath sils:aboutInvestigation]
+    ] .
+
+sils:studyIdentifier a rdf:Property .
+sils:studyTitle a rdf:Property .
+sils:studyDescription a rdf:Property .
+
+sils:investigation a rdf:Property .
+
+sils:Study a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "A study (or experiment) comprises a series of observation units and assays (or measurements) of one or more types, undertaken to answer a particular biological question." ;
+    sh:name "Study" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique study label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the study." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:studyIdentifier
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the study." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:studyTitle
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the study." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:studyDescription
+    ],
+    [
+        sh:name "Investigation" ;
+        sh:description "The investigation this study belongs to." ;
+        sh:maxCount 1 ;
+        sh:class sils:Investigation ;
+        sh:path sils:investigation
+    ],
+    [
+        sh:name "Observation units" ;
+        sh:description "Linked observation units" ;
+        sh:path [sh:inversePath sils:study]
+    ],
+    [
+        sh:name "Files" ;
+        sh:description "Linked files" ;
+        sh:path [sh:inversePath sils:aboutStudy]
+    ] .
+
+sils:observationUnitIdentifier a rdf:Property .
+sils:observationUnitTitle a rdf:Property .
+sils:observationUnitDescription a rdf:Property .
+sils:country a rdf:Property .
+sils:localRegionName a rdf:Property .
+sils:continent a rdf:Property .
+sils:latitude a rdf:Property .
+sils:longitude a rdf:Property .
+sils:altitude a rdf:Property .
+sils:depth a rdf:Property .
+sils:elevation a rdf:Property .
+
+sils:study a rdf:Property .
+
+sils:ObservationUnit a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "An observation unit is an object that is subject to instances of observation and measurement. For example in a study each living entity (animal or plant), bioreactor or area studied is one observation unit. When studying 50 different animals, each animal should become one observation unit." ;
+    sh:name "Observation unit" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique observation unit label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the observation unit." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:observationUnitIdentifier
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the observation unit." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:observationUnitTitle
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the observation unit." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:observationUnitDescription
+    ],
+    [
+        sh:name "Study" ;
+        sh:description "The study this observation unit belongs to." ;
+        sh:maxCount 1 ;
+        sh:class sils:Study ;
+        sh:path sils:study
+    ],
+    [
+        sh:name "Country" ;
+        sh:description "The country where this observation unit resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:country
+    ],
+    [
+        sh:name "Local region name" ;
+        sh:description "The name of the local region where this observation unit resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:localRegionName
+    ],
+    [
+        sh:name "Continent" ;
+        sh:description "The continent where this observation unit resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:continent
+    ],
+    [
+        sh:name "Latitude" ;
+        sh:description "The latitude coordinates of where this observation unit is located." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:latitude
+    ],
+    [
+        sh:name "Longitude" ;
+        sh:description "The longitude coordinates of where this observation unit is located." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:longitude
+    ],
+    [
+        sh:name "Altitude" ;
+        sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this observation unit is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:altitude
+    ],
+    [
+        sh:name "Depth" ;
+        sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this observation unit is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:depth
+    ],
+    [
+        sh:name "Elevation" ;
+        sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this observation unit is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:elevation
+    ],
+    [
+        sh:name "Samples" ;
+        sh:description "Linked samples" ;
+        sh:path [sh:inversePath sils:observationUnit]
+    ],
+    [
+        sh:name "Files" ;
+        sh:description "Linked files" ;
+        sh:path [sh:inversePath sils:aboutObservationUnit]
+    ] .
+
+sils:taxonomyId a rdf:Property .
+
+sils:TaxonomyIDs a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "The taxonomy ID of the sample/observation unit." ;
+    sh:name "Taxonomy ID" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique taxonomy ID label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+sils:isOfSpecies a rdf:Property .
+
+sils:Species a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "The species of the sample/observation unit." ;
     sh:name "Species" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
@@ -240,155 +520,250 @@ curie:Species a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-curie:AvailabilityForResearch a rdfs:Class, sh:NodeShape ;
+sils:sampleIdentifier a rdf:Property .
+sils:sampleName a rdf:Property .
+sils:sampleDescription a rdf:Property .
+
+sils:localStorageLocation a rdf:Property .
+sils:host a rdf:Property .
+sils:bioSafetyLevel a rdf:Property .
+sils:sampleSize a rdf:Property .
+sils:sampleCondition a rdf:Property .
+sils:material a rdf:Property .
+sils:samplingStrategy a rdf:Property .
+sils:sampleTreatment a rdf:Property .
+sils:collectionDate a rdf:Property .
+sils:collectionTime a rdf:Property .
+sils:timePoint a rdf:Property .
+sils:collectionTemperature a rdf:Property .
+sils:collectionPH a rdf:Property .
+
+sils:observationUnit a rdf:Property .
+
+sils:Sample a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "Indication whether the subject is available for research." ;
-    sh:name "Availability for research" ;
+    sh:description "A biological sample taken from an observation unit that can potentially be processed further to acquire data from. A multitude of samples can be taken from one or more observation units when for example performing time-scale experiments or sampling from different regions of the observation unit." ;
+    sh:name "Sample" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
-          [
+    [
         sh:name "Label" ;
-        sh:description "Unique availability label." ;
+        sh:description "Unique sample label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
         sh:path rdfs:label
-    ] .
-
-curie:ConsentAnswer a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "Answer type for consent questions." ;
-    sh:name "Consent answer" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-          [
-        sh:name "Label" ;
-        sh:description "Unique answer label." ;
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:ageAtLastNews a rdf:Property .
-curie:ageAtDeath a rdf:Property .
-curie:isOfGender a rdf:Property .
-curie:isOfSpecies a rdf:Property .
-curie:availableForResearch a rdf:Property .
-curie:dateOfOpposition a rdf:Property .
-curie:reuseClinicalWithGeneticData a rdf:Property .
-curie:sampleStorageAndReuse a rdf:Property .
-curie:geneticsAnalysis a rdf:Property .
-
-curie:Subject a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "A subject of research." ;
-    sh:name "Subject" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Gender" ;
-        sh:description "The gender of the subject." ;
-        sh:maxCount 1 ;
-        sh:class curie:Gender ;
-        sh:path curie:isOfGender
+        sh:path sils:sampleIdentifier
     ],
     [
-        sh:name "Species" ;
-        sh:description "The species of the subject." ;
+        sh:name "Name" ;
+        sh:description "The readable name of the sample." ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:class curie:Species ;
-        sh:path curie:isOfSpecies
+        sh:path sils:sampleName
     ],
     [
-        sh:name "Age at last news" ;
-        sh:description "The age at last news." ;
-        sh:datatype xsd:integer ;
+        sh:name "Description" ;
+        sh:description "The description of the sample." ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path curie:ageAtLastNews
+        sh:path sils:sampleDescription
     ],
     [
-        sh:name "Age at death" ;
-        sh:description "The age at death." ;
-        sh:datatype xsd:integer ;
+        sh:name "Observation unit" ;
+        sh:description "The observation unit this sample belongs to." ;
         sh:maxCount 1 ;
-        sh:path curie:ageAtDeath
+        sh:class sils:ObservationUnit ;
+        sh:path sils:observationUnit
     ],
     [
-        sh:name "Available for research" ;
+        sh:name "Local storage location" ;
+        sh:description "The location of where this sample is stored locally." ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:class curie:AvailabilityForResearch ;
-        sh:path curie:availableForResearch
+        sh:path sils:localStorageLocation
+    ],
+    # [
+    #     sh:name "Taxonomy ID" ;
+    #     sh:description "The taxonomic identifier of the sample according to https://www.uniprot.org/taxonomy." ;
+    #     sh:maxCount 1 ;
+    #     sh:class sils:TaxonomyIDs ;
+    #     sh:path sils:taxonomyId
+    # ],
+    [
+        sh:name "Sample organism" ;
+        sh:description "The species of the sample." ;
+        sh:maxCount 1 ;
+        sh:class sils:Species ;
+        sh:path sils:isOfSpecies
     ],
     [
-        sh:name "Date of opposition" ;
+        sh:name "Host" ;
+        sh:description "If applicable, the host name of which the sample was obtained." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:host
+    ],
+    [
+        sh:name "Biosafety level" ;
+        sh:description "The biosafety level of the sample." ;
+        sh:datatype xsd:string ;    # It can be BSL-1, BSL-2 or 1, 2, thus can't be an integer.
+        sh:maxCount 1 ;
+        sh:path sils:bioSafetyLevel
+    ],
+    [
+        sh:name "Sample size" ;
+        sh:description "The size of the sample (ml, grams)." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleSize
+    ],
+    [
+        sh:name "Sample condition" ;
+        sh:description "The condition of the sample." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleCondition
+    ],
+    [
+        sh:name "Material" ;
+        sh:description "The material of which the sample is composed of." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:material
+    ],
+    [
+        sh:name "Sampling strategy" ;
+        sh:description "The strategy used to perform the sampling procedure." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:samplingStrategy
+    ],
+    [
+        sh:name "Sample treatment" ;
+        sh:description "The treatment applied to the sample." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleTreatment
+    ],
+    [
+        sh:name "Collection date" ;
+        sh:description "The date when this sample was collected (yyyy-mm-dd, ISO 8601)." ;
         sh:datatype xsd:date ;
         sh:maxCount 1 ;
-        sh:path curie:dateOfOpposition
+        sh:path sils:collectionDate
     ],
     [
-        sh:name "Reuse clinical with genetic data" ;
+        sh:name "Collection time" ;
+        sh:description "The time this sample was collected (24h notation)." ;
+        sh:datatype xsd:integer ;
         sh:maxCount 1 ;
-        sh:class curie:ConsentAnswer ;
-        sh:path curie:reuseClinicalWithGeneticData
+        sh:path sils:collectionTime
     ],
     [
-        sh:name "Sample storage and reuse" ;
-        sh:maxCount 1 ;
-        sh:class curie:ConsentAnswer ;
-        sh:path curie:sampleStorageAndReuse
-    ],
-    [
-        sh:name "Genetic analysis" ;
-        sh:maxCount 1 ;
-        sh:class curie:ConsentAnswer ;
-        sh:path curie:geneticAnalysis
-    ],
-    [
-        sh:name "Label" ;
-        sh:description "Unique person label." ;
+        sh:name "Time point" ;
+        sh:description "If applicable, the time series time point." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label;
-        sh:order 0
+        sh:path sils:timePoint
     ],
     [
-        sh:name "Description" ;
-        sh:description "" ;
+        sh:name "Collection temperature" ;
+        sh:description "The temperature (°C) when the sample was collected." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:collectionTemperature
+    ],
+    [
+        sh:name "Collection pH" ;
+        sh:description "The pH when this sample was collected." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:collectionPH
+    ],
+    [
+        sh:name "Country" ;
+        sh:description "The country where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path rdfs:comment
+        sh:path sils:country
     ],
     [
-        sh:name "Tumor pathology events" ;
-        sh:description "Tumor pathology events" ;
-        sh:path [sh:inversePath curie:eventSubject];
+        sh:name "Local region name" ;
+        sh:description "The name of the local region where this sample resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:localRegionName
     ],
     [
-        sh:name "Samples" ;
-        sh:description "Samples" ;
-        sh:path [sh:inversePath curie:subject];
+        sh:name "Continent" ;
+        sh:description "The continent where this sample resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:continent
+    ],
+    [
+        sh:name "Latitude" ;
+        sh:description "The latitude coordinates of where this sample is located." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:latitude
+    ],
+    [
+        sh:name "Longitude" ;
+        sh:description "The longitude coordinates of where this sample is located." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:longitude
+    ],
+    [
+        sh:name "Altitude" ;
+        sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this sample is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:altitude
+    ],
+    [
+        sh:name "Depth" ;
+        sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this sample is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:depth
+    ],
+    [
+        sh:name "Elevation" ;
+        sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this sample is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:elevation
+    ],
+    [
+        sh:name "Assays" ;
+        sh:description "Linked assays" ;
+        sh:path [sh:inversePath sils:sample]
     ],
     [
         sh:name "Files" ;
         sh:description "Linked files" ;
-        sh:path [sh:inversePath curie:aboutSubject];
-    ].
+        sh:path [sh:inversePath sils:aboutSample]
+    ] .
 
-
-curie:Topography a rdfs:Class, sh:NodeShape ;
+sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The topography of the tumor coded in ICD-10 (subdivision ICD-O-3)." ;
-    sh:name "Topography" ;
+    sh:description "The type of LCMS apparatus." ;
+    sh:name "LCMS apparatus type" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique topography label." ;
+        sh:description "Unique LCMS apparatus type label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
@@ -396,324 +771,82 @@ curie:Topography a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-curie:Morphology a rdfs:Class, sh:NodeShape ;
-     sh:closed false ;
-     sh:description "The morphology of the tumor coded in ICD-10 (subdivision ICD-O-3)." ;
-     sh:name "Morphology" ;
-     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-     sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique morphology label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
+sils:LCMSIdentifier a rdf:Property .
+sils:LCMSDescription a rdf:Property .
+sils:LCMSBrandModel a rdf:Property .
+sils:isOfLCMSApparatusType a rdf:Property .
+sils:isMS1Capable a rdf:Property .
+sils:isMS2Capable a rdf:Property .
 
-curie:Laterality a rdfs:Class, sh:NodeShape ;
-     sh:closed false ;
-     sh:description "The laterality of the tumor." ;
-     sh:name "Laterality" ;
-     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-     sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique laterality label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:EventType a rdfs:Class, sh:NodeShape ;
+sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The type of tumor pathology event." ;
-    sh:name "Event type" ;
+    sh:description "An LCMS apparatus." ;
+    sh:name "LCMS apparatus" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique event type label." ;
+        sh:description "Unique LCMS label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
         sh:path rdfs:label
-    ] .
-
-curie:TumorGradeType a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "The type of grading classification." ;
-    sh:name "Tumor grade type" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
+    ],
     [
-        sh:name "Label" ;
-        sh:description "Unique tumor grade type label." ;
+        sh:name "Identifier" ;
+        sh:description "The identifier of the LCMS apparatus." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:TumorGradeValue a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "The grading value." ;
-    sh:name "Tumor grade value" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique tumor grade value label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:TnmT a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "The primary tumor size." ;
-    sh:name "TNM_T" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique TNM_T label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:TnmN a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description " The regional lymph nodes." ;
-    sh:name "TNM_N" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique TNM_N label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:TnmM a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description " Distant metastasis." ;
-    sh:name "TNM_M" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique TNM_M label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-curie:eventType a rdf:Property .
-curie:topography a rdf:Property .
-curie:tumorMorphology a rdf:Property .
-curie:tumorLaterality a rdf:Property .
-curie:yearOfDiagnosis a rdf:Property .
-curie:ageAtDiagnosis a rdf:Property .
-curie:tumorGradeType a rdf:Property .
-curie:tumorGradeValue a rdf:Property .
-curie:cTnmT a rdf:Property .
-curie:cTnmN a rdf:Property .
-curie:cTnmM a rdf:Property .
-curie:pTnmT a rdf:Property .
-curie:pTnmN a rdf:Property .
-curie:pTnmM a rdf:Property .
-curie:yTnmT a rdf:Property .
-curie:yTnmN a rdf:Property .
-curie:yTnmM a rdf:Property .
-
-curie:isAnalysedBy a rdf:Property .
-curie:eventSubject a rdf:Property .
-curie:isLinkedTo a rdf:Property .
-
-curie:TumorPathologyEvent a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "" ;
-    sh:name "Tumor pathology event" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Topography" ;
-        sh:description "The topography of the tumor." ;
-        sh:class curie:Topography ;
-        sh:path curie:topography
-    ],
-    [
-        sh:name "Morphology" ;
-        sh:description "The morphology of the tumor." ;
-        sh:class curie:Morphology ;
-        sh:path curie:tumorMorphology
-    ],
-    [
-        sh:name "Laterality" ;
-        sh:description "The laterality of the tumor." ;
-        sh:maxCount 1 ;
-        sh:class curie:Laterality ;
-        sh:path curie:tumorLaterality
-    ],
-    [
-        sh:name "Event type" ;
-        sh:description "The type of tumor pathology event." ;
-        sh:maxCount 1 ;
-        sh:class curie:EventType ;
-        sh:path curie:eventType
-    ],
-    [
-        sh:name "Year of diagnosis" ;
-        sh:description "The diagnosis year of the primary tumor." ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1 ;
-        sh:path curie:yearOfDiagnosis
-    ],
-    [
-        sh:name "Age at diagnosis" ;
-        sh:description "The age at diagnosis." ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1 ;
-        sh:path curie:ageAtDiagnosis
-    ],
-    [
-        sh:name "Tumor grade type" ;
-        sh:description "The type of tumor grading classification." ;
-        sh:class curie:TumorGradeType ;
-        sh:maxCount 1 ;
-        sh:path curie:tumorGradeType
-    ],
-    [
-        sh:name "Tumor grade value" ;
-        sh:description "The tumor grading value." ;
-        sh:class curie:TumorGradeValue ;
-        sh:maxCount 1 ;
-        sh:path curie:tumorGradeValue
-    ],
-    [
-        sh:name "cTNM_T" ;
-        sh:description "The primary tumor size (clinical evaluation)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmT ;
-        sh:path curie:cTnmT
-    ],
-    [
-        sh:name "cTNM_N" ;
-        sh:description "The regional lymph nodes (clinical evaluation)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmN ;
-        sh:path curie:cTnmN
-    ],
-    [
-        sh:name "cTNM_M" ;
-        sh:description "Distant metastasis (clinical evaluation)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmM ;
-        sh:path curie:cTnmM
-    ],
-    [
-        sh:name "pTNM_T" ;
-        sh:description "The primary tumor size (pathological evaluation)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmT ;
-        sh:path curie:pTnmT
-    ],
-    [
-        sh:name "pTNM_N" ;
-        sh:description "The regional lymph nodes (pathological evaluation)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmN ;
-        sh:path curie:pTnmN
-    ],
-    [
-        sh:name "pTNM_M" ;
-        sh:description "Distant metastasis (pathological evaluation)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmM ;
-        sh:path curie:pTnmM
-    ],
-    [
-        sh:name "yTNM_T" ;
-        sh:description "The primary tumor size (after treatment)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmT ;
-        sh:path curie:yTnmT
-    ],
-    [
-        sh:name "yTNM_N" ;
-        sh:description "The regional lymph nodes (after treatment)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmN ;
-        sh:path curie:yTnmN
-    ],
-    [
-        sh:name "yTNM_M" ;
-        sh:description "Distant metastasis (after treatment)." ;
-        sh:maxCount 1 ;
-        sh:class curie:TnmM ;
-        sh:path curie:yTnmM
-    ],
-    [
-        sh:name "Event subject" ;
-        sh:description "The subject associated with this event." ;
-        sh:class curie:Subject ;
-        sh:maxCount 1 ;
-        sh:path curie:eventSubject
-    ],
-    [
-        sh:name "Label" ;
-        sh:description "Unique tumor pathology event label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label;
-        sh:order 0
+        sh:path sils:LCMSIdentifier
     ],
     [
         sh:name "Description" ;
-        sh:description "" ;
+        sh:description "The description of the LCMS apparatus." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path rdfs:comment
+        sh:path sils:LCMSDescription
     ],
     [
-        sh:name "Samples" ;
-        sh:description "Samples" ;
-        sh:path [sh:inversePath curie:diagnosis];
+        sh:name "Brand model" ;
+        sh:description "The brand model of the LCMS apparatus." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:LCMSBrandModel
     ],
     [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath curie:aboutEvent];
-    ].
+        sh:name "Type" ;
+        sh:description "The LCMS apparatus type." ;
+        sh:maxCount 1 ;
+        sh:class sils:LCMSApparatusType  ;
+        sh:path sils:isOfLCMSApparatusType
+    ],
+    [
+        sh:name "MS1_Capable" ;
+        sh:description "Is MS1 capable." ;
+        sh:datatype xsd:boolean;
+        sh:maxCount 1 ;
+        sh:path sils:isMS1Capable
+    ],
+    [
+        sh:name "MS2_Capable" ;
+        sh:description "Is MS2 capable." ;
+        sh:datatype xsd:boolean;
+        sh:maxCount 1 ;
+        sh:path sils:isMS2Capable
+    ] .
 
+sils:isOfAssayType a rdf:Property .
 
-curie:SampleNature a rdfs:Class, sh:NodeShape ;
+sils:AssayType a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The sample nature." ;
-    sh:name "Sample nature" ;
+    sh:description "The assay type." ;
+    sh:name "Assay type" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique sample nature label." ;
+        sh:description "Unique assay type label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
@@ -721,15 +854,29 @@ curie:SampleNature a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-curie:SampleOrigin a rdfs:Class, sh:NodeShape ;
+sils:assayIdentifier a rdf:Property .
+sils:assayTitle a rdf:Property .
+sils:assayDescription a rdf:Property .
+
+sils:fileNameForward a rdf:Property .
+sils:fileNameReverse a rdf:Property .
+sils:isolationProtocol a rdf:Property .
+sils:sequencingCenter a rdf:Property .
+sils:sequencingPlatform a rdf:Property .
+sils:sequencingDate a rdf:Property .
+sils:reference a rdf:Property .
+
+sils:sample a rdf:Property .
+
+sils:LCMSAssayMode a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The sample origin." ;
-    sh:name "Sample origin" ;
+    sh:description "The LCMS assay mode." ;
+    sh:name "Mode" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique sample origin label." ;
+        sh:description "Unique LCMS assay mode label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
@@ -737,106 +884,124 @@ curie:SampleOrigin a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-curie:collectDate a rdf:Property .
-curie:tumorCellularity a rdf:Property .
-curie:isOfNature a rdf:Property .
-curie:parentIsOfNature a rdf:Property .
-curie:hasOrigin a rdf:Property .
-curie:subject a rdf:Property .
-curie:diagnosis a rdf:Property .
-curie:isChildOf a rdf:Property .
+sils:LCMSAssayMachine a rdf:Property .
+sils:hasLCMSAssayMode a rdf:Property .
 
-curie:BiologicalSample a rdfs:Class, sh:NodeShape ;
+sils:Assay a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "" ;
-    sh:name "Biological sample" ;
+    sh:description "An assay is an investigative (analytic) procedure in laboratory medicine, pharmacology, environmental biology and molecular biology for qualitatively assessing or quantitatively measuring the presence, amount, or functional activity of a target entity (the analyte)." ;
+    sh:name "Assay" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
-        sh:name "Collect date" ;
-        sh:description "The collect date of the biological sample." ;
+        sh:name "Label" ;
+        sh:description "Unique assay label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the assay." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:assayIdentifier
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the assay." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:assayTitle
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the assay." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:assayDescription
+    ],
+    [
+        sh:name "Assay type" ;
+        sh:description "The assay type." ;
+        sh:maxCount 1 ;
+        sh:class sils:AssayType ;
+        sh:path sils:isOfAssayType
+    ],
+    [
+        sh:name "Sample" ;
+        sh:description "The sample of which this assay was generated." ;
+        sh:maxCount 1 ;
+        sh:class sils:Sample ;
+        sh:path sils:sample
+    ],
+    [
+        sh:name "File name forward" ;
+        sh:description "The file name of the forward reads." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:fileNameForward
+    ],
+    [
+        sh:name "File name reverse" ;
+        sh:description "The file name of the reverse reads." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:fileNameReverse
+    ],
+    [
+        sh:name "Isolation protocol" ;
+        sh:description "The protocol used for isolation (name or url)." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:isolationProtocol
+    ],
+    [
+        sh:name "Sequencing center" ;
+        sh:description "The center that was used for sequencing." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sequencingCenter
+    ],
+    [
+        sh:name "Sequencing platform" ;
+        sh:description "The method that was used for sequencing." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sequencingPlatform
+    ],
+    [
+        sh:name "Sequencing date" ;
+        sh:description "The date when the sequencing took place." ;
         sh:datatype xsd:date ;
         sh:maxCount 1 ;
-        sh:path curie:collectDate
+        sh:path sils:sequencingDate
     ],
     [
-        sh:name "Tumor cellularity" ;
-        sh:description "The percentage of tumor cells in the biological sample (pathological measure)." ;
-        sh:datatype xsd:integer ;
-        sh:maxCount 1 ;
-        sh:path curie:tumorCellularity
-    ],
-    [
-        sh:name "Topography" ;
-        sh:description "The topography of the sample." ;
-        sh:maxCount 1 ;
-        sh:class curie:Topography ;
-        sh:path curie:topography
-    ],
-    [
-        sh:name "Sample nature" ;
-        sh:description "The sample nature." ;
-        sh:maxCount 1 ;
-        sh:class curie:SampleNature ;
-        sh:path curie:isOfNature
-    ],
-    [
-        sh:name "Parent sample nature" ;
-        sh:description "Natures of parent samples." ;
-        sh:class curie:SampleNature ;
-        sh:path curie:parentIsOfNature
-    ],
-    [
-        sh:name "Sample origin" ;
-        sh:description "The sample origin." ;
-        sh:maxCount 1 ;
-        sh:class curie:SampleOrigin ;
-        sh:path curie:hasOrigin ;
-    ],
-    [
-        sh:name "Subject" ;
-        sh:description "The subject associated with this sample." ;
-        sh:class curie:Subject ;
-        sh:maxCount 1 ;
-        sh:path curie:subject
-    ],
-    [
-        sh:name "Diagnosis" ;
-        sh:description "The diagnosing tumor pathology event." ;
-        sh:class curie:TumorPathologyEvent ;
-        sh:maxCount 1 ;
-        sh:path curie:diagnosis
-    ],
-    [
-        sh:name "Sample is child sample of" ;
-        sh:description "The biological sample has been extracted from this parent sample." ;
-        sh:class curie:BiologicalSample ;
-        sh:path curie:isChildOf
-    ],
-    [
-        sh:name "Label" ;
-        sh:description "Unique biological sample label." ;
+        sh:name "Reference" ;
+        sh:description "The reference genome to which reads can be mapped to (e.g. GCA_... ENA number)." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label;
-        sh:order 0
-    ],
-    [
-        sh:name "Description" ;
-        sh:description "" ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path rdfs:comment
-    ],
-    [
-        sh:name "Child samples" ;
-        sh:description "Child samples" ;
-        sh:path [sh:inversePath curie:isChildOf];
+        sh:path sils:reference
     ],
     [
         sh:name "Files" ;
         sh:description "Linked files" ;
-        sh:path [sh:inversePath curie:sample];
-    ].
+        sh:path [sh:inversePath sils:aboutAssay]
+    ],
+    [
+        sh:name "LCMS machine" ;
+        sh:description "The LCMS machine." ;
+        sh:maxCount 1 ;
+        sh:class sils:LCMSApparatus ;
+        sh:path sils:LCMSAssayMachine
+    ],
+    [
+        sh:name "LCMS assay mode" ;
+        sh:description "The LCMS assay mode." ;
+        sh:maxCount 1 ;
+        sh:class sils:LCMSAssayMode ;
+        sh:path sils:hasLCMSAssayMode
+    ] .

@@ -1,0 +1,99 @@
+version: '3'
+
+services:
+  fairspace-postgres:
+    image: postgres:13-alpine
+    container_name: fairspace-postgres-database
+    environment:
+      POSTGRES_DB: fairspace
+      POSTGRES_USER: fairspace
+      POSTGRES_PASSWORD: fairspace
+    volumes:
+      - fairspace-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    logging:
+      driver: ${DOCKER_LOGGING_DRIVER:-journald}
+      options:
+        labels: application
+        tag: fairspace-postgres
+    networks:
+      - fairspace-db-network
+
+  fairspace-saturn:
+    image: ${SATURN_IMAGE}
+    container_name: fairspace-saturn
+    environment:
+      USE_DOCKERCOMPOSE: 'true'
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL:?Please configure KEYCLOAK_SERVER_URL}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Please configure KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:?Please configure KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:?Please configure KEYCLOAK_CLIENT_ID}
+      FAIRSPACE_URL: ${FAIRSPACE_URL:?Please configure FAIRSPACE_URL}
+      AUDIT_LOG_ROOT: ${AUDIT_LOG_ROOT:-/data/saturn/audit}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./vocabulary.ttl:/opt/config/vocabulary.ttl
+      - ./views.yaml:/opt/config/views.yaml
+      - database:/data/saturn/db
+      - files:/data/saturn/files
+      - audit:/data/saturn/audit
+      - ./ssl/extra_certs.pem:/opt/extra_certs.pem
+    restart: unless-stopped
+    depends_on:
+      - fairspace-postgres
+    logging:
+      driver: ${DOCKER_LOGGING_DRIVER:-journald}
+      options:
+        labels: application
+        tag: fairspace-saturn
+    networks:
+      - nginx-proxy-network
+      - fairspace-db-network
+#    extra_hosts:
+#      - "fairspace-keycloak:172.17.0.1"
+
+  fairspace-pluto:
+    image: ${PLUTO_IMAGE}
+    container_name: fairspace-pluto
+    environment:
+      USE_DOCKERCOMPOSE: 'true'
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:?Please configure KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:?Please configure KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL:?Please configure KEYCLOAK_SERVER_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:?Please configure KEYCLOAK_REALM}
+      FAIRSPACE_URL: ${FAIRSPACE_URL:?Please configure FAIRSPACE_URL}
+      PLUTO_LOGLEVEL: ${PLUTO_LOGLEVEL:-"INFO"}
+      PLUTO_CONNECT_TIMEOUT_MILLIS: ${PLUTO_CONNECT_TIMEOUT_MILLIS:-600000}
+      PLUTO_SOCKET_TIMEOUT_MILLIS: ${PLUTO_SOCKET_TIMEOUT_MILLIS:-2000}
+      NGINX_HOST: localhost
+      NGINX_PORT: 9080
+    ports:
+      - 9080:9080
+    restart: unless-stopped
+    depends_on:
+      - fairspace-saturn
+    volumes:
+      - ./ssl/extra_certs.pem:/opt/extra_certs.pem
+    logging:
+      driver: ${DOCKER_LOGGING_DRIVER:-journald}
+      options:
+        labels: application
+        tag: fairspace-pluto
+    networks:
+      - nginx-proxy-network
+#    extra_hosts:
+#      - "fairspace-keycloak:172.17.0.1"
+
+
+volumes:
+  fairspace-postgres-data:
+  database:
+  files:
+  audit:
+
+networks:
+  fairspace-db-network:
+    driver: bridge
+  nginx-proxy-network:
+    driver: bridge
+
