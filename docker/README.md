@@ -148,10 +148,18 @@ To run Fairspace, Keycloak and SSL proxy together, use the following command:
 ```bash
 docker-compose -f docker-compose.yml -f keycloak-docker-compose.yml -f ssl-proxy-docker-compose.yml up -d
 ```
+or use the script:
+```bash
+bash start_all.sh
+```
 
 To stop all the components, use:
 ```bash
 docker-compose -f docker-compose.yml -f keycloak-docker-compose.yml -f ssl-proxy-docker-compose.yml down
+```
+or use the script:
+```bash
+bash start_all.sh
 ```
 
 ## Building and running images locally
@@ -189,6 +197,10 @@ required:
    The script will build the images and run all the components. Run the script with:
     ```bash
     bash deploy.sh
+    ```
+   If you want to use existing images instead, configure the image names in `.env` file and run:
+    ```bash
+    bash start_all.sh
     ```
 
 To stop all containers run:
