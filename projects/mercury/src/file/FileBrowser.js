@@ -13,8 +13,6 @@ import UploadsContext, {showCannotOverwriteDeletedError} from "./UploadsContext"
 import {generateUuid} from "../metadata/common/metadataUtils";
 import ConfirmationDialog from "../common/components/ConfirmationDialog";
 import type {Collection} from "../collections/CollectionAPI";
-import {LocalFileAPI} from "./FileAPI";
-import useAsync from "../common/hooks/UseAsync";
 
 const styles = (theme) => ({
     container: {
@@ -93,7 +91,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         classes = {},
         history
     } = props;
-    const isWritingEnabled = openedCollection && openedCollection.canWrite && !isOpenedPathDeleted;
+    const isWritingEnabled = !isOpenedPathDeleted;
 
     const existingFileNames = files ? files.filter(file => file.type === "file").map(file => file.basename) : [];
     const existingFolderNames = files ? files.filter(file => file.type === "directory").map(file => file.basename) : [];
@@ -181,17 +179,6 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         }
     }, [overwriteFileCandidateNames, overwriteFolderCandidateNames, showCannotOverwriteWarning]);
 
-    const collectionExists = openedCollection && openedCollection.iri;
-    if (!collectionExists) {
-        return (
-            <MessageDisplay
-                message="This collection does not exist or you don't have sufficient permissions to view it."
-                variant="h6"
-                noWrap={false}
-            />
-        );
-    }
-
     const uploadFolder = () => {
         if (isFolderUpload) {
             open();
@@ -223,7 +210,8 @@ export const FileBrowser = (props: FileBrowserProperties) => {
              *      This version contains this fix: https://github.com/ReactTraining/history/pull/656
              *      It requires react-router-dom version>=6 to be released.
              */
-            history.push(`/collections${encodeURI(encodePath(path.filename))}`);
+            history.push(`/departments${encodeURI(encodePath(path.filename))}`);
+            // history.push(encodePath(path.filename));
         }
     };
 
@@ -308,7 +296,6 @@ export const FileBrowser = (props: FileBrowserProperties) => {
             >
                 <input {...getInputProps()} {...(isFolderUpload && {webkitdirectory: ""})} />
                 <FileList
-                    selectionEnabled={openedCollection.canRead}
                     files={files.map(item => ({...item, selected: selection.isSelected(item.filename)}))}
                     onPathCheckboxClick={path => selection.toggle(path.filename)}
                     onPathHighlight={handlePathHighlight}
@@ -317,7 +304,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
                     showDeleted={showDeleted}
                     preselectedFile={preselectedFile}
                 />
-                {openedCollection.canRead && renderFileOperations()}
+                {renderFileOperations()}
             </div>
             <div className={classes.uploadProgress}>
                 <UploadProgressComponent />
@@ -331,27 +318,25 @@ const ContextualFileBrowser = (props: ContextualFileBrowserProperties) => {
     const {openedPath, showDeleted, loading, error} = props;
     const {files, loading: filesLoading, error: filesError, refresh, fileActions} = useFiles(openedPath, showDeleted);
 
-    /* eslint-disable no-unused-vars */
-    const {loading: singleFileLoading, error: singleFileError, data: singleFileData} = useAsync(
-        () => LocalFileAPI.stat(openedPath, showDeleted, false),
-        [openedPath, showDeleted, LocalFileAPI]
-    );
+    const rootDirectory = files.find(f => ('/' + f.filename.toLowerCase()) === (openedPath.toLowerCase()));
+    const rootType = rootDirectory ? rootDirectory.entityType : "";
+    const subdirectories = files.filter(f => f !== rootDirectory);
 
-    if (error || filesError || singleFileError) {
+    if (error || filesError) {
         return (<MessageDisplay message="An error occurred while loading files" />);
     }
-    if (loading || filesLoading || singleFileLoading) {
+    if (loading || filesLoading) {
         return <LoadingInlay />;
     }
 
     return (
         <FileBrowser
-            files={files}
+            files={subdirectories}
             showDeleted={showDeleted}
             refreshFiles={refresh}
             fileActions={fileActions}
             openedPath={openedPath}
-            openedPathEntityType={singleFileData.entityType}
+            openedPathEntityType={rootType}
             {...props}
         />
     );
