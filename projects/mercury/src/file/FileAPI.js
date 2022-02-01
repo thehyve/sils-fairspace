@@ -96,12 +96,12 @@ class FileAPI {
     /**
      * Creates a new directory within the current collection
      * @param path      Full path within the collection
-     * @param directoryType The type of the directory within the hierarchy
+     * @param entityType The type of the entity which the directory references
      * @param options
      * @returns {*}
      */
-    createDirectory(path, directoryType, options = defaultOptions) {
-        options.headers = {...options.headers, "Entity-Type": directoryType};
+    createDirectory(path, entityType, options = defaultOptions) {
+        options.headers = {...options.headers, "Entity-Type": entityType};
         return this.client().createDirectory((path), options)
             .catch(e => {
                 if (e && e.response) {

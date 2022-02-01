@@ -10,7 +10,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
     const isMounted = useIsMounted();
 
     const {hierarchy} = useContext(VocabularyContext);
-    // eslint-disable-next-line no-unused-vars
+
     let allowedTypes = "";
     if (!hierarchy) {
         allowedTypes = ["Error"];
@@ -20,7 +20,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
         allowedTypes = hierarchy.filter(node => node.nodeType === parentEntityType)[0].children;
     }
 
-    const directoryType = allowedTypes[0];
+    const entityType = allowedTypes[0];
 
     const nameControl = useFormField('', value => (
         !!value && isValidFileName(value)
@@ -37,7 +37,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
     };
 
     const createDirectory = () => {
-        onCreate(nameControl.value, directoryType)
+        onCreate(nameControl.value, entityType)
             .then(shouldClose => isMounted() && shouldClose && closeDialog());
     };
 
@@ -57,7 +57,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
                         validateAndCreate();
                     }}
                     submitDisabled={Boolean(!nameControl.valid)}
-                    title={"Create new " + directoryType}
+                    title={"Create new " + entityType}
                     control={nameControl}
                 />
             ) : null}

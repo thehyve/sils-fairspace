@@ -110,7 +110,7 @@ export const FileOperations = ({
         return Promise.resolve();
     };
 
-    const handleCreateDirectory = (name, directoryType) => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name), directoryType))
+    const handleCreateDirectory = (name, entityType) => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name), entityType))
         .catch((err) => {
             if (err.message.includes('status code 409')) {
                 ErrorDialog.showError(
@@ -194,7 +194,7 @@ export const FileOperations = ({
                     <>
                         <ProgressButton active={activeOperation === Operations.MKDIR}>
                             <CreateDirectoryButton
-                                onCreate={(name, directoryType) => handleCreateDirectory(name, directoryType)}
+                                onCreate={(name, entityType) => handleCreateDirectory(name, entityType)}
                                 disabled={busy}
                                 parentEntityType={openedPathEntityType}
                             >
