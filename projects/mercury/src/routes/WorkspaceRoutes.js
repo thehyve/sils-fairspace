@@ -3,7 +3,7 @@ import {Redirect, Route, Switch} from "react-router-dom";
 
 import * as queryString from 'query-string';
 import WorkspaceOverview from "../workspaces/WorkspaceOverview";
-import OrganisationPage from "../file/OrganisationPage";
+import OrganisationPage from "../file/DirectoryStartPage";
 // import FilesPage from "../file/FilesPage";
 import {MetadataWrapper} from '../metadata/LinkedDataWrapper';
 import LinkedDataEntityPage from "../metadata/common/LinkedDataEntityPage";

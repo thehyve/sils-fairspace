@@ -79,7 +79,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     @Override
     public boolean authorise(Request request, Request.Method method, Auth auth) {
-        // Authorization not implemented yet, temporary allow everything.
+        // TODO: Authorization not implemented yet, temporary allow everything.
         return true;
     }
 

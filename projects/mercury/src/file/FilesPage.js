@@ -98,10 +98,10 @@ export const FilesPage = (props: FilesPageProperties) => {
     const breadcrumbSegments = collection.name
         ? pathSegments.map((segment, idx) => ({
             label: idx === 0 ? collection.name : segment,
-            href: consts.PATH_SEPARATOR + consts.COLLECTIONS_PATH + consts.PATH_SEPARATOR
+            href: consts.PATH_SEPARATOR + consts.ROOT_PATH + consts.PATH_SEPARATOR
                 + pathSegments.slice(0, idx + 1).map(encodeURIComponent).join(consts.PATH_SEPARATOR)
         }))
-        : [{label: '...', href: consts.PATH_SEPARATOR + consts.COLLECTIONS_PATH + encodeURI(openedPath)}];
+        : [{label: '...', href: consts.PATH_SEPARATOR + consts.ROOT_PATH + encodeURI(openedPath)}];
 
     usePageTitleUpdater(`${breadcrumbSegments.map(s => s.label).join(' / ')} / Collections`);
 
@@ -207,17 +207,16 @@ const ParentAwareFilesPage = (props: ParentAwareFilesPageProperties) => {
 };
 
 const ContextualFilesPage = (props: ContextualFilesPageProperties) => {
-    const {collections, loading, error, showDeleted, setShowDeleted} = useContext(CollectionsContext);
+    const {collections: rootFolders, loading, error, showDeleted, setShowDeleted} = useContext(CollectionsContext);
     const {currentUser} = useContext(UserContext);
     const {views} = useContext(MetadataViewContext);
     const {params} = props.match;
     const {collectionName, openedPath} = getPathInfoFromParams(params);
-    // for SILS 'collection' is root-folder. Functionaly a folder, but has access management
-    const collection = collections.find(c => c.name === collectionName) || {};
+    const rootFolder = rootFolders.find(c => c.name === collectionName) || {};
 
     return showDeleted ? (
         <ParentAwareFilesPage
-            collection={collection}
+            collection={rootFolder}
             openedPath={openedPath}
             loading={loading}
             error={error}
@@ -229,7 +228,7 @@ const ContextualFilesPage = (props: ContextualFilesPageProperties) => {
         />
     ) : (
         <FilesPage
-            collection={collection}
+            collection={rootFolder}
             openedPath={openedPath}
             loading={loading}
             error={error}

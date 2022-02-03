@@ -1,13 +1,13 @@
 import React from "react";
 import {Folder} from "@material-ui/icons";
-import BreadcrumbsContext from "../common/contexts/BreadcrumbsContext";
+import BreadcrumbsContext from "./BreadcrumbsContext";
 
-export default ({children}) => (
+export default ({label, href, children}) => (
     <BreadcrumbsContext.Provider value={{segments: [
         {
-            label: 'Departments',
+            label,
             icon: <Folder />,
-            href: '/departments'
+            href
         }
     ]}}
     >
