@@ -9,7 +9,7 @@ import Button from "@material-ui/core/Button";
 import FileBrowser from "./FileBrowser";
 import {getPathInfoFromParams, splitPathIntoArray} from "./fileUtils";
 import * as consts from '../constants';
-import OrganisationBreadcrumbsContextProvider from "../collections/OrganisationBreadcrumbsContextProvider";
+import BreadcrumbsContextProvider from "../common/contexts/BreadcrumbsContextProvider";
 import {useMultipleSelection} from "./UseSelection";
 import LoadingOverlay from "../common/components/LoadingOverlay";
 import SearchBar from "../search/SearchBar";
@@ -24,24 +24,24 @@ import {MetadataViewOptions} from "../metadata/views/MetadataViewAPI";
 import type {Match} from "../types";
 import {handleTextSearchRedirect} from "../search/searchUtils";
 
-type ContextualOrganisationPageProperties = {
+type ContextualDirectoryStartPageProperties = {
     match: Match;
     history: History;
     location: Location;
     classes: any;
 };
 
-type ParentAwareOrganisationPageProperties = ContextualOrganisationPageProperties & {
+type ParentAwareDirectoryStartPageProperties = ContextualDirectoryStartPageProperties & {
     currentUser: User;
     openedPath: string;
     views: MetadataViewOptions[];
 }
 
-type OrganisationPageProperties = ParentAwareOrganisationPageProperties & {
+type DirectoryStartPageProperties = ParentAwareDirectoryStartPageProperties & {
     isOpenedPathDeleted: boolean;
 };
 
-export const OrganisationPage = (props: OrganisationPageProperties) => {
+export const DirectoryStartPage = (props: DirectoryStartPageProperties) => {
     const {
         loading = false,
         isOpenedPathDeleted = false,
@@ -74,7 +74,7 @@ export const OrganisationPage = (props: OrganisationPageProperties) => {
     const pathSegments = splitPathIntoArray(openedPath);
     const breadcrumbSegments = pathSegments.map((segment, idx) => ({
         label: segment,
-        href: consts.PATH_SEPARATOR + consts.DEPARTMENTS_PATH + consts.PATH_SEPARATOR
+        href: consts.PATH_SEPARATOR + consts.ROOT_PATH + consts.PATH_SEPARATOR
             + pathSegments.slice(0, idx + 1).map(encodeURIComponent).join(consts.PATH_SEPARATOR)
     }));
 
@@ -86,7 +86,10 @@ export const OrganisationPage = (props: OrganisationPageProperties) => {
     );
 
     return (
-        <OrganisationBreadcrumbsContextProvider>
+        <BreadcrumbsContextProvider
+            label="Departments"
+            href="/departments"
+        >
             <div className={classes.breadcrumbs}>
                 <BreadCrumbs additionalSegments={breadcrumbSegments} />
             </div>
@@ -145,18 +148,18 @@ export const OrganisationPage = (props: OrganisationPageProperties) => {
                 </Grid>
             </Grid>
             <LoadingOverlay loading={busy} />
-        </OrganisationBreadcrumbsContextProvider>
+        </BreadcrumbsContextProvider>
     );
 };
 
-const ContextualOrganisationPage = (props: ContextualOrganisationPageProperties) => {
+const ContextualDirectoryStartPage = (props: ContextualDirectoryStartPageProperties) => {
     const {currentUser} = useContext(UserContext);
     const {views} = useContext(MetadataViewContext);
     const {params} = props.match;
     const {openedPath} = getPathInfoFromParams(params);
 
     return (
-        <OrganisationPage
+        <DirectoryStartPage
             openedPath={openedPath}
             currentUser={currentUser}
             views={views}
@@ -165,4 +168,4 @@ const ContextualOrganisationPage = (props: ContextualOrganisationPageProperties)
     );
 };
 
-export default withRouter(withStyles(styles)(ContextualOrganisationPage));
+export default withRouter(withStyles(styles)(ContextualDirectoryStartPage));
