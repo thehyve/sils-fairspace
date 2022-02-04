@@ -32,16 +32,16 @@ export default () => {
                     <ListItemText primary="Workspaces" />
                 </ListItem>
                 <ListItem
-                    key="departments"
+                    key="collections"
                     component={NavLink}
-                    to="/departments"
+                    to="/collections"
                     button
-                    selected={pathname.startsWith('/departments')}
+                    selected={pathname.startsWith('/collections')}
                 >
                     <ListItemIcon>
                         <Folder />
                     </ListItemIcon>
-                    <ListItemText primary="Departments" />
+                    <ListItemText primary="Collections" />
                 </ListItem>
                 {externalStorages && externalStorages.map(storage => (
                     <ListItem
