@@ -49,6 +49,15 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         this.access = access;
     }
 
+    @Property
+    public String getEntityType() {
+        if(subject.hasProperty(FS.entityType)) {
+            return subject.getProperty(FS.entityType).getString();
+        }
+
+        return "";
+    }
+
     @Override
     public String getUniqueId() {
         return subject.getURI();
@@ -70,9 +79,8 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     @Override
     public boolean authorise(Request request, Request.Method method, Auth auth) {
-        // for POST requests performAction *must* implement action-specific checks and throw NotAuthorizedException if necessary
-
-        return (!method.isWrite && access.canList()) || (method.isWrite && access.canWrite());
+        // TODO: Authorization not implemented yet, temporary allow everything.
+        return true;
     }
 
     @Override

@@ -3,8 +3,8 @@ import {Redirect, Route, Switch} from "react-router-dom";
 
 import * as queryString from 'query-string';
 import WorkspaceOverview from "../workspaces/WorkspaceOverview";
-import Collections from "../collections/CollectionsPage";
-import FilesPage from "../file/FilesPage";
+import OrganisationPage from "../file/DirectoryStartPage";
+// import FilesPage from "../file/FilesPage";
 import {MetadataWrapper} from '../metadata/LinkedDataWrapper';
 import LinkedDataEntityPage from "../metadata/common/LinkedDataEntityPage";
 import LinkedDataMetadataProvider from "../metadata/LinkedDataMetadataProvider";
@@ -31,20 +31,20 @@ const WorkspaceRoutes = () => {
             <Route path="/workspace" exact component={WorkspaceOverview} />
 
             <Route
-                path="/collections"
+                path="/departments"
                 exact
                 render={(props) => (
                     <LinkedDataMetadataProvider>
-                        <Collections history={props.history} showBreadCrumbs />
+                        <OrganisationPage {...props} />
                     </LinkedDataMetadataProvider>
                 )}
             />
 
             <Route
-                path="/collections/:collection/:path(.*)?"
+                path="/departments/:path(.*)?"
                 render={(props) => (
                     <LinkedDataMetadataProvider>
-                        <FilesPage {...props} />
+                        <OrganisationPage {...props} />
                     </LinkedDataMetadataProvider>
                 )}
             />
