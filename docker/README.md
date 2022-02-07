@@ -129,6 +129,19 @@ Keycloak is configured for use with Fairspace at first startup, using the
 comment out the `KEYCLOAK_IMPORT` line in [keycloak.yml](keycloak.yml) and configure the Keycloak realm manually,
 following the instructions from [Fairspace documentation](../README.adoc) on how to configure a Keycloak realm for Fairspace.
 
+Importing the realm template results in:
+- creating a `fairspace` realm,
+- creating a default client `fairspace-client` with secret: `"**********"` that should be regenerated after starting Keycloak,
+- adding a default user that has a `superadmin` role with username: `"organisation-admin"` and password: `"keycloak123"`
+  (to be changed in Keycloak Administration Console after starting Keycloak).
+
+In order to regenerate the `fairspace-client` secret:
+1. Open the Keycloak Administration Console (default username: `keycloak`, default password: `keycloak`),
+2. Open `fairspace` realm settings,
+3. Go to Clients and select `fairspace-client`,
+4. Open "Credentials" tab and clisk on "Regenerate Secret" button,
+5. Copy the newly generated secret into the `.env` file and restart fairspace-saturn and fairspace-pluto containers.
+
 ## Running everything together 
 
 After configuring the `.env` file and certificates, the `docker-compose` script can be run.
@@ -178,6 +191,9 @@ required:
     extra_hosts:
       - "keycloak:172.17.0.1"
     ```
+   Where the `172.17.0.1` is the IP address of the gateway between the Docker host and the bridge network default for Docker on Linux. 
+   If using a different Operating System, the IP address has to be changed accordingly.
+
 3. Set these local aliases as host names in the `.env` file:
     ```properties
     KEYCLOAK_SERVER_URL=https://keycloak
