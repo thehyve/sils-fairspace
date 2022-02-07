@@ -40,6 +40,7 @@ auth:
   authServerUrl: http://localhost:5100/auth/
   realm: fairspace
   clientId: workspace-client
+  clientSecret: '**********'
   enableBasicAuth: true
   superAdminUser: organisation-admin
 webDAV:
