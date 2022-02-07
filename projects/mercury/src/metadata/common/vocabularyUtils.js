@@ -273,22 +273,3 @@ export const getDescendants = (vocabulary, type) => {
 
     return found;
 };
-
-/**
- * The directory structure can be defined in the vocabulary. The constraints on types an allowed
- * child nodes can be fetched from the Vocabulary API as json. Here we convert the json to a js object.
- * @param {string} json
- */
-export const parseHierachyNodes = json => {
-    if (!json) {
-        throw Error(`Cannot parse empty response`);
-    }
-
-    return json.map(hierarchyItem => {
-        const nodeType = hierarchyItem.TypeName;
-        const children = hierarchyItem.ChildNodes;
-        const isRoot = hierarchyItem.IsRoot;
-
-        return {nodeType, children, isRoot};
-    });
-};

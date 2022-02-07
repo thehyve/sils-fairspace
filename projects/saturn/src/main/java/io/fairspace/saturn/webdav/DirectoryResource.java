@@ -37,7 +37,6 @@ import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.PathUtils.*;
 import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
 import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
-import static io.fairspace.saturn.webdav.WebDAVServlet.entityType;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.jena.graph.NodeFactory.createURI;
@@ -63,9 +62,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
 
     @Override
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        var type = entityType();
         var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
-        subj.addProperty(FS.entityType, type);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
     }

@@ -1,4 +1,3 @@
-// TODO: fix
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';

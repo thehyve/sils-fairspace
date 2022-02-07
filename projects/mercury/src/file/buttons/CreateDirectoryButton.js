@@ -1,26 +1,12 @@
-import React, {useContext, useState} from 'react';
+import React, {useState} from 'react';
 import useIsMounted from "react-is-mounted-hook";
 import FileNameDialog from "./FileNameDialog";
 import {useFormField} from "../../common/hooks/UseFormField";
 import {isValidFileName} from "../fileUtils";
-import VocabularyContext from "../../metadata/vocabulary/VocabularyContext";
 
-const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType}) => {
+const CreateDirectoryButton = ({children, disabled, onCreate}) => {
     const [opened, setOpened] = useState(false);
     const isMounted = useIsMounted();
-
-    const {hierarchy} = useContext(VocabularyContext);
-
-    let allowedTypes = "";
-    if (!hierarchy) {
-        allowedTypes = ["Error"];
-    } else if (!parentEntityType) {
-        allowedTypes = hierarchy.filter(node => node.isRoot)[0].children;
-    } else {
-        allowedTypes = hierarchy.filter(node => node.nodeType === parentEntityType)[0].children;
-    }
-
-    const entityType = allowedTypes[0];
 
     const nameControl = useFormField('', value => (
         !!value && isValidFileName(value)
@@ -37,7 +23,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
     };
 
     const createDirectory = () => {
-        onCreate(nameControl.value, entityType)
+        onCreate(nameControl.value)
             .then(shouldClose => isMounted() && shouldClose && closeDialog());
     };
 
@@ -57,7 +43,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
                         validateAndCreate();
                     }}
                     submitDisabled={Boolean(!nameControl.valid)}
-                    title={"Create new " + entityType}
+                    title="Create new directory"
                     control={nameControl}
                 />
             ) : null}

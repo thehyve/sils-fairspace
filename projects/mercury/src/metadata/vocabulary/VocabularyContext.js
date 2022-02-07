@@ -7,14 +7,13 @@ const VocabularyContext = React.createContext();
 
 export const VocabularyProvider = ({children}) => {
     const {data: vocabulary = [], loading: vocabularyLoading, error: vocabularyError} = useAsync(() => VocabularyAPI.get());
-    const {data: hierarchy} = useAsync(() => VocabularyAPI.getHierarchyNodes());
+
     return (
         <VocabularyContext.Provider
             value={{
                 vocabulary,
                 vocabularyLoading,
-                vocabularyError,
-                hierarchy
+                vocabularyError
             }}
         >
             {children}
