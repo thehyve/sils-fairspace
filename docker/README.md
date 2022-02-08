@@ -30,9 +30,9 @@ Variable                   | Description
 `PLUTO_LOGLEVEL`           | Level of Pluto application logs, default: `INFO`
 `PLUTO_CONNECT_TIMEOUT_MILLIS`| Pluto connection timeout in milliseconds, default: `600000`.
 `PLUTO_SOCKET_TIMEOUT_MILLIS`| Pluto socket timeout in milliseconds, default: `2000`.
-`PLUTO_IMAGE`              | Path to the docker image of Pluto, e.g. `eu.gcr.io/fairspace-207108/sils-pluto:0.0.1` or `pluto-local:latest` if deploying the local build
-`SATURN_IMAGE`             | Path to the docker image of Mercury, e.g. `eu.gcr.io/fairspace-207108/mercury:0.0.1` or `mercury-local:latest` if deploying the local build
-`FAIRSPACE_SSL_PROXY_IMAGE`| Path to the docker image of SSL proxy, e.g. `eu.gcr.io/fairspace-207108/fairspace-ssl-proxy:0.0.1` or `fairspace-ssl-proxy-local:latest` if deploying the local build
+`PLUTO_IMAGE`              | Path to the docker image of Pluto, e.g. `eu.gcr.io/fairspace-207108/sils-pluto:0.0.2` or `pluto-local:latest` if deploying the local build
+`SATURN_IMAGE`             | Path to the docker image of Mercury, e.g. `eu.gcr.io/fairspace-207108/mercury:0.0.2` or `mercury-local:latest` if deploying the local build
+`FAIRSPACE_SSL_PROXY_IMAGE`| Path to the docker image of SSL proxy, e.g. `eu.gcr.io/fairspace-207108/fairspace-ssl-proxy:0.0.2` or `fairspace-ssl-proxy-local:latest` if deploying the local build
 `KEYCLOAK_HOSTNAME`        | FQDN of the Keycloak server, e.g., `keycloak.example.com`
 `FAIRSPACE_HOSTNAME`       | FQDN of the Fairspace server, e.g., `fairspace.example.com`
 
