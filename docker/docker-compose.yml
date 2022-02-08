@@ -50,7 +50,7 @@ services:
       - nginx-proxy-network
       - fairspace-db-network
 #    extra_hosts:
-#      - "fairspace-keycloak:172.17.0.1"
+#      - ${KEYCLOAK_HOSTNAME}:172.17.0.1
 
   fairspace-pluto:
     image: ${PLUTO_IMAGE}
@@ -82,7 +82,7 @@ services:
     networks:
       - nginx-proxy-network
 #    extra_hosts:
-#      - "fairspace-keycloak:172.17.0.1"
+#      - ${KEYCLOAK_HOSTNAME}:172.17.0.1
 
 
 volumes:
