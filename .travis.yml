@@ -67,6 +67,7 @@ jobs:
       script:
       - .travis/build.sh projects/saturn
       - .travis/build.sh projects/pluto [mercury]
+      - .travis/build.sh docker/fairspace-ssl-proxy
       - export SANITIZED_BRANCH=$(echo $TRAVIS_BRANCH | sed 's/\//_/g')
     - stage: build
       cache: false
