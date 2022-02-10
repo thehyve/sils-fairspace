@@ -107,5 +107,8 @@ export const IS_ADMIN = FAIRSPACE_NS + 'isAdmin';
 export const IS_SUPERADMIN = FAIRSPACE_NS + 'isSuperadmin';
 export const IS_MEMBER_OF_URI = FAIRSPACE_NS + 'isMemberOf';
 export const IS_MANAGER_OF_URI = FAIRSPACE_NS + 'isManagerOf';
+export const IS_HIERARCHY_ROOT = FAIRSPACE_NS + 'hierarchyRoot';
+export const IS_PART_OF_HIERARCHY = FAIRSPACE_NS + 'partOfHierarchy';
+export const HIERARCHY_DESCENDANTS = FAIRSPACE_NS + 'hierarchyDescendants';
 
 export const NIL_URI = FAIRSPACE_NS + 'nil';

@@ -14,6 +14,10 @@ fs:fixedShape a rdf:Property .
 fs:machineOnly a rdf:Property .
 fs:importantProperty a rdf:Property .
 
+fs:partOfHierarchy a rdf:Property .
+fs:hierarchyRoot a rdf:Property .
+fs:hierarchyDescendants a rdf:Property .
+
 fs:ownedBy a rdf:Property .
 fs:belongsTo a rdf:Property .
 fs:createdBy a rdf:Property .
@@ -26,6 +30,7 @@ fs:movedTo a rdf:Property .
 fs:versions a rdf:Property .
 fs:currentVersion a rdf:Property .
 fs:contentType a rdf:Property .
+fs:entityType a rdf:Property .
 fs:markdown rdfs:label "Markdown" .
 
 ########################
@@ -107,13 +112,22 @@ fs:File a rdfs:Class, sh:NodeShape ;
         sh:path fs:contentType
     ] .
 
-
 fs:Directory a rdfs:Class, sh:NodeShape ;
     sh:description "A directory containing multiple files." ;
     sh:name "Directory" ;
     fs:machineOnly true ;
     sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo) ;
     sh:property
+    [
+        sh:name "Type" ;
+        sh:description "The type of entity the directory represents." ;
+        sh:datatype xsd:string ;
+#        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+#        fs:importantProperty true ;
+        sh:path fs:entityType
+    ],
     [
         sh:name "Created by" ;
         sh:description "User that created this resource." ;

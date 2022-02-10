@@ -31,56 +31,15 @@ sils:aboutObject a rdf:Property .
 sils:aboutSample a rdf:Property .
 sils:aboutAssay a rdf:Property .
 
-fs:File sh:property
-    [
-        sh:name "Is about assay" ;
-        sh:description "Assays that are featured in this collection." ;
-        sh:class sils:Assay ;
-        sh:path sils:aboutAssay
-    ] .
+sils:isRepresentedBy a rdf:Property .
+sils:representsEntity a rdf:Property .
 
 fs:Directory sh:property
     [
-        sh:name "Is about department" ;
-        sh:description "Departments that are featured in this collection." ;
+        sh:name "Represents entity" ;
+        sh:description "Entity the directory represents" ;
         sh:maxCount 1 ;
-        sh:class sils:Project ;
-        sh:path sils:aboutDepartment
-    ],
-    [
-        sh:name "Is about Principal Investigator" ;
-        sh:description "PIs that are featured in this collection." ;
-        sh:maxCount 1 ;
-        sh:class sils:Project ;
-        sh:path sils:aboutPrincipalInvestigator
-    ],
-    [
-        sh:name "Is about project" ;
-        sh:description "Projects that are featured in this collection." ;
-        sh:maxCount 1 ;
-        sh:class sils:Project ;
-        sh:path sils:aboutProject
-    ],
-    [
-        sh:name "Is about study" ;
-        sh:description "Studies that are featured in this collection." ;
-        sh:maxCount 1 ;
-        sh:class sils:Study ;
-        sh:path sils:aboutStudy
-    ],
-    [
-        sh:name "Is about object" ;
-        sh:description "Objects that are featured in this collection." ;
-        sh:maxCount 1 ;
-        sh:class sils:Object ;
-        sh:path sils:aboutObject
-    ],
-    [
-        sh:name "Is about sample" ;
-        sh:description "Samples that are featured in this collection." ;
-        sh:maxCount 1 ;
-        sh:class sils:Sample ;
-        sh:path sils:aboutSample
+        sh:path [ sh:inversePath sils:representsEntity ] ;
     ] .
 
 
@@ -95,6 +54,9 @@ sils:Department a rdfs:Class, sh:NodeShape ;
     sh:description "A division of a large organization such as a government, university, or business, dealing with a specific area of activity." ;
     sh:name "Department" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:PrincipalInvestigator ) ;
+    fs:hierarchyRoot true ;
     sh:property
     [
         sh:name "Label" ;
@@ -132,9 +94,10 @@ sils:Department a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:department]
     ],
     [
-        sh:name "Directory" ;
-        sh:description "Linked directory" ;
-        sh:path [sh:inversePath sils:aboutDepartment]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represent this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .
 
 sils:investigationDescription a rdf:Property .
@@ -148,6 +111,8 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
     sh:description "A Principal Investigator (PI)." ;
     sh:name "Principal Investigator" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Project ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -206,9 +171,10 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:principalInvestigator]
     ],
     [
-        sh:name "Directory" ;
-        sh:description "Linked directory" ;
-        sh:path [sh:inversePath sils:aboutPrincipalInvestigator]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .
 
 sils:projectIdentifier a rdf:Property .
@@ -220,6 +186,8 @@ sils:Project a rdfs:Class, sh:NodeShape ;
     sh:description "A research programme or a grant-funded programme of work." ;
     sh:name "Project" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Study ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -264,9 +232,10 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:project]
     ],
     [
-        sh:name "Directory" ;
-        sh:description "Linked directory" ;
-        sh:path [sh:inversePath sils:aboutProject]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .
 
 sils:studyIdentifier a rdf:Property .
@@ -280,6 +249,8 @@ sils:Study a rdfs:Class, sh:NodeShape ;
     sh:description "A study (or experiment) comprises a series of observation units and assays (or measurements) of one or more types, undertaken to answer a particular biological question." ;
     sh:name "Study" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Object ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -324,9 +295,10 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:study]
     ],
     [
-        sh:name "Directory" ;
-        sh:description "Linked directory" ;
-        sh:path [sh:inversePath sils:aboutStudy]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .
 
 sils:objectIdentifier a rdf:Property .
@@ -348,6 +320,8 @@ sils:Object a rdfs:Class, sh:NodeShape ;
     sh:description "An object that is subject to instances of observation and measurement. For example in a study each living entity (animal or plant), bioreactor or area studied is one object. When studying 50 different animals, each animal should become one object." ;
     sh:name "Object" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Sample ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -455,9 +429,10 @@ sils:Object a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:object]
     ],
     [
-        sh:name "Directory" ;
-        sh:description "Linked directory" ;
-        sh:path [sh:inversePath sils:aboutObject]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .
 
 
@@ -510,6 +485,8 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
     sh:description "A biological sample taken from an object that can potentially be processed further to acquire data from. A multitude of samples can be taken from one or more objects when for example performing time-scale experiments or sampling from different regions of the object." ;
     sh:name "Sample" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Assay ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -708,9 +685,10 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:sample]
     ],
     [
-        sh:name "Directory" ;
-        sh:description "Linked directory" ;
-        sh:path [sh:inversePath sils:aboutSample]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .
 
 sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
@@ -850,6 +828,8 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
     sh:description "An assay is an investigative (analytic) procedure in laboratory medicine, pharmacology, environmental biology and molecular biology for qualitatively assessing or quantitatively measuring the presence, amount, or functional activity of a target entity (the analyte)." ;
     sh:name "Assay" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:ExternalFile ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -945,9 +925,10 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:path sils:sample
     ],
     [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutAssay]
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ],
     [
         sh:name "LCMS machine" ;
@@ -962,4 +943,78 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         sh:class sils:LCMSAssayMode ;
         sh:path sils:hasLCMSAssayMode
+    ] .
+
+fs:ExternalFile a rdfs:Class, sh:NodeShape ;
+    sh:description "A file mock referencing an external file." ;
+    sh:name "External file" ;
+    fs:machineOnly true ;
+    sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo) ;
+    fs:partOfHierarchy true ;
+    sh:property
+    [
+        sh:name "Created by" ;
+        sh:description "User that created this resource." ;
+        sh:class fs:User ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+        sh:path fs:createdBy
+    ],
+    [
+        sh:name "Created" ;
+        sh:description "Date created" ;
+        sh:datatype xsd:dateTime ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+        fs:fixedShape true ;
+        sh:path fs:dateCreated
+    ],
+    [
+        sh:name "Deleted by" ;
+        sh:description "User that deleted this resource." ;
+        sh:class fs:User ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+        sh:path fs:deletedBy
+    ],
+    [
+        sh:name "Deleted" ;
+        sh:description "Date deleted." ;
+        sh:datatype xsd:dateTime ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+        sh:path fs:dateDeleted
+    ],
+    [
+        sh:name "Label" ;
+        sh:description "Unique file name." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+        dash:singleLine true ; ;
+        fs:importantProperty true ;
+        sh:path rdfs:label;
+        sh:order 0
+    ],
+    [
+        sh:name "External links" ;
+        sh:description "Link to the actual file." ;
+        dash:singleLine true ; ;
+        fs:importantProperty true ;
+        fs:externalLink true ;
+        sh:path sh:IRI ;
+        sh:order 1 ;
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "" ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path rdfs:comment
+    ],
+    [
+        sh:name "Directory representation" ;
+        sh:description "Directories that represents this entity" ;
+        sh:class fs:Directory ;
+        sh:path [sh:inversePath sils:representsEntity]
     ] .

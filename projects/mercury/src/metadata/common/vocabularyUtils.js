@@ -216,6 +216,49 @@ const generatePropertyEntry = (vocabulary, predicate, shape) => {
 };
 
 /**
+ * Creates an array with ordered items that are next levels in the directory types hierarchy.
+ *
+ * @param currentLevelId   Id of the current hierarchy level class
+ * @param hierarchyClasses All the classes from vocabulary that are marked as part of hierarchy
+ * @param hierarchyArray   Array of classes already added to the result
+ * @returns {array}        Updated array of classes
+ */
+export const buildHierarchyArray = (currentLevelId, hierarchyClasses, hierarchyArray = []) => {
+    const currentLevelClass = hierarchyClasses.find(entry => entry['@id'] === currentLevelId);
+    const currentLevelDescendants = getFirstPredicateList(currentLevelClass, constants.HIERARCHY_DESCENDANTS);
+    if (currentLevelDescendants !== undefined && currentLevelDescendants.length > 0) {
+        if (currentLevelDescendants.length > 1) {
+            throw Error(`Invalid hierarchy definition. Error for class ${currentLevelId}.
+             Multiple descendant classes per hierarchy level are currently not supported.`);
+        }
+        const firstDescendantId = currentLevelDescendants[0]['@id'];
+        if (hierarchyArray.includes(firstDescendantId)) {
+            throw Error(`Invalid hierarchy definition. Error for class ${currentLevelId}. 
+            Cyclic references detected for ${firstDescendantId}`);
+        }
+        hierarchyArray.push(firstDescendantId);
+        return buildHierarchyArray(firstDescendantId, hierarchyClasses, hierarchyArray);
+    }
+    return hierarchyArray;
+};
+
+/**
+ * Determines a hierarchy between directory types that are a part of file browser structure.
+ *
+ * @param vocabulary
+ * @returns {array}    An array of classes representing directory types in hierarchical order.
+ */
+export const determineHierarchy = (vocabulary) => {
+    const hierarchyClasses = getClassesInCatalog(vocabulary)
+        .filter(entry => getFirstPredicateValue(entry, constants.IS_PART_OF_HIERARCHY));
+    const hierarchyRoot = hierarchyClasses.find(entry => getFirstPredicateValue(entry, constants.IS_HIERARCHY_ROOT));
+    if (hierarchyClasses !== undefined && hierarchyClasses.length > 0 && hierarchyRoot === undefined) {
+        throw Error(`Invalid hierarchy definition. No hierarchy root found.`);
+    }
+    return buildHierarchyArray(hierarchyRoot['@id'], hierarchyClasses, [hierarchyRoot['@id']]);
+};
+
+/**
  * Converts the propertyshapes into a list of properties to be used for form building
  *
  * Please note that only the metadata for the first subject will be used
