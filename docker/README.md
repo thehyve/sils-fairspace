@@ -21,6 +21,7 @@ Create a `.env` file with the following variables:
 
 Variable                   | Description
 :------------------------- |:---------------
+`DOCKER_HOST_IP`           | IP address of the Docker host. For standard Linux distributions it should be configured to 172.17.0.1. 
 `KEYCLOAK_SERVER_URL`      | URL of the Keycloak server e.g. `https://keycloak.example.com`
 `KEYCLOAK_REALM`           | Keycloak realm, e.g. `fairspace`
 `KEYCLOAK_CLIENT_ID`       | Keycloak client id, e.g. `fairspace-client`

@@ -49,8 +49,8 @@ services:
     networks:
       - nginx-proxy-network
       - fairspace-db-network
-#    extra_hosts:
-#      - ${KEYCLOAK_HOSTNAME}:172.17.0.1
+    extra_hosts:
+      - ${KEYCLOAK_HOSTNAME}:${DOCKER_HOST_IP}
 
   fairspace-pluto:
     image: ${PLUTO_IMAGE}
@@ -81,9 +81,8 @@ services:
         tag: fairspace-pluto
     networks:
       - nginx-proxy-network
-#    extra_hosts:
-#      - ${KEYCLOAK_HOSTNAME}:172.17.0.1
-
+    extra_hosts:
+      - ${KEYCLOAK_HOSTNAME}:${DOCKER_HOST_IP}
 
 volumes:
   fairspace-postgres-data:
