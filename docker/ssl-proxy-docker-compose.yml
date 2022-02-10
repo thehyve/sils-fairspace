@@ -7,6 +7,7 @@ services:
     environment:
       FAIRSPACE_HOSTNAME: ${FAIRSPACE_HOSTNAME:?Please configure FAIRSPACE_HOSTNAME.}
       KEYCLOAK_HOSTNAME: ${KEYCLOAK_HOSTNAME}
+      DOCKER_HOST_IP: ${DOCKER_HOST_IP:?Please configure DOCKER_HOST_IP.}
     volumes:
       - ./ssl/server.pem:/etc/nginx/server.pem
       - ./ssl/server.key:/etc/nginx/server.key
