@@ -250,8 +250,8 @@ export const buildHierarchyArray = (currentLevelId, hierarchyClasses, hierarchyA
  */
 export const determineHierarchy = (vocabulary) => {
     const hierarchyClasses = getClassesInCatalog(vocabulary)
-        .filter(entry => getFirstPredicateValue(entry, constants.IS_PART_OF_HIERARCHY));
-    const hierarchyRoot = hierarchyClasses.find(entry => getFirstPredicateValue(entry, constants.IS_HIERARCHY_ROOT));
+        .filter(entry => getFirstPredicateValue(entry, constants.IS_PART_OF_HIERARCHY) === true);
+    const hierarchyRoot = hierarchyClasses.find(entry => getFirstPredicateValue(entry, constants.IS_HIERARCHY_ROOT) === true);
     if (hierarchyClasses !== undefined && hierarchyClasses.length > 0 && hierarchyRoot === undefined) {
         throw Error(`Invalid hierarchy definition. No hierarchy root found.`);
     }
@@ -303,7 +303,7 @@ export const getChildSubclasses = (vocabulary, type) => vocabulary.filter(e => g
  * Returns an array of the types that are subclasses of the provided type including indirect subclasses
  * @param {string} type
  */
-export const getDescendants = (vocabulary, type) => {
+export const getAllSubclasses = (vocabulary, type) => {
     let queue = [type];
     let found = [];
 

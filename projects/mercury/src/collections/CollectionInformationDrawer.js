@@ -85,9 +85,9 @@ const generateTemplate = (vocabulary) => {
     };
 
     const type = ps => {
-        let shaclType = getFirstPredicateId(ps, SHACL_DATATYPE);
+        const shaclType = getFirstPredicateId(ps, SHACL_DATATYPE) || getFirstPredicateId(ps, SHACL_CLASS);
         if (!shaclType) {
-            shaclType = getFirstPredicateId(ps, SHACL_CLASS);
+            return "";
         }
         return shaclType.substring(shaclType.lastIndexOf('#') + 1);
     };
