@@ -10,8 +10,7 @@ import FileBrowser from "./FileBrowser";
 import CollectionInformationDrawer from '../collections/CollectionInformationDrawer';
 import {getPathInfoFromParams, splitPathIntoArray} from "./fileUtils";
 import * as consts from '../constants';
-import CollectionBreadcrumbsContextProvider from "../collections/CollectionBreadcrumbsContextProvider";
-import CollectionsContext from "../collections/CollectionsContext";
+import BreadcrumbsContextProvider from "../common/contexts/BreadcrumbsContextProvider";
 import {useMultipleSelection} from "./UseSelection";
 import LoadingOverlay from "../common/components/LoadingOverlay";
 import SearchBar from "../search/SearchBar";
@@ -28,16 +27,19 @@ import type {User} from "../users/UsersAPI";
 import {MetadataViewOptions} from "../metadata/views/MetadataViewAPI";
 import type {Match} from "../types";
 import {handleTextSearchRedirect} from "../search/searchUtils";
+import {useFiles} from "./UseFiles";
+import LoadingInlay from "../common/components/LoadingInlay";
+import MessageDisplay from "../common/components/MessageDisplay";
 
-type ContextualFilesPageProperties = {
+type ContextualDirectoryPageProperties = {
     match: Match;
     history: History;
     location: Location;
     classes: any;
 };
 
-type ParentAwareFilesPageProperties = ContextualFilesPageProperties & {
-    collection: Collection;
+type ParentAwareDirectoryPageProperties = ContextualDirectoryPageProperties & {
+    directory: Collection;
     currentUser: User;
     openedPath: string;
     views: MetadataViewOptions[];
@@ -47,11 +49,11 @@ type ParentAwareFilesPageProperties = ContextualFilesPageProperties & {
     setShowDeleted: (boolean) => void;
 }
 
-type FilesPageProperties = ParentAwareFilesPageProperties & {
+type DirectoryPageProperties = ParentAwareDirectoryPageProperties & {
     isOpenedPathDeleted: boolean;
 };
 
-export const FilesPage = (props: FilesPageProperties) => {
+export const DirectoryPage = (props: DirectoryPageProperties) => {
     const {
         loading = false,
         isOpenedPathDeleted = false,
@@ -59,7 +61,7 @@ export const FilesPage = (props: FilesPageProperties) => {
         setShowDeleted = () => {},
         openedPath = "",
         views = [],
-        currentUser, error, location, history, collection, classes
+        currentUser, error, location, history, directory, classes
     } = props;
 
     const selection = useMultipleSelection();
@@ -72,19 +74,11 @@ export const FilesPage = (props: FilesPageProperties) => {
     // If so, select it on first render
     const preselectedFile = location.search ? decodeURIComponent(queryString.parse(location.search).selection) : undefined;
 
-    const getLocationContext = () => {
-        const collectionIri: string = collection.iri || '';
-        const collectionRoot = collectionIri.substring(0, collectionIri.lastIndexOf('/'));
-        return encodeURI(collectionRoot + openedPath);
-    };
+    const getLocationContext = () => encodeURI(openedPath);
 
-    const getMetadataSearchRedirect = () => (
-        `${getMetadataViewsPath()}?${queryString.stringify({view: RESOURCES_VIEW, context: getLocationContext()})}`
-    );
+    const getMetadataSearchRedirect = () => `${getMetadataViewsPath()}?${queryString.stringify({view: RESOURCES_VIEW, context: getLocationContext()})}`;
 
-    const handleTextSearch = (value) => {
-        handleTextSearchRedirect(history, value, getLocationContext());
-    };
+    const handleTextSearch = (value) => handleTextSearchRedirect(history, value, getLocationContext());
 
     useEffect(() => {
         if (preselectedFile) {
@@ -92,29 +86,28 @@ export const FilesPage = (props: FilesPageProperties) => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [preselectedFile]);
-    // Determine breadcrumbs. If a collection is opened, show the full path
-    // Otherwise, show a temporary breadcrumb
     const pathSegments = splitPathIntoArray(openedPath);
-    const breadcrumbSegments = collection.name
-        ? pathSegments.map((segment, idx) => ({
-            label: idx === 0 ? collection.name : segment,
-            href: consts.PATH_SEPARATOR + consts.ROOT_PATH + consts.PATH_SEPARATOR
-                + pathSegments.slice(0, idx + 1).map(encodeURIComponent).join(consts.PATH_SEPARATOR)
-        }))
-        : [{label: '...', href: consts.PATH_SEPARATOR + consts.ROOT_PATH + encodeURI(openedPath)}];
+    const breadcrumbSegments = pathSegments.map((segment, idx) => ({
+        label: segment,
+        href: consts.PATH_SEPARATOR + consts.ROOT_PATH + consts.PATH_SEPARATOR
+            + pathSegments.slice(0, idx + 1).map(encodeURIComponent).join(consts.PATH_SEPARATOR)
+    }));
 
-    usePageTitleUpdater(`${breadcrumbSegments.map(s => s.label).join(' / ')} / Collections`);
+    usePageTitleUpdater(`${breadcrumbSegments.map(s => s.label).join(' / ')} /`);
 
     // Path for which metadata should be rendered
     const path = (selection.selected.length === 1) ? selection.selected[0] : openedPath;
 
     const showMetadataSearchButton: boolean = (
         currentUser && currentUser.canViewPublicMetadata && views && views.some(v => v.name === RESOURCES_VIEW)
-        && !isOpenedPathDeleted && collection.iri
+        && !isOpenedPathDeleted
     );
 
     return (
-        <CollectionBreadcrumbsContextProvider>
+        <BreadcrumbsContextProvider
+            label="Departments"
+            href="/departments"
+        >
             <div className={classes.breadcrumbs}>
                 <BreadCrumbs additionalSegments={breadcrumbSegments} />
             </div>
@@ -135,7 +128,7 @@ export const FilesPage = (props: FilesPageProperties) => {
                                         color="primary"
                                         href={getMetadataSearchRedirect(RESOURCES_VIEW)}
                                     >
-                                        Collection metadata search
+                                        Metadata search
                                     </Button>
                                 </Grid>
                                 <Grid item><Divider orientation="vertical" /></Grid>
@@ -161,7 +154,7 @@ export const FilesPage = (props: FilesPageProperties) => {
                 <Grid item className={classes.centralPanel}>
                     <FileBrowser
                         data-testid="file-browser"
-                        openedCollection={collection}
+                        openedCollection={directory}
                         openedPath={openedPath}
                         isOpenedPathDeleted={isOpenedPathDeleted}
                         loading={loading}
@@ -175,29 +168,28 @@ export const FilesPage = (props: FilesPageProperties) => {
                     <CollectionInformationDrawer
                         setBusy={setBusy}
                         path={path}
-                        selectedCollectionIri={collection.iri}
                         showDeleted={showDeleted}
                     />
                 </Grid>
             </Grid>
             <LoadingOverlay loading={busy} />
-        </CollectionBreadcrumbsContextProvider>
+        </BreadcrumbsContextProvider>
     );
 };
 
-const ParentAwareFilesPage = (props: ParentAwareFilesPageProperties) => {
+const ParentAwareDirectoryPage = (props: ParentAwareDirectoryPageProperties) => {
     const {data, error, loading, refresh} = useAsync(
         () => (LocalFileAPI.stat(props.openedPath, true)),
         [props.openedPath]
     );
 
-    useEffect(() => {refresh();}, [props.collection.dateDeleted, refresh]);
+    useEffect(() => {refresh();}, [props.directory.dateDeleted, refresh]);
 
     const isParentFolderDeleted = data && data.props && !!data.props.dateDeleted;
-    const isOpenedPathDeleted = !!props.collection.dateDeleted || isParentFolderDeleted;
+    const isOpenedPathDeleted = !!props.directory.dateDeleted || isParentFolderDeleted;
 
     return (
-        <FilesPage
+        <DirectoryPage
             isOpenedPathDeleted={isOpenedPathDeleted}
             loading={loading && props.loading}
             error={error && props.error}
@@ -206,17 +198,27 @@ const ParentAwareFilesPage = (props: ParentAwareFilesPageProperties) => {
     );
 };
 
-const ContextualFilesPage = (props: ContextualFilesPageProperties) => {
-    const {collections: rootFolders, loading, error, showDeleted, setShowDeleted} = useContext(CollectionsContext);
+const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
+    const [showDeleted, setShowDeleted] = useState(false);
     const {currentUser} = useContext(UserContext);
     const {views} = useContext(MetadataViewContext);
     const {params} = props.match;
     const {collectionName, openedPath} = getPathInfoFromParams(params);
+    const {files, loading, error} = useFiles(openedPath, showDeleted);
+
+    if (error) {
+        return (<MessageDisplay message="An error occurred while loading files" />);
+    }
+    if (loading) {
+        return <LoadingInlay />;
+    }
+    const rootDirectory = files.find(f => ('/' + f.filename.toLowerCase()) === (openedPath.toLowerCase()));
+    const rootFolders = files.filter(f => f !== rootDirectory);
     const rootFolder = rootFolders.find(c => c.name === collectionName) || {};
 
     return showDeleted ? (
-        <ParentAwareFilesPage
-            collection={rootFolder}
+        <ParentAwareDirectoryPage
+            directory={rootFolder}
             openedPath={openedPath}
             loading={loading}
             error={error}
@@ -227,8 +229,8 @@ const ContextualFilesPage = (props: ContextualFilesPageProperties) => {
             {...props}
         />
     ) : (
-        <FilesPage
-            collection={rootFolder}
+        <DirectoryPage
+            directory={rootFolder}
             openedPath={openedPath}
             loading={loading}
             error={error}
@@ -241,4 +243,4 @@ const ContextualFilesPage = (props: ContextualFilesPageProperties) => {
     );
 };
 
-export default withRouter(withStyles(styles)(ContextualFilesPage));
+export default withRouter(withStyles(styles)(ContextualDirectoryPage));
