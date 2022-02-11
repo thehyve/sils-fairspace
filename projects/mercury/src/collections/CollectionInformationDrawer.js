@@ -3,7 +3,7 @@ import React, {useContext, useState} from 'react';
 import {Card, CardContent, CardHeader, Collapse, DialogContentText, IconButton, Typography} from '@material-ui/core';
 import {withRouter} from 'react-router-dom';
 
-import {CloudUpload, ExpandMore, Folder, FolderOpenOutlined, InsertDriveFileOutlined} from '@material-ui/icons';
+import {CloudUpload, ExpandMore, FolderOpenOutlined, InsertDriveFileOutlined} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/core/styles';
 import {useDropzone} from "react-dropzone";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -12,11 +12,9 @@ import Link from "@material-ui/core/Link";
 import table from "text-table";
 import {SnackbarProvider, useSnackbar} from "notistack";
 import {flatMap} from 'lodash';
-import CollectionDetails from "./CollectionDetails";
 import CollectionsContext from "./CollectionsContext";
 import {LinkedDataEntityFormWithLinkedData} from '../metadata/common/LinkedDataEntityFormContainer';
 import type {Collection} from './CollectionAPI';
-import EmptyInformationDrawer from "../common/components/EmptyInformationDrawer";
 import useAsync from '../common/hooks/UseAsync';
 import {LocalFileAPI} from '../file/FileAPI';
 import MessageDisplay from '../common/components/MessageDisplay';
@@ -37,7 +35,6 @@ import {
 } from "../constants";
 import {determinePropertyShapesForTypes, determineShapeForTypes} from "../metadata/common/vocabularyUtils";
 import {getFirstPredicateId, getFirstPredicateValue} from "../metadata/common/jsonLdUtils";
-import {getPathHierarchy} from "../file/fileUtils";
 
 const useStyles = makeStyles((theme) => ({
     expandOpen: {
@@ -231,15 +228,17 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
 
     let body;
     let isDirectory;
+    let cardTitle = "Metadata";
     let avatar = <FolderOpenOutlined />;
     if (error) {
         body = <MessageDisplay message="An error occurred while determining metadata subject" />;
     } else if (loading) {
         body = <div>Loading...</div>;
     } else if (!data || !data.iri) {
-        body = <div>No metadata found</div>;
+        body = <div>Select an item to view it&apos;s metadata</div>;
     } else {
         const {iri, iscollection} = data;
+        cardTitle = `Metadata for ${data.basename}`;
         isDirectory = iscollection && (iscollection.toLowerCase() === 'true');
         body = (
             <LinkedDataEntityFormWithLinkedData
@@ -251,12 +250,11 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
             avatar = <InsertDriveFileOutlined />;
         }
     }
-    const relativePath = fullPath => fullPath.split('/').slice(2).join('/');
 
     return (
         <MetadataCard
             ref={ref}
-            title={`Metadata for ${relativePath(path)}`}
+            title={cardTitle}
             avatar={avatar}
             forceExpand={forceExpand}
             metadataUploadPath={hasEditRight && forceExpand && isDirectory && path}
@@ -278,51 +276,17 @@ type CollectionInformationDrawerProps = {
 };
 
 export const CollectionInformationDrawer = (props: CollectionInformationDrawerProps) => {
-    const {
-        collection, loading, atLeastSingleCollectionExists, setHasCollectionMetadataUpdates,
-        inCollectionsBrowser, path, showDeleted
-    } = props;
-
-    const paths = getPathHierarchy(path);
-
-    if (!collection) {
-        return atLeastSingleCollectionExists && inCollectionsBrowser
-            && <EmptyInformationDrawer message="Select a collection to display its metadata" />;
-    }
-
-    const hasEditRight = collection && collection.canWrite;
+    const {path: metadataPath, showDeleted} = props;
 
     return (
         <>
-            <CollectionDetails
-                collection={collection}
-                onChangeOwner={props.onChangeOwner}
-                loading={loading}
-                setBusy={props.setBusy}
+            <PathMetadata
+                key={metadataPath}
+                path={metadataPath}
+                showDeleted={showDeleted}
+                hasEditRight="true" // TODO: access rights
+                forceExpand="true"
             />
-            <MetadataCard
-                title={`Metadata for ${collection.name}`}
-                avatar={<Folder />}
-                forceExpand={paths.length === 0}
-                metadataUploadPath={hasEditRight && paths.length === 0 && collection.name}
-            >
-                <LinkedDataEntityFormWithLinkedData
-                    subject={collection.iri}
-                    hasEditRight={hasEditRight}
-                    setHasCollectionMetadataUpdates={setHasCollectionMetadataUpdates}
-                />
-            </MetadataCard>
-            {
-                paths.map((metadataPath, index) => (
-                    <PathMetadata
-                        key={metadataPath}
-                        path={metadataPath}
-                        showDeleted={showDeleted}
-                        hasEditRight={hasEditRight}
-                        forceExpand={index === paths.length - 1}
-                    />
-                ))
-            }
         </>
     );
 };
@@ -333,9 +297,8 @@ CollectionInformationDrawer.defaultProps = {
     }
 };
 
-const ContextualCollectionInformationDrawer = ({selectedCollectionIri, ...props}) => {
+const ContextualCollectionInformationDrawer = (props) => {
     const {loading, collections, showDeleted} = useContext(CollectionsContext);
-    const collection = collections.find(c => c.iri === selectedCollectionIri);
     const atLeastSingleCollectionExists = collections.length > 0;
 
     return (
@@ -343,7 +306,6 @@ const ContextualCollectionInformationDrawer = ({selectedCollectionIri, ...props}
             <CollectionInformationDrawer
                 {...props}
                 loading={loading}
-                collection={collection}
                 showDeleted={showDeleted}
                 atLeastSingleCollectionExists={atLeastSingleCollectionExists}
             />
