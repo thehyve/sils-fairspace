@@ -119,9 +119,6 @@ public class FS {
     public static final String ACCESS_MODE_URI = NS + "accessMode";
     public static final Property accessMode = createProperty(ACCESS_MODE_URI);
 
-    public static final String ENTITY_TYPE_URI = NS + "entityType";
-    public static final Property entityType = createProperty(ENTITY_TYPE_URI);
-
     public static final String IMPORTANT_PROPERTY_URI = NS + "importantProperty";
     public static final Property importantProperty = createProperty(IMPORTANT_PROPERTY_URI);
 
