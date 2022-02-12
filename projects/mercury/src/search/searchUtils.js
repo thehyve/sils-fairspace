@@ -6,6 +6,7 @@ import {getPathFromIri} from "../file/fileUtils";
 import type {ExternalStorage} from "../external-storage/externalStorageUtils";
 import {getExternalStoragePathPrefix} from "../external-storage/externalStorageUtils";
 import {isEmptyObject} from "../common/utils/genericUtils";
+import {ROOT_PATH} from "../constants";
 
 export const handleTextSearchRedirect = (history: History, value: string, context: string = '', storage: ExternalStorage = {}) => {
     if (value) {
@@ -17,7 +18,7 @@ export const handleTextSearchRedirect = (history: History, value: string, contex
     } else if (!isEmptyObject(storage)) {
         history.push(`/external-storages/${storage.name}/${context ? getPathFromIri(context, storage.rootDirectoryIri) : ''}`);
     } else {
-        history.push(`/collections/${context ? getPathFromIri(context) : ''}`);
+        history.push(`/${ROOT_PATH}/${context ? getPathFromIri(context) : ''}`);
     }
 };
 
