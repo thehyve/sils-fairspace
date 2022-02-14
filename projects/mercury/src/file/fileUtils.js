@@ -4,6 +4,7 @@ import {FILE_URI, PATH_SEPARATOR} from "../constants";
 import {getCollectionAbsolutePath} from "../collections/collectionUtils";
 import {getExternalStorageAbsolutePath} from "../external-storage/externalStorageUtils";
 import type {ExternalStorage} from "../external-storage/externalStorageUtils";
+import {HierarchyLevel} from "../metadata/common/vocabularyUtils";
 
 const NON_SAFE_FILE_NAME_CHARACTERS = ['/', '\\'];
 const NON_SAFE_FILE_NAMES = ['.', '..'];
@@ -161,3 +162,18 @@ export const isValidFileName = (fileName) => {
 };
 
 export const isListOnlyFile = (file: File) => file && file.type === 'file' && file.access === "List";
+
+export const getAllowedDirectoryTypes = (hierarchy: HierarchyLevel[], parentDirectoryType: string): string[] => {
+    if (!parentDirectoryType) {
+        const rootLevel = hierarchy.find(l => l.isRoot);
+        if (!rootLevel) {
+            return [];
+        }
+        return [rootLevel.levelType];
+    }
+    const parent = hierarchy.find(l => l.levelType === parentDirectoryType);
+    if (!parent) {
+        return [];
+    }
+    return parent.allowedDescendantTypes;
+};

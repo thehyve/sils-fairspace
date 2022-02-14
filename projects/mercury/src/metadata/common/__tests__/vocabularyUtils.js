@@ -172,9 +172,28 @@ describe('Directory types hierarchy', () => {
         const hierarchy = determineHierarchy(vocabularyJsonLd);
         expect(hierarchy.length).toEqual(3);
         expect(hierarchy).toEqual([
-            "https://fairspace.nl/ontology#Project",
-            "https://fairspace.nl/ontology#ResearchProject",
-            "https://fairspace.nl/ontology#ExternalResearchProject"
+            {
+                levelType: "https://fairspace.nl/ontology#Project",
+                levelLabel: "Project",
+                isRoot: true,
+                allowedDescendantTypes: [
+                    "https://fairspace.nl/ontology#ResearchProject"
+                ]
+            },
+            {
+                levelType: "https://fairspace.nl/ontology#ResearchProject",
+                levelLabel: "Research project",
+                isRoot: false,
+                allowedDescendantTypes: [
+                    "https://fairspace.nl/ontology#ExternalResearchProject"
+                ]
+            },
+            {
+                levelType: "https://fairspace.nl/ontology#ExternalResearchProject",
+                levelLabel: "External research project",
+                isRoot: false,
+                allowedDescendantTypes: []
+            }
         ]);
     });
 });
