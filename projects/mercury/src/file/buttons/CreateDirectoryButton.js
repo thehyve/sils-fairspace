@@ -13,7 +13,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
 
     let allowedTypes = "";
     if (!hierarchy) {
-        allowedTypes = ["Error"];
+        throw new Error("No valid hierarchy structure was found.");
     } else if (!parentEntityType) {
         allowedTypes = hierarchy.filter(node => node.isRoot)[0].children;
     } else {

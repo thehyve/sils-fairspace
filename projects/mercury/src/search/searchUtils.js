@@ -23,7 +23,8 @@ export const handleTextSearchRedirect = (history: History, value: string, contex
 };
 
 export const getSearchPathSegments = (context, storageName = "") => {
-    const segments = ((context && getPathFromIri(context)) || '').split('/');
+    const rootPath = context === "/" ? "" : context;
+    const segments = ((rootPath && getPathFromIri(rootPath)) || '').split('/');
     const result = [];
     if (segments[0] === '') {
         result.push({label: 'Search results', href: ''});
