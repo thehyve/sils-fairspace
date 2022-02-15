@@ -55,7 +55,7 @@ export const getPathHierarchy = (fullPath, skipRootFolder = true) => {
 
     const paths = [];
     let path = fullPath;
-    while (path && path.lastIndexOf(PATH_SEPARATOR) > 0) {
+    while (path && path.lastIndexOf(PATH_SEPARATOR) >= 0 && path.length > 1) {
         paths.push(path);
         path = path.substring(0, path.lastIndexOf(PATH_SEPARATOR));
     }

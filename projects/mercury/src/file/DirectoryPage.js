@@ -7,7 +7,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import {Divider, Switch, withStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import FileBrowser from "./FileBrowser";
-import CollectionInformationDrawer from '../collections/CollectionInformationDrawer';
+import DirectoryInformationDrawer from './DirectoryInformationDrawer';
 import {getPathInfoFromParams, splitPathIntoArray} from "./fileUtils";
 import * as consts from '../constants';
 import BreadcrumbsContextProvider from "../common/contexts/BreadcrumbsContextProvider";
@@ -40,6 +40,7 @@ type ContextualDirectoryPageProperties = {
 
 type ParentAwareDirectoryPageProperties = ContextualDirectoryPageProperties & {
     directory: Collection;
+    directoryContent: Collection[];
     currentUser: User;
     openedPath: string;
     views: MetadataViewOptions[];
@@ -61,7 +62,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
         setShowDeleted = () => {},
         openedPath = "",
         views = [],
-        currentUser, error, location, history, directory, classes
+        currentUser, error, location, history, directory, directoryContent, classes
     } = props;
 
     const selection = useMultipleSelection();
@@ -165,10 +166,12 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                     />
                 </Grid>
                 <Grid item className={classes.sidePanel}>
-                    <CollectionInformationDrawer
+                    <DirectoryInformationDrawer
                         setBusy={setBusy}
                         path={path}
+                        selected={selection.selected}
                         showDeleted={showDeleted}
+                        directoryContent={directoryContent}
                     />
                 </Grid>
             </Grid>
@@ -203,7 +206,7 @@ const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
     const {currentUser} = useContext(UserContext);
     const {views} = useContext(MetadataViewContext);
     const {params} = props.match;
-    const {collectionName, openedPath} = getPathInfoFromParams(params);
+    const {openedPath} = getPathInfoFromParams(params);
     const {files, loading, error} = useFiles(openedPath, showDeleted);
 
     if (error) {
@@ -212,13 +215,13 @@ const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
     if (loading) {
         return <LoadingInlay />;
     }
-    const rootDirectory = files.find(f => ('/' + f.filename.toLowerCase()) === (openedPath.toLowerCase()));
-    const rootFolders = files.filter(f => f !== rootDirectory);
-    const rootFolder = rootFolders.find(c => c.name === collectionName) || {};
+    const rootDirectory = files.find(f => ('/' + f.filename.toLowerCase()) === (openedPath.toLowerCase())) || {};
+    const directoryContent = files.filter(f => f !== rootDirectory);
+    // const rootFolder = directoryContent.find(c => c.name === collectionName) || {};
 
     return showDeleted ? (
         <ParentAwareDirectoryPage
-            directory={rootFolder}
+            directory={rootDirectory}
             openedPath={openedPath}
             loading={loading}
             error={error}
@@ -230,7 +233,8 @@ const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
         />
     ) : (
         <DirectoryPage
-            directory={rootFolder}
+            directory={rootDirectory}
+            directoryContent={directoryContent}
             openedPath={openedPath}
             loading={loading}
             error={error}

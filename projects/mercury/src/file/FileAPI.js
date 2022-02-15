@@ -102,7 +102,7 @@ class FileAPI {
      */
     createDirectory(path, entityType, options = defaultOptions) {
         options.headers = {...options.headers, "Entity-Type": entityType};
-        return this.client().createDirectory((path), options)
+        return this.client().createDirectory(path, options)
             .catch(e => {
                 if (e && e.response) {
                     // eslint-disable-next-line default-case
