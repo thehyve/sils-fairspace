@@ -229,10 +229,11 @@ const generatePropertyEntry = (vocabulary, predicate, shape) => {
  */
 const getAllowedDescendantTypes = (hierarchyClass) : string[] => {
     const descendants = getFirstPredicateList(hierarchyClass, constants.HIERARCHY_DESCENDANTS);
-    if (descendants && descendants.length > 0)
-        return getFirstPredicateList(hierarchyClass, constants.HIERARCHY_DESCENDANTS).map(p => p['@id']);
+    if (descendants && descendants.length > 0) {
+        return descendants.map(p => p['@id']);
+    }
     return [];
-}
+};
 
 /**
  * Determines a hierarchy between directory types that are a part of file browser structure.
