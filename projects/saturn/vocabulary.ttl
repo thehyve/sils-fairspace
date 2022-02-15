@@ -21,7 +21,8 @@
 # Study                  > Directory
 # Object                 > Directory
 # Sample                 > Directory
-# Assay                  > File
+# Assay                  > Directory
+# External File          > Directory
 
 sils:aboutDepartment a rdf:Property .
 sils:aboutPrincipalInvestigator a rdf:Property .
