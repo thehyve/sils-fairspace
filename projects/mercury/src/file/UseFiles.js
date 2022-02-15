@@ -22,8 +22,8 @@ export const useFiles = (path, showDeleted = false, fileApi = LocalFileAPI) => {
             .then(refresh);
     };
 
-    const createDirectory = directoryPath => fileApi
-        .createDirectory(directoryPath)
+    const createDirectory = (directoryPath, entityType) => fileApi
+        .createDirectory(directoryPath, entityType)
         .then(refresh);
 
     const deleteMultiple = paths => fileApi

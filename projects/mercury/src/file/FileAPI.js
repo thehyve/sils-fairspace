@@ -29,6 +29,7 @@ export type File = {
     dateCreated: string;
     dateModified?: string;
     dateDeleted?: string;
+    entityType?: string;
     access?: string;
     metadataLinks?: string[];
 }
@@ -83,19 +84,24 @@ class FileAPI {
         if (showDeleted) {
             options.headers = {...options.headers, "Show-Deleted": "on"};
         }
-        return this.client().getDirectoryContents(path, options)
+
+        const filelist = this.client().getDirectoryContents(path, options)
             .then(result => result.data
                 .sort(comparing(compareBy('type'), compareBy('filename')))
                 .map(this.mapToFile));
+
+        return filelist;
     }
 
     /**
      * Creates a new directory within the current collection
      * @param path      Full path within the collection
+     * @param entityType The type of the entity which the directory references
      * @param options
      * @returns {*}
      */
-    createDirectory(path, options = defaultOptions) {
+    createDirectory(path, entityType, options = defaultOptions) {
+        options.headers = {...options.headers, "Entity-Type": entityType};
         return this.client().createDirectory(path, options)
             .catch(e => {
                 if (e && e.response) {
