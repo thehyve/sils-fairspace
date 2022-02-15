@@ -236,7 +236,7 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
     } else if (loading) {
         body = <div>Loading...</div>;
     } else if (!data) {
-        body = <div>Select an item to view it&apos;s metadata</div>;
+        body = <div>No metadata found</div>;
     } else {
         const {iri, iscollection} = data;
         cardTitle = `Metadata for ${data.basename}`;
