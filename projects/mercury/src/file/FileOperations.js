@@ -37,7 +37,7 @@ export const FileOperations = ({
     isExternalStorage = false,
     openedPath,
     selectedPaths,
-    openedPathEntityType,
+    openedPathType,
     clearSelection,
     fileActions = {},
     classes,
@@ -196,7 +196,7 @@ export const FileOperations = ({
                             <CreateDirectoryButton
                                 onCreate={(name, entityType) => handleCreateDirectory(name, entityType)}
                                 disabled={busy}
-                                parentEntityType={openedPathEntityType}
+                                parentDirectoryType={openedPathType}
                             >
                                 <IconButton
                                     aria-label="Create directory"

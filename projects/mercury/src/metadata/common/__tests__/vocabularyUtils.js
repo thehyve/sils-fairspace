@@ -4,13 +4,13 @@ import {
     determineShapeForProperty,
     getChildSubclasses,
     getClassesInCatalog,
-    getDescendants, getLabelForType,
+    getAllSubclasses, getLabelForType,
     getMaxCount,
     getNamespaces,
     getProperties,
     isGenericIriResource,
     isRdfList,
-    isRelationShape, typeShapeWithProperties,
+    isRelationShape, typeShapeWithProperties, determineHierarchy,
 } from '../vocabularyUtils';
 import vocabularyJsonLd from './test.vocabulary.json';
 import * as constants from "../../../constants";
@@ -157,13 +157,44 @@ describe('Class hierarchy (subclasses and descendants)', () => {
         });
     });
 
-    describe('getDescendants', () => {
+    describe('getAllSubclasses', () => {
         it('should extracts the full class hierarchy for the given type', () => {
-            const classHierarchy = getDescendants(vocabularyJsonLd, type);
+            const classHierarchy = getAllSubclasses(vocabularyJsonLd, type);
 
             expect(classHierarchy).toEqual(expect.arrayContaining([...subClasses, ...subSubClasess]));
             expect(classHierarchy).not.toEqual(expect.arrayContaining(["https://fairspace.nl/ontology#File"]));
         });
+    });
+});
+
+describe('Directory types hierarchy', () => {
+    it('should return all classes of hierarchy', () => {
+        const hierarchy = determineHierarchy(vocabularyJsonLd);
+        expect(hierarchy.length).toEqual(3);
+        expect(hierarchy).toEqual([
+            {
+                levelType: "https://fairspace.nl/ontology#Project",
+                levelLabel: "Project",
+                isRoot: true,
+                allowedDescendantTypes: [
+                    "https://fairspace.nl/ontology#ResearchProject"
+                ]
+            },
+            {
+                levelType: "https://fairspace.nl/ontology#ResearchProject",
+                levelLabel: "Research project",
+                isRoot: false,
+                allowedDescendantTypes: [
+                    "https://fairspace.nl/ontology#ExternalResearchProject"
+                ]
+            },
+            {
+                levelType: "https://fairspace.nl/ontology#ExternalResearchProject",
+                levelLabel: "External research project",
+                isRoot: false,
+                allowedDescendantTypes: []
+            }
+        ]);
     });
 });
 

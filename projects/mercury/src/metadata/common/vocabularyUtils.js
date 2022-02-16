@@ -8,6 +8,13 @@ const TYPE_PROPERTY = {
     machineOnly: true,
 };
 
+export type HierarchyLevel = {
+    levelType: string;
+    levelLabel: string;
+    allowedDescendantTypes: string[];
+    isRoot: boolean;
+}
+
 /**
  * Checks whether the given shape describes an RDF list
  * @param propertyShape
@@ -216,6 +223,41 @@ const generatePropertyEntry = (vocabulary, predicate, shape) => {
 };
 
 /**
+ * Returns list of
+ * @param hierarchyClass
+ * @returns {*[]|*}
+ */
+const getAllowedDescendantTypes = (hierarchyClass) : string[] => {
+    const descendants = getFirstPredicateList(hierarchyClass, constants.HIERARCHY_DESCENDANTS);
+    if (descendants && descendants.length > 0) {
+        return descendants.map(p => p['@id']);
+    }
+    return [];
+};
+
+/**
+ * Determines a hierarchy between directory types that are a part of file browser structure.
+ *
+ * @param vocabulary
+ * @returns {HierarchyLevel[]}    An array of hierarchy level objects.
+ */
+export const determineHierarchy = (vocabulary): HierarchyLevel[] => {
+    const hierarchyClasses = getClassesInCatalog(vocabulary)
+        .filter(entry => getFirstPredicateValue(entry, constants.IS_PART_OF_HIERARCHY) === true);
+    const hierarchyRoot = hierarchyClasses.find(entry => getFirstPredicateValue(entry, constants.IS_HIERARCHY_ROOT) === true);
+    if (hierarchyClasses !== undefined && hierarchyClasses.length > 0 && hierarchyRoot === undefined) {
+        throw Error(`Invalid hierarchy definition. No hierarchy root found.`);
+    }
+
+    return hierarchyClasses.map(c => ({
+        levelType: c['@id'],
+        isRoot: c['@id'] === hierarchyRoot['@id'],
+        levelLabel: getFirstPredicateValue(c, constants.SHACL_NAME),
+        allowedDescendantTypes: getAllowedDescendantTypes(c)
+    }));
+};
+
+/**
  * Converts the propertyshapes into a list of properties to be used for form building
  *
  * Please note that only the metadata for the first subject will be used
@@ -260,7 +302,7 @@ export const getChildSubclasses = (vocabulary, type) => vocabulary.filter(e => g
  * Returns an array of the types that are subclasses of the provided type including indirect subclasses
  * @param {string} type
  */
-export const getDescendants = (vocabulary, type) => {
+export const getAllSubclasses = (vocabulary, type) => {
     let queue = [type];
     let found = [];
 
@@ -272,23 +314,4 @@ export const getDescendants = (vocabulary, type) => {
     }
 
     return found;
-};
-
-/**
- * The directory structure can be defined in the vocabulary. The constraints on types an allowed
- * child nodes can be fetched from the Vocabulary API as json. Here we convert the json to a js object.
- * @param {string} json
- */
-export const parseHierachyNodes = json => {
-    if (!json) {
-        throw Error(`Cannot parse empty response`);
-    }
-
-    return json.map(hierarchyItem => {
-        const nodeType = hierarchyItem.TypeName;
-        const children = hierarchyItem.ChildNodes;
-        const isRoot = hierarchyItem.IsRoot;
-
-        return {nodeType, children, isRoot};
-    });
 };

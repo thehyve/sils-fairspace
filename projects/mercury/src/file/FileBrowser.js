@@ -275,7 +275,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
                 selectedPaths={selection.selected}
                 files={files}
                 openedPath={openedPath}
-                openedPathEntityType={openedPathEntityType}
+                openedPathType={openedPathEntityType}
                 isWritingEnabled={isWritingEnabled}
                 showDeleted={showDeleted}
                 fileActions={fileActions}

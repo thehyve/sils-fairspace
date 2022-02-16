@@ -1,26 +1,23 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import useIsMounted from "react-is-mounted-hook";
 import FileNameDialog from "./FileNameDialog";
 import {useFormField} from "../../common/hooks/UseFormField";
-import {isValidFileName} from "../fileUtils";
+import {getAllowedDirectoryTypes, isValidFileName} from "../fileUtils";
+import ErrorDialog from "../../common/components/ErrorDialog";
+import {getLabelForType} from "../../metadata/common/vocabularyUtils";
 import VocabularyContext from "../../metadata/vocabulary/VocabularyContext";
 
-const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType}) => {
+const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryType}) => {
     const [opened, setOpened] = useState(false);
+    const {vocabulary, hierarchy} = useContext(VocabularyContext);
     const isMounted = useIsMounted();
 
-    const {hierarchy} = useContext(VocabularyContext);
+    const allowedTypes = useMemo(
+        () => getAllowedDirectoryTypes(hierarchy, parentDirectoryType),
+        [hierarchy, parentDirectoryType]
+    );
 
-    let allowedTypes = "";
-    if (!hierarchy) {
-        throw new Error("No valid hierarchy structure was found.");
-    } else if (!parentEntityType) {
-        allowedTypes = hierarchy.filter(node => node.isRoot)[0].children;
-    } else {
-        allowedTypes = hierarchy.filter(node => node.nodeType === parentEntityType)[0].children;
-    }
-
-    const entityType = allowedTypes[0];
+    const entityType = allowedTypes.length > 0 ? allowedTypes[0] : "";
 
     const nameControl = useFormField('', value => (
         !!value && isValidFileName(value)
@@ -43,24 +40,36 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentEntityType})
 
     const validateAndCreate = () => nameControl.valid && createDirectory();
 
+    const renderFileNameDialog = () => {
+        if (!entityType) {
+            return ErrorDialog.showError(
+                "Error creating directory",
+                "No entity type available. Directory cannot be created on the current level.",
+                null,
+                closeDialog
+            );
+        }
+        return (
+            <FileNameDialog
+                onClose={closeDialog}
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    validateAndCreate();
+                }}
+                submitDisabled={Boolean(!nameControl.valid)}
+                title={"Create new " + getLabelForType(vocabulary, entityType)}
+                control={nameControl}
+            />
+        );
+    };
+
     return (
         <>
             <span style={{display: 'inherit'}} onClick={e => !disabled && openDialog(e)}>
                 {children}
             </span>
-            {opened ? (
-                <FileNameDialog
-                    onClose={closeDialog}
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        validateAndCreate();
-                    }}
-                    submitDisabled={Boolean(!nameControl.valid)}
-                    title={"Create new " + entityType}
-                    control={nameControl}
-                />
-            ) : null}
+            {opened ? (renderFileNameDialog()) : null}
         </>
     );
 };
