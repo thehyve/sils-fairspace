@@ -1,18 +1,15 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {withRouter} from "react-router-dom";
 import {useDropzone} from "react-dropzone";
 import {Typography, withStyles} from "@material-ui/core";
 import FileList from "./FileList";
 import FileOperations from "./FileOperations";
-import {useFiles} from "./UseFiles";
-import LoadingInlay from "../common/components/LoadingInlay";
-import MessageDisplay from "../common/components/MessageDisplay";
 import {encodePath, splitPathIntoArray} from "./fileUtils";
 import UploadProgressComponent from "./UploadProgressComponent";
 import UploadsContext, {showCannotOverwriteDeletedError} from "./UploadsContext";
 import {generateUuid} from "../metadata/common/metadataUtils";
 import ConfirmationDialog from "../common/components/ConfirmationDialog";
-import type {Collection} from "../collections/CollectionAPI";
+import type {OpenedDirectory} from "./DirectoryPage";
 
 const styles = (theme) => ({
     container: {
@@ -59,8 +56,7 @@ const getConflictingFiles: string[] = (newFiles, existingFileNames) => (
 
 type ContextualFileBrowserProperties = {
     history: History;
-    openedCollection: Collection;
-    openedPath: string,
+    openedDirectory: OpenedDirectory,
     isOpenedPathDeleted: boolean,
     showDeleted: boolean,
     loading: boolean,
@@ -78,10 +74,7 @@ type FileBrowserProperties = ContextualFileBrowserProperties & {
 
 export const FileBrowser = (props: FileBrowserProperties) => {
     const {
-        openedCollection = {},
-        openedPath = "",
-        openedPathEntityType = "",
-        isOpenedPathDeleted = false,
+        openedDirectory = {},
         files = [],
         showDeleted = false,
         refreshFiles = () => {},
@@ -91,7 +84,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         classes = {},
         history
     } = props;
-    const isWritingEnabled = !isOpenedPathDeleted;
+    const isWritingEnabled = !openedDirectory.isDeleted;
 
     const existingFileNames = files ? files.filter(file => file.type === "file").map(file => file.basename) : [];
     const existingFolderNames = files ? files.filter(file => file.type === "directory").map(file => file.basename) : [];
@@ -124,7 +117,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
             const newUpload = {
                 id: generateUuid(),
                 files: droppedFiles,
-                destinationPath: openedPath,
+                destinationPath: openedDirectory.path,
             };
             const newOverwriteFolderCandidates = getConflictingFolders(droppedFiles, existingFolderNames);
             const newOverwriteFileCandidates = getConflictingFiles(droppedFiles, existingFileNames);
@@ -162,15 +155,6 @@ export const FileBrowser = (props: FileBrowserProperties) => {
             open();
         }
     }, [isFolderUpload, open]);
-
-    const isParentCollectionDeleted = openedCollection.dateDeleted != null;
-    const parentCollectionDeletedRef = useRef(isParentCollectionDeleted);
-    useEffect(() => {
-        if (isParentCollectionDeleted !== parentCollectionDeletedRef.current) {
-            refreshFiles();
-            parentCollectionDeletedRef.current = isParentCollectionDeleted;
-        }
-    }, [isParentCollectionDeleted, refreshFiles]);
 
     useEffect(() => {
         if (showCannotOverwriteWarning) {
@@ -210,8 +194,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
              *      This version contains this fix: https://github.com/ReactTraining/history/pull/656
              *      It requires react-router-dom version>=6 to be released.
              */
-            history.push(`/departments${encodeURI(encodePath(path.filename))}`);
-            // history.push(encodePath(path.filename));
+            history.push(`/browser${encodeURI(encodePath(path.filename))}`);
         }
     };
 
@@ -274,8 +257,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
             <FileOperations
                 selectedPaths={selection.selected}
                 files={files}
-                openedPath={openedPath}
-                openedPathType={openedPathEntityType}
+                openedDirectory={openedDirectory}
                 isWritingEnabled={isWritingEnabled}
                 showDeleted={showDeleted}
                 fileActions={fileActions}
@@ -314,32 +296,4 @@ export const FileBrowser = (props: FileBrowserProperties) => {
     );
 };
 
-const ContextualFileBrowser = (props: ContextualFileBrowserProperties) => {
-    const {openedPath, showDeleted, loading, error} = props;
-    const {files, loading: filesLoading, error: filesError, refresh, fileActions} = useFiles(openedPath, showDeleted);
-
-    const rootDirectory = files.find(f => ('/' + f.filename.toLowerCase()) === (openedPath.toLowerCase()));
-    const rootType = rootDirectory ? rootDirectory.entityType : "";
-    const subdirectories = files.filter(f => f !== rootDirectory);
-
-    if (error || filesError) {
-        return (<MessageDisplay message="An error occurred while loading files" />);
-    }
-    if (loading || filesLoading) {
-        return <LoadingInlay />;
-    }
-
-    return (
-        <FileBrowser
-            files={subdirectories}
-            showDeleted={showDeleted}
-            refreshFiles={refresh}
-            fileActions={fileActions}
-            openedPath={openedPath}
-            openedPathEntityType={rootType}
-            {...props}
-        />
-    );
-};
-
-export default withRouter(withStyles(styles)(ContextualFileBrowser));
+export default withRouter(withStyles(styles)(FileBrowser));

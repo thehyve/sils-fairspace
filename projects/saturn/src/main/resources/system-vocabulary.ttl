@@ -32,6 +32,7 @@ fs:currentVersion a rdf:Property .
 fs:contentType a rdf:Property .
 fs:entityType a rdf:Property .
 fs:markdown rdfs:label "Markdown" .
+fs:namePlural a rdf:Property .
 
 ########################
 ###   Fixed shapes   ###

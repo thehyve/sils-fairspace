@@ -2,14 +2,11 @@ import React, {useContext} from 'react';
 import {Redirect, Route, Switch} from "react-router-dom";
 
 import * as queryString from 'query-string';
-import WorkspaceOverview from "../workspaces/WorkspaceOverview";
 import DirectoryPage from "../file/DirectoryPage";
-// import FilesPage from "../file/FilesPage";
 import {MetadataWrapper} from '../metadata/LinkedDataWrapper';
 import LinkedDataEntityPage from "../metadata/common/LinkedDataEntityPage";
 import LinkedDataMetadataProvider from "../metadata/LinkedDataMetadataProvider";
 import CollectionSearchResultList from "../search/SearchResultList";
-import WorkspacesPage from "../workspaces/WorkspacesPage";
 import {isAdmin} from "../users/userUtils";
 import UserContext from "../users/UserContext";
 import UserRolesPage from "../users/UserRolesPage";
@@ -21,27 +18,13 @@ const getSubject = () => (
     document.location.search ? queryString.parse(document.location.search).iri : null
 );
 
-const WorkspaceRoutes = () => {
+const BrowserRoutes = () => {
     const {currentUser} = useContext(UserContext);
 
     return (
         <Switch>
-            <Route path="/workspaces" exact component={WorkspacesPage} />
-
-            <Route path="/workspace" exact component={WorkspaceOverview} />
-
             <Route
-                path="/departments"
-                exact
-                render={(props) => (
-                    <LinkedDataMetadataProvider>
-                        <DirectoryPage {...props} />
-                    </LinkedDataMetadataProvider>
-                )}
-            />
-
-            <Route
-                path="/departments/:path(.*)?"
+                path="/browser/:path(.*)?"
                 render={(props) => (
                     <LinkedDataMetadataProvider>
                         <DirectoryPage {...props} />
@@ -104,9 +87,9 @@ const WorkspaceRoutes = () => {
                 render={() => (isAdmin(currentUser) && (<UserRolesPage />))}
             />
 
-            <Redirect to="/workspaces" />
+            <Redirect to="/browser" />
         </Switch>
     );
 };
 
-export default WorkspaceRoutes;
+export default BrowserRoutes;

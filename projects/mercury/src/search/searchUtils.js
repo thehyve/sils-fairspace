@@ -6,7 +6,6 @@ import {getPathFromIri} from "../file/fileUtils";
 import type {ExternalStorage} from "../external-storage/externalStorageUtils";
 import {getExternalStoragePathPrefix} from "../external-storage/externalStorageUtils";
 import {isEmptyObject} from "../common/utils/genericUtils";
-import {ROOT_PATH} from "../constants";
 
 export const handleTextSearchRedirect = (history: History, value: string, context: string = '', storage: ExternalStorage = {}) => {
     if (value) {
@@ -18,7 +17,7 @@ export const handleTextSearchRedirect = (history: History, value: string, contex
     } else if (!isEmptyObject(storage)) {
         history.push(`/external-storages/${storage.name}/${context ? getPathFromIri(context, storage.rootDirectoryIri) : ''}`);
     } else {
-        history.push(`/${ROOT_PATH}/${context ? getPathFromIri(context) : ''}`);
+        history.push(`/browser/${context ? getPathFromIri(context) : ''}`);
     }
 };
 
@@ -30,7 +29,7 @@ export const getSearchPathSegments = (context, storageName = "") => {
         result.push({label: 'Search results', href: ''});
         return result;
     }
-    let href = storageName ? getExternalStoragePathPrefix(storageName) : '/collections';
+    let href = storageName ? getExternalStoragePathPrefix(storageName) : '/browser';
     segments.forEach(segment => {
         href += '/' + segment;
         result.push({label: segment, href});

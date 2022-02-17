@@ -47,7 +47,7 @@ const CUSTOM_RESOURCE_COLUMNS = ['access', 'path'];
 const RESOURCE_TYPE_COLUMN = `${RESOURCES_VIEW}_type`;
 
 export const MetadataViewTable = (props: MetadataViewTableProperties) => {
-    const {columns, visibleColumnNames, loading, data, toggleRow, selected, view, idColumn, history, collections} = props;
+    const {columns, visibleColumnNames, loading, data, toggleRow, selected, view, idColumn, history, collections = []} = props;
     const classes = useStyles();
     const {textFiltersObject, setTextFiltersObject} = props;
     const visibleColumns = columns.filter(column => visibleColumnNames.includes(column.name));

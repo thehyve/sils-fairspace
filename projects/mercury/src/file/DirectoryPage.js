@@ -8,21 +8,17 @@ import {Divider, Switch, withStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import FileBrowser from "./FileBrowser";
 import DirectoryInformationDrawer from './DirectoryInformationDrawer';
-import {getPathInfoFromParams, splitPathIntoArray} from "./fileUtils";
+import {getHierarchyRoot, getValidPath, splitPathIntoArray} from "./fileUtils";
 import * as consts from '../constants';
 import BreadcrumbsContextProvider from "../common/contexts/BreadcrumbsContextProvider";
 import {useMultipleSelection} from "./UseSelection";
-import LoadingOverlay from "../common/components/LoadingOverlay";
 import SearchBar from "../search/SearchBar";
 import BreadCrumbs from "../common/components/BreadCrumbs";
 import usePageTitleUpdater from "../common/hooks/UsePageTitleUpdater";
-import styles from "./FilesPage.styles";
-import useAsync from "../common/hooks/UseAsync";
-import {LocalFileAPI} from "./FileAPI";
+import styles from "./DirectoryPage.styles";
 import {getMetadataViewsPath, RESOURCES_VIEW} from "../metadata/views/metadataViewUtils";
 import UserContext from "../users/UserContext";
 import MetadataViewContext from "../metadata/views/MetadataViewContext";
-import type {Collection} from "../collections/CollectionAPI";
 import type {User} from "../users/UsersAPI";
 import {MetadataViewOptions} from "../metadata/views/MetadataViewAPI";
 import type {Match} from "../types";
@@ -30,6 +26,17 @@ import {handleTextSearchRedirect} from "../search/searchUtils";
 import {useFiles} from "./UseFiles";
 import LoadingInlay from "../common/components/LoadingInlay";
 import MessageDisplay from "../common/components/MessageDisplay";
+import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
+import useAsync from "../common/hooks/UseAsync";
+import {LocalFileAPI} from "./FileAPI";
+import type {HierarchyLevel} from "../metadata/common/vocabularyUtils";
+
+export type OpenedDirectory = {
+    iri: string,
+    path: string,
+    directoryType: string,
+    isDeleted: boolean,
+}
 
 type ContextualDirectoryPageProperties = {
     match: Match;
@@ -38,35 +45,30 @@ type ContextualDirectoryPageProperties = {
     classes: any;
 };
 
-type ParentAwareDirectoryPageProperties = ContextualDirectoryPageProperties & {
-    directory: Collection;
-    directoryContent: Collection[];
+type DirectoryPageProperties = ContextualDirectoryPageProperties & {
+    openedDirectory: OpenedDirectory;
+    files: File[];
+    hierarchy: HierarchyLevel[];
+    fileActions: any;
     currentUser: User;
-    openedPath: string;
     views: MetadataViewOptions[];
-    loading: boolean;
-    error: Error;
     showDeleted: boolean;
     setShowDeleted: (boolean) => void;
-}
-
-type DirectoryPageProperties = ParentAwareDirectoryPageProperties & {
-    isOpenedPathDeleted: boolean;
+    refreshFiles: () => void;
 };
 
 export const DirectoryPage = (props: DirectoryPageProperties) => {
     const {
-        loading = false,
-        isOpenedPathDeleted = false,
+        openedDirectory = {},
         showDeleted = false,
         setShowDeleted = () => {},
-        openedPath = "",
         views = [],
-        currentUser, error, location, history, directory, directoryContent, classes
+        files = [],
+        hierarchy = [],
+        fileActions, refreshFiles, currentUser, location, history, classes
     } = props;
 
     const selection = useMultipleSelection();
-    const [busy, setBusy] = useState(false);
 
     // TODO: this code could be buggy, if the url had an invalid file name it will still be part of the selection.
     // I suggest that the selection state be part of a context (FilesContext ?)..
@@ -75,9 +77,23 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
     // If so, select it on first render
     const preselectedFile = location.search ? decodeURIComponent(queryString.parse(location.search).selection) : undefined;
 
-    const getLocationContext = () => encodeURI(openedPath);
+    const hierarchyRoot = getHierarchyRoot(hierarchy);
+
+    const getLocationContext = () => {
+        if (!openedDirectory.iri) {
+            return "";
+        }
+        return encodeURI(openedDirectory.iri);
+    };
+
+    const getBrowserPathPrefix = () => consts.PATH_SEPARATOR + "browser" + consts.PATH_SEPARATOR;
 
     const getMetadataSearchRedirect = () => `${getMetadataViewsPath()}?${queryString.stringify({view: RESOURCES_VIEW, context: getLocationContext()})}`;
+
+    const getSearchPlaceholder = () => {
+        const parentFolderName = openedDirectory.path ? openedDirectory.path.substring(openedDirectory.path.lastIndexOf('/') + 1) : null;
+        return parentFolderName ? `Search in ${parentFolderName}` : `Search in all ${hierarchyRoot.labelPlural || hierarchyRoot.label}`;
+    };
 
     const handleTextSearch = (value) => handleTextSearchRedirect(history, value, getLocationContext());
 
@@ -87,27 +103,26 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [preselectedFile]);
-    const pathSegments = splitPathIntoArray(openedPath);
+    const pathSegments = splitPathIntoArray(openedDirectory.path);
     const breadcrumbSegments = pathSegments.map((segment, idx) => ({
         label: segment,
-        href: consts.PATH_SEPARATOR + consts.ROOT_PATH + consts.PATH_SEPARATOR
-            + pathSegments.slice(0, idx + 1).map(encodeURIComponent).join(consts.PATH_SEPARATOR)
+        href: getBrowserPathPrefix() + pathSegments.slice(0, idx + 1).map(encodeURIComponent).join(consts.PATH_SEPARATOR)
     }));
 
     usePageTitleUpdater(`${breadcrumbSegments.map(s => s.label).join(' / ')} /`);
 
     // Path for which metadata should be rendered
-    const path = (selection.selected.length === 1) ? selection.selected[0] : openedPath;
+    const path = (selection.selected.length === 1) ? selection.selected[0] : openedDirectory.path;
 
     const showMetadataSearchButton: boolean = (
         currentUser && currentUser.canViewPublicMetadata && views && views.some(v => v.name === RESOURCES_VIEW)
-        && !isOpenedPathDeleted
+        && !openedDirectory.isDeleted
     );
 
     return (
         <BreadcrumbsContextProvider
-            label="Departments"
-            href="/departments"
+            label={hierarchyRoot.labelPlural || hierarchyRoot.label}
+            href="/browser"
         >
             <div className={classes.breadcrumbs}>
                 <BreadCrumbs additionalSegments={breadcrumbSegments} />
@@ -117,7 +132,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                     <Grid container>
                         <Grid item xs={6}>
                             <SearchBar
-                                placeholder={`Search in ${openedPath.substring(openedPath.lastIndexOf('/') + 1)}`}
+                                placeholder={getSearchPlaceholder()}
                                 onSearchChange={handleTextSearch}
                             />
                         </Grid>
@@ -127,7 +142,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                                     <Button
                                         variant="text"
                                         color="primary"
-                                        href={getMetadataSearchRedirect(RESOURCES_VIEW)}
+                                        href={getMetadataSearchRedirect()}
                                     >
                                         Metadata search
                                     </Button>
@@ -142,7 +157,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                                         color="primary"
                                         checked={showDeleted}
                                         onChange={() => setShowDeleted(!showDeleted)}
-                                        disabled={isOpenedPathDeleted}
+                                        disabled={openedDirectory.isDeleted}
                                     />
                                 )}
                                 label="Show deleted"
@@ -155,49 +170,25 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                 <Grid item className={classes.centralPanel}>
                     <FileBrowser
                         data-testid="file-browser"
-                        openedCollection={directory}
-                        openedPath={openedPath}
-                        isOpenedPathDeleted={isOpenedPathDeleted}
-                        loading={loading}
-                        error={error}
+                        openedDirectory={openedDirectory}
                         selection={selection}
                         preselectedFile={preselectedFile}
                         showDeleted={showDeleted}
+                        files={files}
+                        refreshFiles={refreshFiles}
+                        fileActions={fileActions}
                     />
                 </Grid>
                 <Grid item className={classes.sidePanel}>
                     <DirectoryInformationDrawer
-                        setBusy={setBusy}
                         path={path}
                         selected={selection.selected}
                         showDeleted={showDeleted}
-                        directoryContent={directoryContent}
+                        atLeastSingleRootDirectoryExists={!!openedDirectory.iri || files.length > 0}
                     />
                 </Grid>
             </Grid>
-            <LoadingOverlay loading={busy} />
         </BreadcrumbsContextProvider>
-    );
-};
-
-const ParentAwareDirectoryPage = (props: ParentAwareDirectoryPageProperties) => {
-    const {data, error, loading, refresh} = useAsync(
-        () => (LocalFileAPI.stat(props.openedPath, true)),
-        [props.openedPath]
-    );
-
-    useEffect(() => {refresh();}, [props.directory.dateDeleted, refresh]);
-
-    const isParentFolderDeleted = data && data.props && !!data.props.dateDeleted;
-    const isOpenedPathDeleted = !!props.directory.dateDeleted || isParentFolderDeleted;
-
-    return (
-        <DirectoryPage
-            isOpenedPathDeleted={isOpenedPathDeleted}
-            loading={loading && props.loading}
-            error={error && props.error}
-            {...props}
-        />
     );
 };
 
@@ -205,39 +196,36 @@ const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
     const [showDeleted, setShowDeleted] = useState(false);
     const {currentUser} = useContext(UserContext);
     const {views} = useContext(MetadataViewContext);
+    const {hierarchy} = useContext(VocabularyContext);
     const {params} = props.match;
-    const {openedPath} = getPathInfoFromParams(params);
-    const {files, loading, error} = useFiles(openedPath, showDeleted);
+    const openedPath = getValidPath(params.path);
+    const {files, loading, error, refresh, fileActions} = useFiles(openedPath, showDeleted);
+    const {data: currentDir = {}, error: currentDirError, loading: currentDirLoading} = useAsync(
+        () => (LocalFileAPI.stat(openedPath, true)),
+        [openedPath]
+    );
 
-    if (error) {
+    if (error || currentDirError) {
         return (<MessageDisplay message="An error occurred while loading files" />);
     }
-    if (loading) {
+    if (loading || currentDirLoading) {
         return <LoadingInlay />;
     }
-    const rootDirectory = files.find(f => ('/' + f.filename.toLowerCase()) === (openedPath.toLowerCase())) || {};
-    const directoryContent = files.filter(f => f !== rootDirectory);
-    // const rootFolder = directoryContent.find(c => c.name === collectionName) || {};
 
-    return showDeleted ? (
-        <ParentAwareDirectoryPage
-            directory={rootDirectory}
-            openedPath={openedPath}
-            loading={loading}
-            error={error}
-            showDeleted={showDeleted}
-            setShowDeleted={setShowDeleted}
-            currentUser={currentUser}
-            views={views}
-            {...props}
-        />
-    ) : (
+    const openedDirectory: OpenedDirectory = {
+        iri: currentDir.iri,
+        path: openedPath,
+        directoryType: currentDir.entityType,
+        isDeleted: currentDir.isDeleted || false
+    };
+
+    return (
         <DirectoryPage
-            directory={rootDirectory}
-            directoryContent={directoryContent}
-            openedPath={openedPath}
-            loading={loading}
-            error={error}
+            openedDirectory={openedDirectory}
+            files={files}
+            hierarchy={hierarchy}
+            refreshFiles={refresh}
+            fileActions={fileActions}
             showDeleted={showDeleted}
             setShowDeleted={setShowDeleted}
             currentUser={currentUser}

@@ -37,7 +37,7 @@ describe('FileOperations', () => {
         refreshFiles={refreshFiles}
         clearSelection={clearSelection}
         fileActions={fileActions}
-        openedPath={openedPath}
+        openedDirectory={{path: openedPath}}
         isWritingEnabled
     />);
 
@@ -162,7 +162,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted={false}
@@ -182,7 +182,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
@@ -202,7 +202,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
@@ -222,7 +222,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
@@ -251,7 +251,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
             />);
@@ -270,7 +270,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
             />);

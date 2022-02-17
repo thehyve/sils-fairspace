@@ -54,6 +54,7 @@ sils:Department a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
     sh:description "A division of a large organization such as a government, university, or business, dealing with a specific area of activity." ;
     sh:name "Department" ;
+    fs:namePlural "Departments" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:PrincipalInvestigator ) ;

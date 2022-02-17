@@ -97,13 +97,12 @@ export const redirectLink = (iri: string, type: string, storage: ExternalStorage
     return getAbsolutePath(path, storage.name);
 };
 
-export const getPathInfoFromParams = ({collection, path}) => (
-    {
-        collectionName: decodeIfPossible(collection || ''),
-        openedPath: `/${decodeIfPossible(collection || '')}${path
-            ? `/${path.split(PATH_SEPARATOR).map(decodeIfPossible).join(PATH_SEPARATOR)}` : ''}`
+export const getValidPath = (path) => {
+    if (!path) {
+        return "/";
     }
-);
+    return `${PATH_SEPARATOR}${path.split(PATH_SEPARATOR).map(decodeIfPossible).join(PATH_SEPARATOR)}`;
+};
 
 export function getFileName(path) {
     const normalizedPath = path.endsWith(PATH_SEPARATOR) ? path.substring(0, path.length - 1) : path;
@@ -163,15 +162,17 @@ export const isValidFileName = (fileName) => {
 
 export const isListOnlyFile = (file: File) => file && file.type === 'file' && file.access === "List";
 
+export const getHierarchyRoot = (hierarchy: HierarchyLevel[]): HierarchyLevel => hierarchy.find(l => l.isRoot) || {};
+
 export const getAllowedDirectoryTypes = (hierarchy: HierarchyLevel[], parentDirectoryType: string): string[] => {
     if (!parentDirectoryType) {
-        const rootLevel = hierarchy.find(l => l.isRoot);
-        if (!rootLevel) {
+        const rootLevel = getHierarchyRoot(hierarchy);
+        if (rootLevel === {}) {
             return [];
         }
-        return [rootLevel.levelType];
+        return [rootLevel.type];
     }
-    const parent = hierarchy.find(l => l.levelType === parentDirectoryType);
+    const parent = hierarchy.find(l => l.type === parentDirectoryType);
     if (!parent) {
         return [];
     }

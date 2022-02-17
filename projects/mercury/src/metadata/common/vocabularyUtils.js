@@ -9,11 +9,12 @@ const TYPE_PROPERTY = {
 };
 
 export type HierarchyLevel = {
-    levelType: string;
-    levelLabel: string;
+    type: string;
+    label: string;
+    labelPlural: string;
     allowedDescendantTypes: string[];
     isRoot: boolean;
-}
+};
 
 /**
  * Checks whether the given shape describes an RDF list
@@ -250,9 +251,10 @@ export const determineHierarchy = (vocabulary): HierarchyLevel[] => {
     }
 
     return hierarchyClasses.map(c => ({
-        levelType: c['@id'],
+        type: c['@id'],
         isRoot: c['@id'] === hierarchyRoot['@id'],
-        levelLabel: getFirstPredicateValue(c, constants.SHACL_NAME),
+        label: getFirstPredicateValue(c, constants.SHACL_NAME),
+        labelPlural: getFirstPredicateValue(c, constants.NAME_PLURAL),
         allowedDescendantTypes: getAllowedDescendantTypes(c)
     }));
 };

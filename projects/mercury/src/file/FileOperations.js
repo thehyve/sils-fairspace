@@ -35,9 +35,8 @@ export const FileOperations = ({
     isWritingEnabled,
     showDeleted,
     isExternalStorage = false,
-    openedPath,
+    openedDirectory = {},
     selectedPaths,
-    openedPathType,
     clearSelection,
     fileActions = {},
     classes,
@@ -61,7 +60,7 @@ export const FileOperations = ({
     const isDeletedItemSelected = selectedDeletedItems.length > 0;
     const isListOnlyItemSelected = isListOnlyFile(selectedItem);
     const isDisabledForMoreThanOneSelection = selectedPaths.length === 0 || moreThanOneItemSelected;
-    const isClipboardItemsOnOpenedPath = !clipboard.isEmpty() && clipboard.filenames.map(f => getParentPath(f)).includes(openedPath);
+    const isClipboardItemsOnOpenedPath = !clipboard.isEmpty() && clipboard.filenames.map(f => getParentPath(f)).includes(openedDirectory.path);
     const isPasteDisabled = !isWritingEnabled || clipboard.isEmpty() || (isClipboardItemsOnOpenedPath && clipboard.method === CUT);
 
     const fileOperation = (operationCode, operationPromise) => {
@@ -110,19 +109,25 @@ export const FileOperations = ({
         return Promise.resolve();
     };
 
-    const handleCreateDirectory = (name, entityType) => fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedPath, name), entityType))
-        .catch((err) => {
-            if (err.message.includes('status code 409')) {
+    const handleCreateDirectory = (name, entityType) => (
+        fileOperation(Operations.MKDIR, fileActions.createDirectory(joinPaths(openedDirectory.path, name), entityType))
+            .catch((err) => {
+                if (err.message.includes('status code 409')) {
+                    ErrorDialog.showError(
+                        'Directory name must be unique',
+                        'Directory with this name already exists and was marked as deleted.\n'
+                        + 'Please delete the existing directory permanently or choose a unique name.'
+                    );
+                    return true;
+                }
                 ErrorDialog.showError(
-                    'Directory name must be unique',
-                    'Directory with this name already exists and was marked as deleted.\n'
-                    + 'Please delete the existing directory permanently or choose a unique name.'
+                    "An error occurred while creating directory",
+                    err,
+                    () => handleCreateDirectory(name, entityType)
                 );
                 return true;
-            }
-            ErrorDialog.showError("An error occurred while creating directory", err, () => handleCreateDirectory(name));
-            return true;
-        });
+            })
+    );
 
     const handlePathRename = (path, newName) => fileOperation(Operations.RENAME, fileActions.renameFile(path.basename, newName))
         .catch((err) => {
@@ -196,7 +201,7 @@ export const FileOperations = ({
                             <CreateDirectoryButton
                                 onCreate={(name, entityType) => handleCreateDirectory(name, entityType)}
                                 disabled={busy}
-                                parentDirectoryType={openedPathType}
+                                parentDirectoryType={openedDirectory.directoryType}
                             >
                                 <IconButton
                                     aria-label="Create directory"
