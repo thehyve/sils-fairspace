@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 import {Chip, Divider, Grid, Tooltip, Typography, withStyles} from "@material-ui/core";
 import IriTooltip from "../../common/components/IriTooltip";
-import CollectionBrowserLink from "./CollectionBrowserLink";
+import DirectoryBrowserLink from "./DirectoryBrowserLink";
 import {
     COLLECTION_URI, DATE_DELETED_URI,
     DIRECTORY_URI,
@@ -69,7 +69,7 @@ const LinkedDataEntityHeader = ({
                         />
                     )}
 
-                    <CollectionBrowserLink
+                    <DirectoryBrowserLink
                         type={typeInfo.typeIri}
                         filePath={values[FILE_PATH_URI]}
                     />

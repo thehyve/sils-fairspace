@@ -275,7 +275,7 @@ export const MetadataView = (props: MetadataViewProperties) => {
             segments: [{label: "Metadata", href: getMetadataViewsPath(currentView.name), icon: <Assignment />}]
         }}
         >
-            <BreadCrumbs additionalSegments={getPathSegments(locationContext)} />
+            <BreadCrumbs additionalSegments={getPathSegments()} />
             {(areFacetFiltersNonEmpty() || areTextFiltersNonEmpty()) && (
                 <Grid container justifyContent="space-between" direction="row-reverse">
                     <Grid item xs={2} className={classes.clearAllButtonContainer}>

@@ -5,7 +5,7 @@ import {
     getBaseNameAndExtension,
     getFileName,
     getParentPath, getPathFromIri,
-    getPathInfoFromParams, joinPathsAvoidEmpty, redirectLink
+    getValidPath, joinPathsAvoidEmpty, redirectLink
 } from '../fileUtils';
 import {DIRECTORY_URI, FILE_URI} from "../../constants";
 
@@ -80,22 +80,11 @@ describe('getFileName', () => {
     });
 });
 
-describe('getPathInfoFromParams', () => {
+describe('getValidPath', () => {
     it('gets path info properly', () => {
-        expect(getPathInfoFromParams({collection: '', path: ''})).toEqual({
-            collectionName: '',
-            openedPath: '/'
-        });
-
-        expect(getPathInfoFromParams({collection: undefined, path: undefined})).toEqual({
-            collectionName: '',
-            openedPath: '/'
-        });
-
-        expect(getPathInfoFromParams({collection: 'collectionX', path: 'something/something'})).toEqual({
-            collectionName: 'collectionX',
-            openedPath: '/collectionX/something/something'
-        });
+        expect(getValidPath('')).toEqual("/");
+        expect(getValidPath(undefined)).toEqual("/");
+        expect(getValidPath('something/something')).toEqual('/something/something');
     });
 });
 

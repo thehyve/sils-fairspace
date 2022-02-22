@@ -1,4 +1,4 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import useIsMounted from "react-is-mounted-hook";
 import FileNameDialog from "./FileNameDialog";
 import {useFormField} from "../../common/hooks/UseFormField";
@@ -12,11 +12,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryTyp
     const {vocabulary, hierarchy} = useContext(VocabularyContext);
     const isMounted = useIsMounted();
 
-    const allowedTypes = useMemo(
-        () => getAllowedDirectoryTypes(hierarchy, parentDirectoryType),
-        [hierarchy, parentDirectoryType]
-    );
-
+    const allowedTypes = getAllowedDirectoryTypes(hierarchy, parentDirectoryType);
     const entityType = allowedTypes.length > 0 ? allowedTypes[0] : "";
 
     const nameControl = useFormField('', value => (

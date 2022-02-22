@@ -65,6 +65,13 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+type ContextualDirectoryInformationDrawerProperties = {
+    path: string;
+    selected: any[];
+    showDeleted: boolean;
+    atLeastSingleRootDirectoryExists: boolean;
+};
+
 const generateTemplate = (vocabulary) => {
     const userProps = flatMap(
         [FILE_URI, DIRECTORY_URI, COLLECTION_URI]
@@ -86,9 +93,9 @@ const generateTemplate = (vocabulary) => {
     };
 
     const type = ps => {
-        let shaclType = getFirstPredicateId(ps, SHACL_DATATYPE);
+        let shaclType = getFirstPredicateId(ps, SHACL_DATATYPE) || getFirstPredicateId(ps, SHACL_CLASS);
         if (!shaclType) {
-            shaclType = getFirstPredicateId(ps, SHACL_CLASS);
+            shaclType = "";
         }
         return shaclType.substring(shaclType.lastIndexOf('#') + 1);
     };
@@ -267,26 +274,21 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
 
 type DirectoryInformationDrawerProps = {
     path: string;
-    inCollectionsBrowser: boolean;
-    atLeastSingleCollectionExists: boolean;
-    setBusy: (boolean) => void;
+    atLeastSingleRootDirectoryExists: boolean;
     showDeleted: boolean;
-    onChangeOwner: () => void;
-    loading: boolean;
     selected: string;
 };
 
 export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProps) => {
-    // const {path, showDeleted, selected} = props;
-    const {path, showDeleted, selected, atLeastSingleRootFileExists} = props;
+    const {path, showDeleted, selected, atLeastSingleRootDirectoryExists} = props;
 
     const paths = getPathHierarchy(path);
     if (selected && selected.length === 1 && selected[0] !== path) {
         paths.push(selected[0]);
     }
 
-    if (paths.length === 0 && !selected && selected.length === 0) {
-        return atLeastSingleRootFileExists ? (
+    if (paths.length === 0 && (!selected || selected.length === 0)) {
+        return atLeastSingleRootDirectoryExists ? (
             <EmptyInformationDrawer message="Select a file or a folder to display its metadata" />
         ) : <></>;
     }
@@ -302,34 +304,14 @@ export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProp
             />
         ))
     );
-    // return (
-    //     <PathMetadata
-    //         key={path}
-    //         path={path}
-    //         showDeleted={showDeleted}
-    //         hasEditRight="true" // TODO: access rights
-    //     />
-    // );
 };
 
-DirectoryInformationDrawer.defaultProps = {
-    inCollectionsBrowser: false,
-    setBusy: () => {
-    }
-};
-
-const ContextualDirectoryInformationDrawer = (props) => {
-    const atLeastSingleCollectionExists = props.directoryContent && props.directoryContent.length > 0;
-
-    return (
-        <SnackbarProvider maxSnack={3}>
-            <DirectoryInformationDrawer
-                {...props}
-                showDeleted="false" // TODO: make it work without collections
-                atLeastSingleCollectionExists={atLeastSingleCollectionExists}
-            />
-        </SnackbarProvider>
-    );
-};
+const ContextualDirectoryInformationDrawer = (props: ContextualDirectoryInformationDrawerProperties) => (
+    <SnackbarProvider maxSnack={3}>
+        <DirectoryInformationDrawer
+            {...props}
+        />
+    </SnackbarProvider>
+);
 
 export default withRouter(ContextualDirectoryInformationDrawer);

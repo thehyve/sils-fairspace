@@ -8,7 +8,6 @@ export const LEFT_MENU_EXPANSION_DELAY = 500;
 export const MAIN_CONTENT_WIDTH = '65%';
 export const SIDE_PANEL_WIDTH = '35%';
 export const MAIN_CONTENT_MAX_HEIGHT = 'calc(100vh - 156px)';
-export const ROOT_PATH = 'departments';
 export const METADATA_PATH = '/metadata';
 export const CROSS_WORKSPACES_SEARCH_PATH = '/workspaces/_all';
 export const TOOLTIP_ENTER_DELAY = 350;
@@ -110,5 +109,6 @@ export const IS_MANAGER_OF_URI = FAIRSPACE_NS + 'isManagerOf';
 export const IS_HIERARCHY_ROOT = FAIRSPACE_NS + 'hierarchyRoot';
 export const IS_PART_OF_HIERARCHY = FAIRSPACE_NS + 'partOfHierarchy';
 export const HIERARCHY_DESCENDANTS = FAIRSPACE_NS + 'hierarchyDescendants';
+export const NAME_PLURAL = FAIRSPACE_NS + 'namePlural';
 
 export const NIL_URI = FAIRSPACE_NS + 'nil';
