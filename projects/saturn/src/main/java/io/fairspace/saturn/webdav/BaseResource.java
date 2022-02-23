@@ -51,8 +51,8 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     @Property
     public String getEntityType() {
-        if(subject.hasProperty(FS.entityType)) {
-            return subject.getProperty(FS.entityType).getString();
+        if(subject.hasProperty(FS.linkedEntityType)) {
+            return subject.getProperty(FS.linkedEntityType).getString();
         }
 
         return "";

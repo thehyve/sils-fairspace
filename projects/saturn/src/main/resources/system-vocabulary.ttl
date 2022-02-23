@@ -30,7 +30,8 @@ fs:movedTo a rdf:Property .
 fs:versions a rdf:Property .
 fs:currentVersion a rdf:Property .
 fs:contentType a rdf:Property .
-fs:entityType a rdf:Property .
+fs:linkedEntityType a rdf:Property .
+fs:linkedEntity a rdf:Property .
 fs:markdown rdfs:label "Markdown" .
 fs:namePlural a rdf:Property .
 
@@ -201,6 +202,20 @@ fs:Directory a rdfs:Class, sh:NodeShape ;
         dash:singleLine true ;
         sh:path dcat:keyword;
         sh:order 2
+    ],
+    [
+        sh:name "Linked entity type" ;
+        sh:description "" ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path fs:linkedEntityType
+    ],
+    [
+        sh:name "Linked entity" ;
+        sh:description "" ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1;
+        sh:path fs:linkedEntity
     ] .
 
 fs:Collection a rdfs:Class, sh:NodeShape ;

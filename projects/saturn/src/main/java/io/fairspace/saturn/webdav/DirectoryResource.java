@@ -1,5 +1,6 @@
 package io.fairspace.saturn.webdav;
 
+import io.fairspace.saturn.rdf.SparqlUtils;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.vocabulary.FS;
@@ -35,9 +36,7 @@ import static io.fairspace.saturn.rdf.ModelUtils.getStringProperty;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.PathUtils.*;
-import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
-import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
-import static io.fairspace.saturn.webdav.WebDAVServlet.entityType;
+import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.jena.graph.NodeFactory.createURI;
@@ -62,10 +61,20 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     @Override
+    /**
+     * Directories are linked to entities. Each directory has an entity type. When a new
+     * directory is created at the client side, the request is processed here.
+     *
+     * First we create the directory, than the new entity of the specified type. If both
+     * successful we link the directory to the new entity.
+     */
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        var type = entityType();
+
+        // create directory
         var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
-        subj.addProperty(FS.entityType, type);
+
+        // create entity
+        createLinkedEntity(newName, subj, factory);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
     }
@@ -88,6 +97,37 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         return factory.getResource(subj, access);
     }
 
+    public static org.apache.jena.rdf.model.Resource createLinkedEntity(String name,
+                                                                        org.apache.jena.rdf.model.Resource linkedDirectory,
+                                                                        DavFactory davFactory) throws BadRequestException {
+        var type = entityType();
+        linkedDirectory.addProperty(FS.linkedEntityType, type);
+
+        if (type != null) {
+            type = type.trim();
+        }
+        if (type == null || type.isEmpty()) {
+            throw new BadRequestException("The entity type is empty.");
+        }
+        if (type.contains("\\")) {
+            throw new BadRequestException(
+                    "The name contains an illegal character (\\)");
+        }
+
+        var iri = encodePath(SparqlUtils.generateMetadataIri() + "/" + name);
+        var newEntity = linkedDirectory.getModel().createResource(iri);
+        var typeNode = linkedDirectory.getModel().createResource(type);
+
+        newEntity.addProperty(RDFS.label, name)
+                .addProperty(FS.createdBy, davFactory.currentUserResource())
+                .addProperty(FS.dateCreated, WebDAVServlet.timestampLiteral())
+                .addProperty(RDF.type, typeNode);
+
+        linkedDirectory.addProperty(FS.linkedEntity, newEntity);
+
+        return newEntity;
+    }
+
     private org.apache.jena.rdf.model.Resource createResource(String name) throws ConflictException, NotAuthorizedException, BadRequestException {
         if (name != null) {
             name = name.trim();
@@ -100,13 +140,16 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                     "The name contains an illegal character (\\)");
         }
 
-        var existing = factory.getResourceByType(childSubject(subject, name), access);
+        var subj = childSubject(subject, name);
+
+        var existing = factory.getResourceByType(subj, access);
         if (existing != null) {
             throw new ConflictException(existing);
         }
 
-        var subj = childSubject(subject, name);
-        subj.getModel().removeAll(subj, null, null).removeAll(null, null, subj);
+        subj.getModel()
+                .removeAll(subj, null, null)
+                .removeAll(null, null, subj);
         var t = WebDAVServlet.timestampLiteral();
 
         subj.addProperty(RDFS.label, name)

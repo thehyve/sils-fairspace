@@ -59,9 +59,6 @@ public class DavFactory implements ResourceFactory {
         var uri = subject.getURI();
         var nextSeparatorPos = uri.indexOf('/', rootSubject.getURI().length() + 1);
         var coll = rootSubject.getModel().createResource(nextSeparatorPos < 0 ? uri : uri.substring(0, nextSeparatorPos));
-        if (!coll.hasProperty(RDF.type, FS.Collection)) {
-            return Access.None;
-        }
 
         var user = currentUserResource();
         var ownerWs = coll.getPropertyResourceValue(FS.ownedBy);

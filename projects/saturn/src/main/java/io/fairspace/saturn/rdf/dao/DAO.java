@@ -76,7 +76,7 @@ public class DAO {
 
     /**
      * Writes (creates or updates) an entity.
-     * This method can modify the entity passed as an argument. It it has no IRI it will be automatically assigned.
+     * This method can modify the entity passed as an argument. If it has no IRI it will be automatically assigned.
      * This method also updates the relevant fields of LifecycleAwarePersistentEntity
      *
      * @param entity

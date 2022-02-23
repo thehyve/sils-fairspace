@@ -119,8 +119,11 @@ public class FS {
     public static final String ACCESS_MODE_URI = NS + "accessMode";
     public static final Property accessMode = createProperty(ACCESS_MODE_URI);
 
-    public static final String ENTITY_TYPE_URI = NS + "entityType";
-    public static final Property entityType = createProperty(ENTITY_TYPE_URI);
+    public static final String LINKED_ENTITY_TYPE_URI = NS + "linkedEntityType";
+    public static final Property linkedEntityType = createProperty(LINKED_ENTITY_TYPE_URI);
+
+    public static final String LINKED_ENTITY_URI = NS + "linkedEntity";
+    public static final Property linkedEntity = createProperty(LINKED_ENTITY_URI);
 
     public static final String IMPORTANT_PROPERTY_URI = NS + "importantProperty";
     public static final Property importantProperty = createProperty(IMPORTANT_PROPERTY_URI);
@@ -147,6 +150,8 @@ public class FS {
 
     public static final String NIL_URI = NS + "nil";
     public static final Property nil = createProperty(NIL_URI);
+
+    public static final String ROOT_URI = NS + "root";
 
     public static final String IS_ADMIN_URI = NS + "isAdmin";
     public static final String CAN_VIEW_PUBLIC_METADATA_URI = NS + "canViewPublicMetadata";
