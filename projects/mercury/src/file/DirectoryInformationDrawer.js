@@ -245,12 +245,12 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
     } else if (!data) {
         body = <div>No metadata found</div>;
     } else {
-        const {iri, iscollection} = data;
+        const {iscollection, linkedEntityIri} = data;
         cardTitle = `Metadata for ${data.basename}`;
         isDirectory = iscollection && (iscollection.toLowerCase() === 'true');
         body = (
             <LinkedDataEntityFormWithLinkedData
-                subject={iri}
+                subject={linkedEntityIri}
                 hasEditRight={hasEditRight}
             />
         );

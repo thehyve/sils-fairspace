@@ -60,16 +60,18 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         return null;
     }
 
-    @Override
     /**
-     * Directories are linked to entities. Each directory has an entity type. When a new
-     * directory is created at the client side, the request is processed here.
+     * Directories in Fairspace are linked to entities. Each directory has an entitytype attribute and an entity iri attribute.
+     * When a new directory is created at the client side, the request is processed here.
      *
-     * First we create the directory, than the new entity of the specified type. If both
-     * successful we link the directory to the new entity.
+     * First we create the directory, than create the new entity of the specified type, and save the iri of the
+     * new entity as directory attribute.
+     *
+     * In the frontend when you click a directory, in the right panel you see the properties of the entity. From a user perspective
+     * the directories are the entities.
      */
+    @Override
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-
         // create directory
         var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
 

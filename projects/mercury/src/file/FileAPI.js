@@ -29,7 +29,9 @@ export type File = {
     dateCreated: string;
     dateModified?: string;
     dateDeleted?: string;
-    entityType?: string;
+    // 'linkedEntityTyp' is mapped by convention with the 'getLinkedEntityType' property in BaseResource
+    linkedEntityType?: string;
+    linkedEntityIri?: string;
     access?: string;
     metadataLinks?: string[];
 }
