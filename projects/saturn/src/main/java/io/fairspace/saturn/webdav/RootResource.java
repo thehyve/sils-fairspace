@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.PathUtils.validateCollectionName;
 import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
@@ -61,6 +62,15 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
         }
     }
 
+    private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource type) throws BadRequestException {
+        var hasValidType = VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot)
+                .filterKeep(root -> root.getURI().equals(type.getURI()))
+                .hasNext();
+        if (!hasValidType) {
+            throw new BadRequestException("The provided linked entity type is invalid: " + type.getURI());
+        }
+    }
+
     /**
      * Creates a new collection resource, sets the owner workspaces and assigns
      * manage permission on the collection to the current user.
@@ -82,6 +92,8 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
             name = name.trim();
         }
         validateTargetCollectionName(name);
+        var type = factory.getLinkedEntityType();
+        validateLinkedEntityType(type);
 
         var subj = childSubject(factory.rootSubject, name);
         if (subj.hasProperty(RDF.type) && !subj.hasProperty(FS.dateDeleted)) {
@@ -98,11 +110,9 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .addProperty(FS.dateCreated, timestampLiteral())
                 .addProperty(FS.dateModified, timestampLiteral())
                 .addProperty(FS.modifiedBy, user)
-                .addProperty(FS.accessMode, AccessMode.Restricted.name())
-                .addProperty(FS.belongsTo, FS.ROOT_URI)
-                .addProperty(FS.status, Status.Active.name());
+                .addProperty(FS.belongsTo, FS.ROOT_URI);
 
-        DirectoryResource.createLinkedEntity(name, subj, factory);
+        factory.createLinkedEntity(name, subj, type);
 
         return (CollectionResource) factory.getResource(subj, Access.Manage);
     }

@@ -1,6 +1,6 @@
 package io.fairspace.saturn.webdav;
 
-import io.fairspace.saturn.rdf.SparqlUtils;
+import io.fairspace.saturn.rdf.ModelUtils;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.vocabulary.FS;
@@ -36,7 +36,8 @@ import static io.fairspace.saturn.rdf.ModelUtils.getStringProperty;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.PathUtils.*;
-import static io.fairspace.saturn.webdav.WebDAVServlet.*;
+import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
+import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.jena.graph.NodeFactory.createURI;
@@ -75,10 +76,32 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         // create directory
         var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
 
-        // create entity
-        createLinkedEntity(newName, subj, factory);
+        //create linked entity
+        var type = factory.getLinkedEntityType();
+        validateLinkedEntityType(subj, type);
+        factory.createLinkedEntity(newName, subj, type);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
+    }
+
+    private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource resource, org.apache.jena.rdf.model.Resource type) throws BadRequestException {
+        var parentType = Optional.ofNullable(resource.getPropertyResourceValue(FS.belongsTo))
+                .map(r -> r.getPropertyResourceValue(FS.linkedEntity))
+                .map(ModelUtils::getType)
+                .orElseThrow(() -> new BadRequestException("Parent directory is not linked with entity of a valid type."));
+
+        var validTypeURIs = new ArrayList<String>();
+        VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy)
+                .filterKeep(shape -> shape.getURI().equals(parentType.getURI()))
+                .forEachRemaining(res -> res.getProperty(FS.hierarchyDescendants)
+                        .getList()
+                        .mapWith(RDFNode::asResource)
+                        .mapWith(org.apache.jena.rdf.model.Resource::getURI)
+                        .forEach(validTypeURIs::add));
+
+        if (!validTypeURIs.contains(type.getURI())) {
+            throw new BadRequestException("The provided linked entity type is invalid: " + type.getURI());
+        }
     }
 
     @Override
@@ -97,37 +120,6 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         }
 
         return factory.getResource(subj, access);
-    }
-
-    public static org.apache.jena.rdf.model.Resource createLinkedEntity(String name,
-                                                                        org.apache.jena.rdf.model.Resource linkedDirectory,
-                                                                        DavFactory davFactory) throws BadRequestException {
-        var type = entityType();
-        linkedDirectory.addProperty(FS.linkedEntityType, type);
-
-        if (type != null) {
-            type = type.trim();
-        }
-        if (type == null || type.isEmpty()) {
-            throw new BadRequestException("The entity type is empty.");
-        }
-        if (type.contains("\\")) {
-            throw new BadRequestException(
-                    "The name contains an illegal character (\\)");
-        }
-
-        var iri = encodePath(SparqlUtils.generateMetadataIri() + "/" + name);
-        var newEntity = linkedDirectory.getModel().createResource(iri);
-        var typeNode = linkedDirectory.getModel().createResource(type);
-
-        newEntity.addProperty(RDFS.label, name)
-                .addProperty(FS.createdBy, davFactory.currentUserResource())
-                .addProperty(FS.dateCreated, WebDAVServlet.timestampLiteral())
-                .addProperty(RDF.type, typeNode);
-
-        linkedDirectory.addProperty(FS.linkedEntity, newEntity);
-
-        return newEntity;
     }
 
     private org.apache.jena.rdf.model.Resource createResource(String name) throws ConflictException, NotAuthorizedException, BadRequestException {

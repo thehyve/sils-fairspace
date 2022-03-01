@@ -125,6 +125,13 @@ public class FS {
     public static final String LINKED_ENTITY_URI = NS + "linkedEntity";
     public static final Property linkedEntity = createProperty(LINKED_ENTITY_URI);
 
+    public static final String IS_HIERARCHY_ROOT_URI = NS + "hierarchyRoot";
+    public static final Property isHierarchyRoot = createProperty(IS_HIERARCHY_ROOT_URI);
+    public static final String HIERARCHY_DESCENDANTS_URI = NS + "hierarchyDescendants";
+    public static final Property hierarchyDescendants = createProperty(HIERARCHY_DESCENDANTS_URI);
+    public static final String IS_PART_OF_HIERARCHY_URI = NS + "partOfHierarchy";
+    public static final Property isPartOfHierarchy = createProperty(IS_PART_OF_HIERARCHY_URI);
+
     public static final String IMPORTANT_PROPERTY_URI = NS + "importantProperty";
     public static final Property importantProperty = createProperty(IMPORTANT_PROPERTY_URI);
 

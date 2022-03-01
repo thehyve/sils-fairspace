@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import static io.fairspace.saturn.audit.Audit.audit;
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
 import static io.fairspace.saturn.rdf.ModelUtils.*;
+import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
 import static io.fairspace.saturn.rdf.SparqlUtils.parseXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.Vocabularies.USER_VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
@@ -51,20 +52,18 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     @Property
     public String getLinkedEntityType() {
-        if(subject.hasProperty(FS.linkedEntityType)) {
-            return subject.getProperty(FS.linkedEntityType).getString();
-        }
-
-        return "";
+        return Optional
+                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntityType))
+                .map(Resource::toString)
+                .orElse(null);
     }
 
     @Property
     public String getLinkedEntityIri() {
-        if(subject.hasProperty(FS.linkedEntity)) {
-            return subject.getProperty(FS.linkedEntity).getObject().toString();
-        }
-
-        return "";
+        return Optional
+                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntity))
+                .map(Resource::toString)
+                .orElse(null);
     }
 
     @Override
