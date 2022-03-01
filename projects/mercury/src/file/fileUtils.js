@@ -178,3 +178,7 @@ export const getAllowedDirectoryTypes = (hierarchy: HierarchyLevel[], parentDire
     }
     return parent.allowedDescendantTypes;
 };
+
+export const getHierarchyLevelByType = (hierarchy: HierarchyLevel[], type: string): HierarchyLevel => (
+    hierarchy.find(hl => hl.type === type) || {}
+);

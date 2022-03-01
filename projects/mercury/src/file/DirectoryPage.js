@@ -215,7 +215,7 @@ const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
     const openedDirectory: OpenedDirectory = {
         iri: currentDir.iri,
         path: openedPath,
-        directoryType: currentDir.entityType,
+        directoryType: currentDir.linkedEntityType,
         isDeleted: currentDir.isDeleted || false
     };
 

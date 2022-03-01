@@ -24,7 +24,7 @@ const BrowserLayout = () => (
                                     <Layout
                                         renderMenu={() => <MainMenu />}
                                         renderMain={() => <BrowserRoutes />}
-                                        renderTopbar={() => <TopBar title="Browser" />}
+                                        renderTopbar={() => <TopBar />}
                                     />
                                 </MetadataViewProvider>
                             </MetadataViewFacetsProvider>
