@@ -100,7 +100,9 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                         .forEach(validTypeURIs::add));
 
         if (!validTypeURIs.contains(type.getURI())) {
-            throw new BadRequestException("The provided linked entity type is invalid: " + type.getURI());
+            var message = "The provided linked entity type is invalid: " + type.getURI();
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
     }
 
@@ -127,11 +129,14 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
             name = name.trim();
         }
         if (name == null || name.isEmpty()) {
-            throw new BadRequestException("The name is empty.");
+            var message = "The name is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         if (name.contains("\\")) {
-            throw new BadRequestException(
-                    "The name contains an illegal character (\\)");
+            var message = "The name contains an illegal character (\\)";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
 
         var subj = childSubject(subject, name);

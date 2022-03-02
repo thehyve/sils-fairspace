@@ -22,6 +22,7 @@ import static io.fairspace.saturn.webdav.DavFactory.getGrantedPermission;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static java.util.stream.Collectors.joining;
 
+@Deprecated(forRemoval = true)
 class CollectionResource extends DirectoryResource {
 
     public CollectionResource(DavFactory factory, Resource subject, Access access) {

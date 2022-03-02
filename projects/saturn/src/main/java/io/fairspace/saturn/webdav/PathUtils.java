@@ -2,6 +2,7 @@ package io.fairspace.saturn.webdav;
 
 import io.milton.http.exceptions.BadRequestException;
 
+import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
 import static org.apache.commons.lang3.StringUtils.strip;
 import static org.apache.http.client.utils.URLEncodedUtils.formatSegments;
 
@@ -27,15 +28,19 @@ public class PathUtils {
 
     public static void validateCollectionName(String name) throws BadRequestException {
         if (name == null || name.isEmpty()) {
-            throw new BadRequestException("The collection name is empty.");
+            var message = "The collection name is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         if (name.length() > MAX_COLLECTION_NAME_LENGTH) {
-            throw new BadRequestException(
-                    "The collection name exceeds maximum length " + MAX_COLLECTION_NAME_LENGTH + ".");
+            var message = "The collection name exceeds maximum length " + MAX_COLLECTION_NAME_LENGTH + ".";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         if (name.contains("\\")) {
-            throw new BadRequestException(
-                    "The collection name contains an illegal character (\\)");
+            var message = "The collection name contains an illegal character (\\)";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
     }
 }

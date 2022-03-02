@@ -163,7 +163,9 @@ public class DavFactory implements ResourceFactory {
             type = type.trim();
         }
         if (type == null || type.isEmpty()) {
-            throw new BadRequestException("The entity type is empty.");
+            var message = "The linked entity type is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         return createResource(type);
     }

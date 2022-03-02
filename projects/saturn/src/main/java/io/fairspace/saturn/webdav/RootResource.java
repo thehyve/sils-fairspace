@@ -22,6 +22,7 @@ import java.util.Optional;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.PathUtils.validateCollectionName;
+import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
 import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
 
 @Log4j2
@@ -58,7 +59,9 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
         validateCollectionName(name);
         var existing = findCollectionWithName(name);
         if (existing.isPresent()) {
-            throw new ConflictException(existing.get(), "Target collection with this name already exists.");
+            var message = "Target collection with this name already exists.";
+            setErrorMessage(message);
+            throw new ConflictException(existing.get(), message);
         }
     }
 
@@ -67,27 +70,27 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .filterKeep(root -> root.getURI().equals(type.getURI()))
                 .hasNext();
         if (!hasValidType) {
-            throw new BadRequestException("The provided linked entity type is invalid: " + type.getURI());
+            var message = "The provided linked entity type is invalid: " + type.getURI();
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
     }
 
     /**
-     * Creates a new collection resource, sets the owner workspaces and assigns
-     * manage permission on the collection to the current user.
-     * Returns null if a collection with collection already exists with the same name (modulo case),
+     * Creates a new root directory.
+     * Returns null if a root directory already exists with the same name (modulo case),
      * which is interpreted as a failure by {@link io.milton.http.webdav.MkColHandler},
      * resulting in a 405 (Method Not Allowed) response.
      *
-     * @param name the collection name, which needs to be unique.
+     * @param name the root directory name, which needs to be unique.
      *
-     * @return the collection resource if it was successfully created; null if
-     *         a collection with the label already exists (ignoring case);
-     * @throws NotAuthorizedException if the user does not have write permission on the owner workspace.
+     * @return the directory resource if it was successfully created; null if
+     *         a directory with the label already exists (ignoring case);
      * @throws ConflictException if the IRI is already is use by a resource that is not deleted.
      * @throws BadRequestException if the name is invalid (@see {@link #validateTargetCollectionName(String)}).
      */
     @Override
-    public io.milton.resource.CollectionResource createCollection(String name) throws NotAuthorizedException, ConflictException, BadRequestException {
+    public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException {
         if (name != null) {
             name = name.trim();
         }
@@ -97,7 +100,9 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
 
         var subj = childSubject(factory.rootSubject, name);
         if (subj.hasProperty(RDF.type) && !subj.hasProperty(FS.dateDeleted)) {
-            throw new ConflictException();
+            var message = "Cannot create a root directory with this name.";
+            setErrorMessage(message);
+            throw new ConflictException(message);
         }
 
         subj.getModel().removeAll(subj, null, null).removeAll(null, null, subj);

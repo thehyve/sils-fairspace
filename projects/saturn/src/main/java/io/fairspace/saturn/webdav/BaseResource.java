@@ -25,12 +25,10 @@ import java.util.stream.Stream;
 import static io.fairspace.saturn.audit.Audit.audit;
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
 import static io.fairspace.saturn.rdf.ModelUtils.*;
-import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
 import static io.fairspace.saturn.rdf.SparqlUtils.parseXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.Vocabularies.USER_VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
-import static io.fairspace.saturn.webdav.WebDAVServlet.includeMetadataLinks;
-import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
+import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static io.milton.property.PropertySource.PropertyAccessibility.READ_ONLY;
 import static io.milton.property.PropertySource.PropertyAccessibility.WRITABLE;
@@ -121,7 +119,9 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     protected void delete(boolean purge) throws NotAuthorizedException, ConflictException, BadRequestException {
         if (purge) {
             if (!factory.userService.currentUser().isAdmin()) {
-                throw new NotAuthorizedException("Not authorized to purge the resource.", this, SC_FORBIDDEN);
+                var message = "Not authorized to purge the resource.";
+                setErrorMessage(message);
+                throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
             }
             subject.getModel().removeAll(subject, null, null).removeAll(null, null, subject);
         } else if (!subject.hasProperty(FS.dateDeleted)) {
@@ -133,11 +133,14 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     private void validateTarget(io.milton.resource.CollectionResource parent, String name)
             throws BadRequestException, ConflictException, NotAuthorizedException {
         if (name == null || name.isEmpty()) {
-            throw new BadRequestException("The name is empty.");
+            var message = "The name is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         if (name.contains("\\")) {
-            throw new BadRequestException(
-                    "The name contains an illegal character (\\)");
+            var message = "The name contains an illegal character (\\)";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         var existing = parent.child(name);
         if (existing != null) {
@@ -207,7 +210,9 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     public void copyTo(io.milton.resource.CollectionResource parent, String name)
             throws NotAuthorizedException, BadRequestException, ConflictException {
         if (!((DirectoryResource) parent).access.canWrite()) {
-            throw new NotAuthorizedException("Not authorized to copy this resource.", this, SC_FORBIDDEN);
+            var message = "Not authorized to copy this resource.";
+            setErrorMessage(message);
+            throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
         }
         if (name != null) {
             name = name.trim();
@@ -376,7 +381,9 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
         var action = parameters.get("action");
         if (action == null) {
-            throw new BadRequestException(this, "No action specified");
+            var message = "No action specified";
+            setErrorMessage(message);
+            throw new BadRequestException(this, message);
         }
         performAction(action, parameters, files);
         return null;
@@ -385,7 +392,11 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     protected void performAction(String action, Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
         switch (action) {
             case "undelete" -> undelete();
-            default -> throw new BadRequestException(this, "Unrecognized action " + action);
+            default -> {
+                var message = "Unrecognized action " + action;
+                setErrorMessage(message);
+                throw new BadRequestException(this, message);
+            }
         }
     }
 
@@ -395,10 +406,14 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     protected void undelete() throws BadRequestException, NotAuthorizedException, ConflictException {
         if (!canUndelete()) {
-            throw new NotAuthorizedException("Not authorized to undelete this resource.", this, SC_FORBIDDEN);
+            var message = "Not authorized to undelete this resource.";
+            setErrorMessage(message);
+            throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
         }
         if (!subject.hasProperty(FS.dateDeleted)) {
-            throw new ConflictException(this, "Cannot restore");
+            var message = "Cannot restore resource that is not marked as deleted.";
+            setErrorMessage(message);
+            throw new ConflictException(this, message);
         }
         var date = subject.getProperty(FS.dateDeleted).getLiteral();
         var user = subject.getProperty(FS.deletedBy).getResource();

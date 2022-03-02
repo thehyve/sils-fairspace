@@ -22,6 +22,7 @@ public class AdvancedContentGenerator implements ContentGenerator {
                 case SC_CONFLICT -> "Conflict";
                 case SC_INTERNAL_SERVER_ERROR -> "Server error";
                 case SC_UNAUTHORIZED -> "Not authorised";
+                case SC_BAD_REQUEST -> "Bad request";
                 default -> "Unknown error";
             };
         }
