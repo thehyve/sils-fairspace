@@ -52,7 +52,7 @@ class CollectionResource extends DirectoryResource {
         if (name != null) {
             name = name.trim();
         }
-        factory.root.validateTargetCollectionName(name);
+        factory.root.validateTargetDirectoryName(name);
         super.moveTo(rDest, name);
     }
 
@@ -64,7 +64,7 @@ class CollectionResource extends DirectoryResource {
         if (name != null) {
             name = name.trim();
         }
-        factory.root.validateTargetCollectionName(name);
+        factory.root.validateTargetDirectoryName(name);
         super.copyTo(toCollection, name);
     }
 

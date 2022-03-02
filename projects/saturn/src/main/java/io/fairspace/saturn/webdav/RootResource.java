@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
-import static io.fairspace.saturn.webdav.PathUtils.validateCollectionName;
+import static io.fairspace.saturn.webdav.PathUtils.validateRootDirectoryName;
 import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
 import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
 
@@ -47,7 +47,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .toList();
     }
 
-    public Optional<Resource> findCollectionWithName(String name) {
+    public Optional<Resource> findRootDirectoryWithName(String name) {
         return factory.rootSubject.getModel().listSubjectsWithProperty(RDF.type, FS.Directory)
                 .mapWith(child -> factory.getResourceByType(child, Access.List))
                 .filterDrop(Objects::isNull)
@@ -55,11 +55,11 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .nextOptional();
     }
 
-    protected void validateTargetCollectionName(String name) throws ConflictException, BadRequestException {
-        validateCollectionName(name);
-        var existing = findCollectionWithName(name);
+    protected void validateTargetDirectoryName(String name) throws ConflictException, BadRequestException {
+        validateRootDirectoryName(name);
+        var existing = findRootDirectoryWithName(name);
         if (existing.isPresent()) {
-            var message = "Target collection with this name already exists.";
+            var message = "Target root directory with this name already exists.";
             setErrorMessage(message);
             throw new ConflictException(existing.get(), message);
         }
@@ -87,14 +87,14 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
      * @return the directory resource if it was successfully created; null if
      *         a directory with the label already exists (ignoring case);
      * @throws ConflictException if the IRI is already is use by a resource that is not deleted.
-     * @throws BadRequestException if the name is invalid (@see {@link #validateTargetCollectionName(String)}).
+     * @throws BadRequestException if the name is invalid (@see {@link #validateTargetDirectoryName(String)}).
      */
     @Override
     public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException {
         if (name != null) {
             name = name.trim();
         }
-        validateTargetCollectionName(name);
+        validateTargetDirectoryName(name);
         var type = factory.getLinkedEntityType();
         validateLinkedEntityType(type);
 

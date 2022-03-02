@@ -31,10 +31,6 @@ sils:aboutStudy a rdf:Property .
 sils:aboutObject a rdf:Property .
 sils:aboutSample a rdf:Property .
 sils:aboutAssay a rdf:Property .
-
-# TODO: decide if 'RepresentedBy' must be in the model. The Directory-Entity relation is part of Fairspace now, and therefore
-# part of the vocabulary. This makes it redundant.
-sils:isRepresentedBy a rdf:Property .
 sils:representsEntity a rdf:Property .
 
 fs:Directory sh:property

@@ -209,15 +209,11 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     @Override
     public void copyTo(io.milton.resource.CollectionResource parent, String name)
             throws NotAuthorizedException, BadRequestException, ConflictException {
-        if (!((DirectoryResource) parent).access.canWrite()) {
-            var message = "Not authorized to copy this resource.";
-            setErrorMessage(message);
-            throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
-        }
         if (name != null) {
             name = name.trim();
         }
-        copy(subject, ((DirectoryResource) parent).subject, name, factory.currentUserResource(), timestampLiteral());
+        var parentSubject = parent instanceof DirectoryResource ? ((DirectoryResource) parent).subject : factory.rootSubject;
+        copy(subject, parentSubject, name, factory.currentUserResource(), timestampLiteral());
     }
 
     private void copy(Resource subject, Resource parent, String name, Resource user, Literal date) {

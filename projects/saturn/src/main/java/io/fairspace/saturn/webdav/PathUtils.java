@@ -26,19 +26,19 @@ public class PathUtils {
         return (parts.length == 0) ? "" :  parts[parts.length - 1];
     }
 
-    public static void validateCollectionName(String name) throws BadRequestException {
+    public static void validateRootDirectoryName(String name) throws BadRequestException {
         if (name == null || name.isEmpty()) {
-            var message = "The collection name is empty.";
+            var message = "The directory name is empty.";
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
         if (name.length() > MAX_COLLECTION_NAME_LENGTH) {
-            var message = "The collection name exceeds maximum length " + MAX_COLLECTION_NAME_LENGTH + ".";
+            var message = "The directory name exceeds maximum length " + MAX_COLLECTION_NAME_LENGTH + ".";
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
         if (name.contains("\\")) {
-            var message = "The collection name contains an illegal character (\\)";
+            var message = "The directory name contains an illegal character (\\)";
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
