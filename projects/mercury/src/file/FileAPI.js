@@ -29,7 +29,8 @@ export type File = {
     dateCreated: string;
     dateModified?: string;
     dateDeleted?: string;
-    entityType?: string;
+    linkedEntityType: string;
+    linkedEntityIri: string;
     access?: string;
     metadataLinks?: string[];
 }

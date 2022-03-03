@@ -3,21 +3,24 @@ package io.fairspace.saturn.webdav;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.ResourceFactory;
+import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.net.URI;
 
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
+import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
 import static io.fairspace.saturn.util.EnumUtils.max;
 import static io.fairspace.saturn.util.EnumUtils.min;
 import static io.fairspace.saturn.webdav.AccessMode.DataPublished;
 import static io.fairspace.saturn.webdav.AccessMode.MetadataPublished;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
-import static io.fairspace.saturn.webdav.WebDAVServlet.isMetadataRequest;
-import static io.fairspace.saturn.webdav.WebDAVServlet.showDeleted;
+import static io.fairspace.saturn.webdav.WebDAVServlet.*;
+import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 
 public class DavFactory implements ResourceFactory {
     // Represents the root URI, not stored in the database
@@ -59,9 +62,6 @@ public class DavFactory implements ResourceFactory {
         var uri = subject.getURI();
         var nextSeparatorPos = uri.indexOf('/', rootSubject.getURI().length() + 1);
         var coll = rootSubject.getModel().createResource(nextSeparatorPos < 0 ? uri : uri.substring(0, nextSeparatorPos));
-        if (!coll.hasProperty(RDF.type, FS.Collection)) {
-            return Access.None;
-        }
 
         var user = currentUserResource();
         var ownerWs = coll.getPropertyResourceValue(FS.ownedBy);
@@ -141,9 +141,6 @@ public class DavFactory implements ResourceFactory {
         if (subject.hasProperty(RDF.type, FS.Directory)) {
             return new DirectoryResource(this, subject, access);
         }
-        if (subject.hasProperty(RDF.type, FS.Collection)) {
-            return new CollectionResource(this, subject, access);
-        }
 
         return null;
     }
@@ -158,5 +155,30 @@ public class DavFactory implements ResourceFactory {
 
     public boolean isFileSystemResource(org.apache.jena.rdf.model.Resource resource) {
         return resource.getURI().startsWith(rootSubject.getURI());
+    }
+
+    org.apache.jena.rdf.model.Resource getLinkedEntityType() throws BadRequestException {
+        var type = entityType();
+        if (type != null) {
+            type = type.trim();
+        }
+        if (type == null || type.isEmpty()) {
+            var message = "The linked entity type is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
+        }
+        return createResource(type);
+    }
+
+    public void createLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {
+        var newEntity = linkedDirectory.getModel()
+                .createResource(generateMetadataIri().getURI())
+                .addProperty(RDF.type, type)
+                .addProperty(RDFS.label, name)
+                .addProperty(FS.createdBy, this.currentUserResource())
+                .addProperty(FS.dateCreated, WebDAVServlet.timestampLiteral());
+
+        linkedDirectory.addProperty(FS.linkedEntity, newEntity);
+        linkedDirectory.addProperty(FS.linkedEntityType, type);
     }
 }

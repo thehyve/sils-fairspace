@@ -1,5 +1,6 @@
 package io.fairspace.saturn.webdav;
 
+import io.fairspace.saturn.rdf.ModelUtils;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.vocabulary.FS;
@@ -37,7 +38,6 @@ import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.PathUtils.*;
 import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
 import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
-import static io.fairspace.saturn.webdav.WebDAVServlet.entityType;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.jena.graph.NodeFactory.createURI;
@@ -61,13 +61,49 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         return null;
     }
 
+    /**
+     * Directories in Fairspace are linked to entities. Each directory has an entitytype attribute and an entity iri attribute.
+     * When a new directory is created at the client side, the request is processed here.
+     *
+     * First we create the directory, than create the new entity of the specified type, and save the iri of the
+     * new entity as directory attribute.
+     *
+     * In the frontend when you click a directory, in the right panel you see the properties of the entity. From a user perspective
+     * the directories are the entities.
+     */
     @Override
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        var type = entityType();
+        // create directory
         var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
-        subj.addProperty(FS.entityType, type);
+
+        //create linked entity
+        var type = factory.getLinkedEntityType();
+        validateLinkedEntityType(subj, type);
+        factory.createLinkedEntity(newName, subj, type);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
+    }
+
+    private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource resource, org.apache.jena.rdf.model.Resource type) throws BadRequestException {
+        var parentType = Optional.ofNullable(resource.getPropertyResourceValue(FS.belongsTo))
+                .map(r -> r.getPropertyResourceValue(FS.linkedEntity))
+                .map(ModelUtils::getType)
+                .orElseThrow(() -> new BadRequestException("Parent directory is not linked with entity of a valid type."));
+
+        var validTypeURIs = new ArrayList<String>();
+        VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy)
+                .filterKeep(shape -> shape.getURI().equals(parentType.getURI()))
+                .forEachRemaining(res -> res.getProperty(FS.hierarchyDescendants)
+                        .getList()
+                        .mapWith(RDFNode::asResource)
+                        .mapWith(org.apache.jena.rdf.model.Resource::getURI)
+                        .forEach(validTypeURIs::add));
+
+        if (!validTypeURIs.contains(type.getURI())) {
+            var message = "The provided linked entity type is invalid: " + type.getURI();
+            setErrorMessage(message);
+            throw new BadRequestException(message);
+        }
     }
 
     @Override
@@ -93,20 +129,26 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
             name = name.trim();
         }
         if (name == null || name.isEmpty()) {
-            throw new BadRequestException("The name is empty.");
+            var message = "The name is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         if (name.contains("\\")) {
-            throw new BadRequestException(
-                    "The name contains an illegal character (\\)");
+            var message = "The name contains an illegal character (\\)";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
 
-        var existing = factory.getResourceByType(childSubject(subject, name), access);
+        var subj = childSubject(subject, name);
+
+        var existing = factory.getResourceByType(subj, access);
         if (existing != null) {
             throw new ConflictException(existing);
         }
 
-        var subj = childSubject(subject, name);
-        subj.getModel().removeAll(subj, null, null).removeAll(null, null, subj);
+        subj.getModel()
+                .removeAll(subj, null, null)
+                .removeAll(null, null, subj);
         var t = WebDAVServlet.timestampLiteral();
 
         subj.addProperty(RDFS.label, name)

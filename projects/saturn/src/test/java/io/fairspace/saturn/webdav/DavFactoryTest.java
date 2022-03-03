@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.util.Context;
 import org.eclipse.jetty.server.Authentication;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -40,6 +41,10 @@ import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+/*
+    Tests below depend on the current data model and entity hierarchy.
+    They may need to be adjusted after a data model change.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class DavFactoryTest {
     public static final long FILE_SIZE = 3L;
@@ -52,16 +57,10 @@ public class DavFactoryTest {
     InputStream input;
     @Mock
     UserService userService;
-    @Mock
-    MetadataService metadataService;
-    WorkspaceService workspaceService;
-    Workspace workspace;
 
     Context context = new Context();
     User user;
     Authentication.User userAuthentication;
-    User workspaceManager;
-    Authentication.User workspaceManagerAuthentication;
     User admin;
     Authentication.User adminAuthentication;
     private org.eclipse.jetty.server.Request request;
@@ -76,11 +75,6 @@ public class DavFactoryTest {
         lenient().when(userService.currentUser()).thenReturn(user);
     }
 
-    private void selectWorkspaceManager() {
-        lenient().when(request.getAuthentication()).thenReturn(workspaceManagerAuthentication);
-        lenient().when(userService.currentUser()).thenReturn(workspaceManager);
-    }
-
     private void selectAdmin() {
         lenient().when(request.getAuthentication()).thenReturn(adminAuthentication);
         lenient().when(userService.currentUser()).thenReturn(admin);
@@ -88,15 +82,11 @@ public class DavFactoryTest {
 
     @Before
     public void before() {
-        workspaceService = new WorkspaceService(tx, userService);
         factory = new DavFactory(model.createResource(baseUri), store, userService, context);
 
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
         new DAO(model).write(user);
-        workspaceManager = createTestUser("workspace-admin", false);
-        new DAO(model).write(workspaceManager);
-        workspaceManagerAuthentication = mockAuthentication("workspace-admin");
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);
@@ -104,14 +94,8 @@ public class DavFactoryTest {
         setupRequestContext();
         request = getCurrentRequest();
 
-        selectAdmin();
-        workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-        workspaceService.setUserRole(workspace.getIri(), workspaceManager.getIri(), WorkspaceRole.Manager);
-        workspaceService.setUserRole(workspace.getIri(), user.getIri(), WorkspaceRole.Member);
-
         selectRegularUser();
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
-        when(request.getAttribute("BLOB")).thenReturn(new BlobInfo("id", 3, "md5"));
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
     }
 
     @Test
@@ -123,54 +107,55 @@ public class DavFactoryTest {
     }
 
     @Test
-    public void testCreateCollection() throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void testCreateRootDirectory() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = root.createCollection("coll");
+        var dir = root.createCollection("dir0");
 
-        var collName = "coll";
-        assertTrue(coll instanceof FolderResource);
-        assertEquals(collName, coll.getName());
-        assertNotNull(root.child(collName));
-        assertNotNull(factory.getResource(null, format("/api/webdav/%s/", collName)));
+        var dirName = "dir0";
+        assertTrue(dir instanceof FolderResource);
+        assertEquals(dirName, dir.getName());
+        assertNotNull(root.child(dirName));
+        assertNotNull(factory.getResource(null, format("/api/webdav/%s/", dirName)));
         assertEquals(1, root.getChildren().size());
     }
 
     @Test
-    public void testCreateCollectionStartingWithDash() throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void testCreateRootDirectoryStartingWithDash() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = root.createCollection("-coll");
+        var dir = root.createCollection("-dir");
 
-        var collName = "-coll";
-        assertTrue(coll instanceof FolderResource);
-        assertEquals(collName, coll.getName());
-        assertNotNull(root.child(collName));
-        assertNotNull(factory.getResource(null,format("/api/webdav/%s/", collName)));
+        var dirName = "-dir";
+        assertTrue(dir instanceof FolderResource);
+        assertEquals(dirName, dir.getName());
+        assertNotNull(root.child(dirName));
+        assertNotNull(factory.getResource(null,format("/api/webdav/%s/", dirName)));
         assertEquals(1, root.getChildren().size());
     }
 
     @Test
-    public void testCreateCollectionWithTooLongName() throws NotAuthorizedException, ConflictException, BadRequestException {
+    public void testCreateRootDirectoryWithTooLongName() throws NotAuthorizedException, ConflictException, BadRequestException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
         try {
             root.createCollection("");
-            fail("Empty collection labe; should be rejected.");
+            fail("Empty directory label; should be rejected.");
         } catch (BadRequestException e) {
-            assertEquals("The collection name is empty.", e.getReason());
+            assertEquals("The directory name is empty.", e.getReason());
         }
         var tooLongName = "test123_56".repeat(20);
         try {
             root.createCollection(tooLongName);
-            fail("Collection name should be rejected as too long.");
+            fail("Directory name should be rejected as too long.");
         } catch (BadRequestException e) {
-            assertEquals("The collection name exceeds maximum length 127.", e.getReason());
+            assertEquals("The directory name exceeds maximum length 127.", e.getReason());
         }
     }
 
     @Test
     public void testNonExistingResource() throws NotAuthorizedException, BadRequestException {
-        assertNull(factory.getResource(null, BASE_PATH + "coll/dir/file"));
+        assertNull(factory.getResource(null, BASE_PATH + "dir0/dir/file"));
     }
 
+    @Ignore("To be fixed after new permission model is implemented.")
     @Test
     public void testInaccessibleResource() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -187,9 +172,9 @@ public class DavFactoryTest {
         }
     }
 
+    @Ignore("To be fixed after new permission model is implemented.")
     @Test
     public void testAdminAccess() throws NotAuthorizedException, BadRequestException, ConflictException {
-        selectWorkspaceManager();
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
         var collName = "coll";
         root.createCollection(collName);
@@ -198,36 +183,52 @@ public class DavFactoryTest {
         assertEquals(1, root.getChildren().size());
         assertEquals(Access.Manage, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
 
-        model.removeAll(model.getResource(admin.getIri().getURI()), FS.isManagerOf, model.getResource(workspace.getIri().getURI()));
+//        model.removeAll(model.getResource(admin.getIri().getURI()), FS.isManagerOf, model.getResource(workspace.getIri().getURI()));
         assertEquals(Access.List, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
     }
 
     @Test(expected = ConflictException.class)
-    public void testCreateCollectionTwiceFails() throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void testCreateRootDirectoryTwiceFails() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        assertNotNull(root.createCollection("coll"));
-        assertNull(root.createCollection("coll"));
-        assertEquals(1, root.getChildren().size());
+        assertNotNull(root.createCollection("dir0"));
+        root.createCollection("dir0");
     }
 
     @Test
-    public void testCreateCollectionWithSameNameButDifferentCaseDoesNotFail() throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void testCreateRootDirectoryWithSameNameButDifferentCaseDoesNotFail() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        assertNotNull(root.createCollection("coll"));
-        assertNotNull(root.createCollection("COLL"));
+        assertNotNull(root.createCollection("dir1"));
+        assertNotNull(root.createCollection("DIR1"));
         assertEquals(2, root.getChildren().size());
     }
 
     @Test
-    public void testCreateDirectory() throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void testCreateChildDirectory() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("coll");
-        var dir = coll.createCollection("dir");
+        var rootDir = (FolderResource) root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir = rootDir.createCollection("dir01");
         assertNotNull(dir);
-        assertEquals("dir", dir.getName());
-        assertEquals(1, coll.getChildren().size());
+        assertEquals("dir01", dir.getName());
+        assertEquals(1, rootDir.getChildren().size());
     }
 
+    @Test(expected = BadRequestException.class)
+    public void testCreateRootDirectoryWithNonRootEntityType() throws NotAuthorizedException, BadRequestException, ConflictException {
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project"); // NON-root type
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        root.createCollection("dir0");
+    }
+
+    @Test(expected = BadRequestException.class)
+    public void testCreateRootDirectoryWithInvalidChildEntityType() throws NotAuthorizedException, BadRequestException, ConflictException {
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        var rootDir = (FolderResource) root.createCollection("dir0");
+        // No change in returned Entity-Type header
+        rootDir.createCollection("dir01");
+    }
+
+    @Ignore("To be removed after removing File resource")
     @Test
     public void testCreateFile() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -249,18 +250,7 @@ public class DavFactoryTest {
         assertEquals(1, ((MultiNamespaceCustomPropertyResource) file).getProperty(VERSION));
     }
 
-    @Test
-    public void testReadOnlyCollection() throws NotAuthorizedException, BadRequestException, ConflictException {
-        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        root.createCollection("coll");
-
-        var collName = "coll";
-        model.removeAll(null, FS.canManage, model.createResource(baseUri + "/" + collName))
-                .add(createResource(baseUri + "/" + collName), FS.canRead, model.createResource(baseUri + "/" + collName));
-
-        assertFalse(root.child(collName).authorise(null, Request.Method.PUT, null));
-    }
-
+    @Ignore("To be removed after removing File resource")
     @Test
     public void testOverwriteFile() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -280,6 +270,8 @@ public class DavFactoryTest {
         assertEquals(FILE_SIZE + 1, ((GetableResource)file2).getContentLength().longValue());
     }
 
+
+    @Ignore("To be removed after removing File resource")
     @Test
     public void testGetVersion() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -303,6 +295,7 @@ public class DavFactoryTest {
         assertEquals(FILE_SIZE + 1, ((GetableResource)ver2).getContentLength().longValue());
     }
 
+    @Ignore("To be removed after removing File resource")
     @Test
     public void testRevert() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -323,88 +316,91 @@ public class DavFactoryTest {
     }
 
     @Test
-    public void testDeleteFile() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    public void testDeleteDirectory() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("coll");
+        var dir = (FolderResource) root.createCollection("dir");
 
-        var file = coll.createNew("file", input, FILE_SIZE, "text/abc");
-        assertTrue(file instanceof DeletableResource);
-        ((DeletableResource)file).delete();
+        assertEquals(1, root.getChildren().size());
+
+        dir.delete();
 
         verifyNoInteractions(input, store);
-
-        assertEquals(0, coll.getChildren().size());
-        assertNull(coll.child("file"));
+        assertEquals(0, root.getChildren().size());
     }
 
     @Test
-    public void testShowDeletedFiles() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    public void testShowDeletedDirectories() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("coll");
+        var dir = (FolderResource) root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var subDir = dir.createCollection("dir1");
 
-        var file = coll.createNew("file", input, FILE_SIZE, "text/abc");
-        assertTrue(file instanceof DeletableResource);
-        ((DeletableResource)file).delete();
+        assertTrue(subDir instanceof DeletableResource);
+        ((DeletableResource)subDir).delete();
 
         when(request.getHeader("Show-Deleted")).thenReturn("on");
 
-        assertEquals(1, coll.getChildren().size());
-        assertNotNull(coll.child("file"));
+        assertEquals(1, dir.getChildren().size());
+        assertNotNull(dir.child("dir1"));
 
-        var deleted = (MultiNamespaceCustomPropertyResource) coll.child("file");
+        var deleted = (MultiNamespaceCustomPropertyResource) dir.child("dir1");
 
         assertNotNull(deleted.getProperty(new QName(FS.NS, "dateDeleted")));
     }
 
     @Test
-    public void testRestoreDeletedFiles() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    public void testRestoreDeletedDirectories() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("coll");
+        var dir = (FolderResource) root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var subDir = dir.createCollection("dir1");
 
-        var file = coll.createNew("file", input, FILE_SIZE, "text/abc");
-        assertTrue(file instanceof DeletableResource);
-        ((DeletableResource)file).delete();
+        assertTrue(subDir instanceof DeletableResource);
+        ((DeletableResource)subDir).delete();
 
         when(request.getHeader("Show-Deleted")).thenReturn("on");
-        var deleted = (PostableResource) coll.child("file");
+        var deleted = (PostableResource) dir.child("dir1");
 
         deleted.processForm(Map.of("action", "undelete"), Map.of());
 
-        var restored = (MultiNamespaceCustomPropertyResource) coll.child("file");
+        var restored = (MultiNamespaceCustomPropertyResource) dir.child("dir1");
         assertNull(restored.getProperty(new QName(FS.NS, "dateDeleted")));
     }
 
     @Test
-    public void testPurgeFile() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    public void testPurgeDirectory() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("coll");
+        var dir = (FolderResource) root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var subDir = dir.createCollection("dir1");
 
-        var file = coll.createNew("file", input, FILE_SIZE, "text/abc");
-        assertTrue(file instanceof DeletableResource);
-        ((DeletableResource)file).delete();
+        assertTrue(subDir instanceof DeletableResource);
+        ((DeletableResource)subDir).delete();
 
         when(request.getHeader("Show-Deleted")).thenReturn("on");
 
-        assertEquals(1, coll.getChildren().size());
-        assertNotNull(coll.child("file"));
+        assertEquals(1, dir.getChildren().size());
+        assertNotNull(dir.child("dir1"));
 
-        var deleted = (DeletableResource) coll.child("file");
+        var deleted = (DeletableResource) dir.child("dir1");
 
-        try {
-            deleted.delete();
-            fail("Only admin can purge a collection.");
-        } catch (NotAuthorizedException e) {
-            assertNotNull(e);
-            assertEquals(SC_FORBIDDEN, e.getRequiredStatusCode());
-            assertEquals("Not authorized to purge the resource.", e.getMessage());
-        }
+//        TODO restore the part below after implementing new permission model
+//        try {
+//            deleted.delete();
+//            fail("Only admin can purge a collection.");
+//        } catch (NotAuthorizedException e) {
+//            assertNotNull(e);
+//            assertEquals(SC_FORBIDDEN, e.getRequiredStatusCode());
+//            assertEquals("Not authorized to purge the resource.", e.getMessage());
+//        }
 
         userService.currentUser().setAdmin(true);
         deleted.delete();
 
-        assertNull(coll.child("file"));
+        assertNull(dir.child("dir1"));
     }
 
+    @Ignore("To be removed after removing File resource")
     @Test
     public void testRenameFile() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -422,81 +418,61 @@ public class DavFactoryTest {
     @Test
     public void testRenameDirectory() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("coll");
+        var dir0 = (FolderResource) root.createCollection("dir0");
 
-        var dir = coll.createCollection("old");
-        ((FolderResource) dir).createNew("file", input, FILE_SIZE, "text/abc");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var subDir = dir0.createCollection("old");
 
-        ((MoveableResource) dir).moveTo(coll, "new");
+        ((MoveableResource) subDir).moveTo(dir0, "new");
 
-        assertEquals(1, coll.getChildren().size());
-        assertNull(coll.child("old"));
-        assertNotNull(coll.child("new"));
+        assertEquals(1, dir0.getChildren().size());
+        assertNull(dir0.child("old"));
+        assertNotNull(dir0.child("new"));
 
-        assertNull(factory.getResource(null, BASE_PATH + "/coll/old/file"));
-        assertNotNull(factory.getResource(null, BASE_PATH + "/coll/new/file"));
-    }
-
-    @Test
-    public void testRenameCollection() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
-        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll = (FolderResource) root.createCollection("old");
-
-        var dir = coll.createCollection("dir");
-        ((FolderResource) dir).createNew("file", input, FILE_SIZE, "text/abc");
-
-        coll.moveTo(root, "new");
-
-        assertNull(factory.getResource(null, BASE_PATH + "/old"));
-        assertNotNull(factory.getResource(null, BASE_PATH + "/new"));
-        assertNull(factory.getResource(null, BASE_PATH + "/old/dir"));
-        assertNotNull(factory.getResource(null, BASE_PATH + "/new/dir"));
-        assertNull(factory.getResource(null, BASE_PATH + "/old/dir/file"));
-        assertNotNull(factory.getResource(null, BASE_PATH + "/new/dir/file"));
+        assertNull(factory.getResource(null, BASE_PATH + "/dir0/old"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/dir0/new"));
     }
 
     @Test(expected = ConflictException.class)
-    public void testRenameCollectionToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    public void testMoveDirectoryToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        root.createCollection("coll1");
+        root.createCollection("dir1");
+        var dir2 = (FolderResource) root.createCollection("dir2");
 
-        var coll2 = (FolderResource) root.createCollection("coll2");
-        var dir = coll2.createCollection("dir");
-        ((FolderResource) dir).createNew("file", input, FILE_SIZE, "text/abc");
-
-        coll2.moveTo(root, "coll1");
+        dir2.moveTo(root, "dir1");
     }
 
     @Test
     public void testCopyDirectory() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        var coll1 = (FolderResource) root.createCollection("c1");
-        var coll2 = (FolderResource) root.createCollection("c2");
+        var dir1 = (FolderResource) root.createCollection("d1");
+        var dir2 = (FolderResource) root.createCollection("d2");
 
-        var dir1 = (MakeCollectionableResource) coll1.createCollection("dir1");
-        var subdir = dir1.createCollection("old");
-        ((FolderResource) subdir).createNew("file", input, FILE_SIZE, "text/abc");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir11 = (MakeCollectionableResource) dir1.createCollection("dir1");
+        var dir22 = dir2.createCollection("dir2");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project");
+        var subdir = dir11.createCollection("old");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Study");
+        ((FolderResource) subdir).createCollection("dir_x");
 
+        ((MoveableResource) subdir).moveTo(dir22, "new");
 
-        var dir2 = coll2.createCollection("dir2");
-
-        ((MoveableResource) subdir).moveTo(dir2, "new");
-
-        assertNull(factory.getResource(null, BASE_PATH + "/c1/dir1/old"));
-        assertNotNull(factory.getResource(null, BASE_PATH + "/c2/dir2/new"));
-        assertNotNull(factory.getResource(null, BASE_PATH + "/c2/dir2/new/file"));
+        assertNull(factory.getResource(null, BASE_PATH + "/d1/dir1/old"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/d2/dir2/new"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/d2/dir2/new/dir_x"));
     }
 
+    @Ignore("To be fixed after deciding on copy/paste functionality")
     @Test(expected = ConflictException.class)
-    public void testCopyCollectionToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    public void testCopyDirectoryToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        root.createCollection("coll1");
+        var dir0 = root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir1 = ((FolderResource) dir0).createCollection("dir1");
+        var dir2 = ((FolderResource) dir0).createCollection("dir2");
 
-        var coll2 = (FolderResource) root.createCollection("coll2");
-        var dir = coll2.createCollection("dir");
-        ((FolderResource) dir).createNew("file", input, FILE_SIZE, "text/abc");
-
-        coll2.copyTo(root, "coll1");
+        ((CopyableResource) dir2).copyTo(dir0, "dir1");
     }
 
 }

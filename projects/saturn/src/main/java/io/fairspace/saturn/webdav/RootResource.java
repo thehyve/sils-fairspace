@@ -3,11 +3,9 @@ package io.fairspace.saturn.webdav;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.Auth;
 import io.milton.http.Request;
-import io.milton.http.Response;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.ConflictException;
 import io.milton.http.exceptions.NotAuthorizedException;
-import io.milton.property.PropertySource;
 import io.milton.resource.CollectionResource;
 import io.milton.resource.MakeCollectionableResource;
 import io.milton.resource.PropFindableResource;
@@ -21,11 +19,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
-import static io.fairspace.saturn.webdav.PathUtils.validateCollectionName;
-import static io.fairspace.saturn.webdav.WebDAVServlet.owner;
+import static io.fairspace.saturn.webdav.PathUtils.validateRootDirectoryName;
+import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
 import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
-import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 
 @Log4j2
 class RootResource implements io.milton.resource.CollectionResource, MakeCollectionableResource, PropFindableResource {
@@ -43,71 +41,83 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
 
     @Override
     public List<? extends Resource> getChildren() {
-        return factory.rootSubject.getModel().listSubjectsWithProperty(RDF.type, FS.Collection)
+        return factory.rootSubject.getModel().listSubjectsWithProperty(FS.belongsTo, FS.ROOT_URI)
                 .mapWith(factory::getResource)
                 .filterDrop(Objects::isNull)
-                .filterKeep(r -> ((io.fairspace.saturn.webdav.CollectionResource)r).access.canList())
                 .toList();
     }
 
-    public Optional<Resource> findCollectionWithName(String name) {
-        return factory.rootSubject.getModel().listSubjectsWithProperty(RDF.type, FS.Collection)
+    public Optional<Resource> findRootDirectoryWithName(String name) {
+        return factory.rootSubject.getModel().listSubjectsWithProperty(RDF.type, FS.Directory)
                 .mapWith(child -> factory.getResourceByType(child, Access.List))
                 .filterDrop(Objects::isNull)
                 .filterKeep(collection -> collection.getName().equals(name))
                 .nextOptional();
     }
 
-    protected void validateTargetCollectionName(String name) throws ConflictException, BadRequestException {
-        validateCollectionName(name);
-        var existing = findCollectionWithName(name);
+    protected void validateTargetDirectoryName(String name) throws ConflictException, BadRequestException {
+        validateRootDirectoryName(name);
+        var existing = findRootDirectoryWithName(name);
         if (existing.isPresent()) {
-            throw new ConflictException(existing.get(), "Target collection with this name already exists.");
+            var message = "Target root directory with this name already exists.";
+            setErrorMessage(message);
+            throw new ConflictException(existing.get(), message);
+        }
+    }
+
+    private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource type) throws BadRequestException {
+        var hasValidType = VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot)
+                .filterKeep(root -> root.getURI().equals(type.getURI()))
+                .hasNext();
+        if (!hasValidType) {
+            var message = "The provided linked entity type is invalid: " + type.getURI();
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
     }
 
     /**
-     * Creates a new collection resource, sets the owner workspaces and assigns
-     * manage permission on the collection to the current user.
-     * Returns null if a collection with collection already exists with the same name (modulo case),
+     * Creates a new root directory.
+     * Returns null if a root directory already exists with the same name (modulo case),
      * which is interpreted as a failure by {@link io.milton.http.webdav.MkColHandler},
      * resulting in a 405 (Method Not Allowed) response.
      *
-     * @param name the collection name, which needs to be unique.
+     * @param name the root directory name, which needs to be unique.
      *
-     * @return the collection resource if it was successfully created; null if
-     *         a collection with the label already exists (ignoring case);
-     * @throws NotAuthorizedException if the user does not have write permission on the owner workspace.
+     * @return the directory resource if it was successfully created; null if
+     *         a directory with the label already exists (ignoring case);
      * @throws ConflictException if the IRI is already is use by a resource that is not deleted.
-     * @throws BadRequestException if the name is invalid (@see {@link #validateTargetCollectionName(String)}).
+     * @throws BadRequestException if the name is invalid (@see {@link #validateTargetDirectoryName(String)}).
      */
     @Override
-    public io.milton.resource.CollectionResource createCollection(String name) throws NotAuthorizedException, ConflictException, BadRequestException {
+    public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException {
         if (name != null) {
             name = name.trim();
         }
-        validateTargetCollectionName(name);
+        validateTargetDirectoryName(name);
+        var type = factory.getLinkedEntityType();
+        validateLinkedEntityType(type);
 
         var subj = childSubject(factory.rootSubject, name);
         if (subj.hasProperty(RDF.type) && !subj.hasProperty(FS.dateDeleted)) {
-            throw new ConflictException();
+            var message = "Cannot create a root directory with this name.";
+            setErrorMessage(message);
+            throw new ConflictException(message);
         }
 
         subj.getModel().removeAll(subj, null, null).removeAll(null, null, subj);
         var user = factory.currentUserResource();
 
-        subj.addProperty(RDF.type, FS.Collection)
+        subj.addProperty(RDF.type, FS.Directory)
                 .addProperty(RDFS.label, name)
                 .addProperty(RDFS.comment, "")
                 .addProperty(FS.createdBy, user)
                 .addProperty(FS.dateCreated, timestampLiteral())
                 .addProperty(FS.dateModified, timestampLiteral())
                 .addProperty(FS.modifiedBy, user)
-                .addProperty(FS.accessMode, AccessMode.Restricted.name())
-                .addProperty(FS.status, Status.Active.name());
+                .addProperty(FS.belongsTo, FS.ROOT_URI);
 
-        var type = io.fairspace.saturn.webdav.WebDAVServlet.entityType();
-        subj.addProperty(FS.entityType, type);
+        factory.createLinkedEntity(name, subj, type);
 
         return (CollectionResource) factory.getResource(subj, Access.Manage);
     }

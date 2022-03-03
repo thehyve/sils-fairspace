@@ -137,12 +137,9 @@ public class WebDAVServlet extends HttpServlet {
     }
 
     static String entityType() {
-        try {
-            return getCurrentRequest().getHeader("Entity-Type");
-        }
-        catch(Exception e) {
-            return "error" + e.getMessage();
-        }
+        return Optional.ofNullable(getCurrentRequest())
+                .map(r -> r.getHeader("Entity-Type"))
+                .orElse(null);
     }
 
     static boolean includeMetadataLinks() {

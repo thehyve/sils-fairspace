@@ -11,6 +11,7 @@
 
 
 fs:fixedShape a rdf:Property .
+# if machineOnly, editing in GUI is disabled for this property
 fs:machineOnly a rdf:Property .
 fs:importantProperty a rdf:Property .
 
@@ -30,7 +31,8 @@ fs:movedTo a rdf:Property .
 fs:versions a rdf:Property .
 fs:currentVersion a rdf:Property .
 fs:contentType a rdf:Property .
-fs:entityType a rdf:Property .
+fs:linkedEntityType a rdf:Property .
+fs:linkedEntity a rdf:Property .
 fs:markdown rdfs:label "Markdown" .
 fs:namePlural a rdf:Property .
 
@@ -120,16 +122,6 @@ fs:Directory a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo) ;
     sh:property
     [
-        sh:name "Type" ;
-        sh:description "The type of entity the directory represents." ;
-        sh:datatype xsd:string ;
-#        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        fs:machineOnly true ;
-#        fs:importantProperty true ;
-        sh:path fs:entityType
-    ],
-    [
         sh:name "Created by" ;
         sh:description "User that created this resource." ;
         sh:class fs:User ;
@@ -201,6 +193,21 @@ fs:Directory a rdfs:Class, sh:NodeShape ;
         dash:singleLine true ;
         sh:path dcat:keyword;
         sh:order 2
+    ],
+    [
+        sh:name "Linked entity type" ;
+        sh:description "Type of entity the directory is linked to." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path fs:linkedEntityType ;
+        fs:machineOnly true ;
+    ],
+    [
+        sh:name "Linked entity" ;
+        sh:description "Entity the directory is linked to." ;
+        sh:maxCount 1;
+        sh:path fs:linkedEntity ;
+        fs:machineOnly true ;
     ] .
 
 fs:Collection a rdfs:Class, sh:NodeShape ;

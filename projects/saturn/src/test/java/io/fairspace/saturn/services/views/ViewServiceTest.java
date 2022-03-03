@@ -87,14 +87,10 @@ public class ViewServiceTest {
         lenient().when(request.getAuthentication()).thenReturn(userAuthentication);
         lenient().when(userService.currentUser()).thenReturn(user);
 
-        var workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
-        when(request.getAttribute("BLOB")).thenReturn(new BlobInfo("id", 0, "md5"));
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
-        var coll1 = (PutableResource) root.createCollection("coll1");
-        coll1.createNew("coffee.jpg", null, 0L, "image/jpeg");
+        root.createCollection("Dep1");
 
         var testdata = model.read("testdata.ttl");
         api.put(testdata);

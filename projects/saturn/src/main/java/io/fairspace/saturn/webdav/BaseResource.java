@@ -28,8 +28,7 @@ import static io.fairspace.saturn.rdf.ModelUtils.*;
 import static io.fairspace.saturn.rdf.SparqlUtils.parseXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.Vocabularies.USER_VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
-import static io.fairspace.saturn.webdav.WebDAVServlet.includeMetadataLinks;
-import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
+import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static io.milton.property.PropertySource.PropertyAccessibility.READ_ONLY;
 import static io.milton.property.PropertySource.PropertyAccessibility.WRITABLE;
@@ -50,12 +49,19 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     }
 
     @Property
-    public String getEntityType() {
-        if(subject.hasProperty(FS.entityType)) {
-            return subject.getProperty(FS.entityType).getString();
-        }
+    public String getLinkedEntityType() {
+        return Optional
+                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntityType))
+                .map(Resource::toString)
+                .orElse(null);
+    }
 
-        return "";
+    @Property
+    public String getLinkedEntityIri() {
+        return Optional
+                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntity))
+                .map(Resource::toString)
+                .orElse(null);
     }
 
     @Override
@@ -113,7 +119,9 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     protected void delete(boolean purge) throws NotAuthorizedException, ConflictException, BadRequestException {
         if (purge) {
             if (!factory.userService.currentUser().isAdmin()) {
-                throw new NotAuthorizedException("Not authorized to purge the resource.", this, SC_FORBIDDEN);
+                var message = "Not authorized to purge the resource.";
+                setErrorMessage(message);
+                throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
             }
             subject.getModel().removeAll(subject, null, null).removeAll(null, null, subject);
         } else if (!subject.hasProperty(FS.dateDeleted)) {
@@ -125,11 +133,14 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     private void validateTarget(io.milton.resource.CollectionResource parent, String name)
             throws BadRequestException, ConflictException, NotAuthorizedException {
         if (name == null || name.isEmpty()) {
-            throw new BadRequestException("The name is empty.");
+            var message = "The name is empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         if (name.contains("\\")) {
-            throw new BadRequestException(
-                    "The name contains an illegal character (\\)");
+            var message = "The name contains an illegal character (\\)";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
         var existing = parent.child(name);
         if (existing != null) {
@@ -198,13 +209,11 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     @Override
     public void copyTo(io.milton.resource.CollectionResource parent, String name)
             throws NotAuthorizedException, BadRequestException, ConflictException {
-        if (!((DirectoryResource) parent).access.canWrite()) {
-            throw new NotAuthorizedException("Not authorized to copy this resource.", this, SC_FORBIDDEN);
-        }
         if (name != null) {
             name = name.trim();
         }
-        copy(subject, ((DirectoryResource) parent).subject, name, factory.currentUserResource(), timestampLiteral());
+        var parentSubject = parent instanceof DirectoryResource ? ((DirectoryResource) parent).subject : factory.rootSubject;
+        copy(subject, parentSubject, name, factory.currentUserResource(), timestampLiteral());
     }
 
     private void copy(Resource subject, Resource parent, String name, Resource user, Literal date) {
@@ -368,7 +377,9 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
         var action = parameters.get("action");
         if (action == null) {
-            throw new BadRequestException(this, "No action specified");
+            var message = "No action specified";
+            setErrorMessage(message);
+            throw new BadRequestException(this, message);
         }
         performAction(action, parameters, files);
         return null;
@@ -377,7 +388,11 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     protected void performAction(String action, Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
         switch (action) {
             case "undelete" -> undelete();
-            default -> throw new BadRequestException(this, "Unrecognized action " + action);
+            default -> {
+                var message = "Unrecognized action " + action;
+                setErrorMessage(message);
+                throw new BadRequestException(this, message);
+            }
         }
     }
 
@@ -387,10 +402,14 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     protected void undelete() throws BadRequestException, NotAuthorizedException, ConflictException {
         if (!canUndelete()) {
-            throw new NotAuthorizedException("Not authorized to undelete this resource.", this, SC_FORBIDDEN);
+            var message = "Not authorized to undelete this resource.";
+            setErrorMessage(message);
+            throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
         }
         if (!subject.hasProperty(FS.dateDeleted)) {
-            throw new ConflictException(this, "Cannot restore");
+            var message = "Cannot restore resource that is not marked as deleted.";
+            setErrorMessage(message);
+            throw new ConflictException(this, message);
         }
         var date = subject.getProperty(FS.dateDeleted).getLiteral();
         var user = subject.getProperty(FS.deletedBy).getResource();
