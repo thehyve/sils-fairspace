@@ -299,7 +299,7 @@ export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProp
                 key={metadataPath}
                 path={metadataPath}
                 showDeleted={showDeleted}
-                hasEditRight="true" // TODO: access rights
+                hasEditRight // TODO: access rights
                 forceExpand={index === paths.length - 1}
             />
         ))

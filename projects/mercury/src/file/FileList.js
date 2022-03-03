@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {
     Checkbox,
     Link,
@@ -14,7 +14,6 @@ import {
     withStyles
 } from "@material-ui/core";
 import {FolderOpen, NoteOutlined} from "@material-ui/icons";
-import filesize from 'filesize';
 
 import styles from './FileList.styles';
 import {compareBy, formatDateTime, stableSort} from "../common/utils/genericUtils";
@@ -23,11 +22,13 @@ import usePagination from "../common/hooks/UsePagination";
 import ColumnFilterInput from "../common/components/ColumnFilterInput";
 import MessageDisplay from "../common/components/MessageDisplay";
 import TablePaginationActions from "../common/components/TablePaginationActions";
+import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
+import {getHierarchyLevelByType} from "./fileUtils";
 
-const FileList = ({
-    classes, files, onPathCheckboxClick, onPathDoubleClick,
+export const FileList = ({
+    files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile
+    showDeleted, preselectedFile, hierarchy = {}, classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
 
@@ -36,13 +37,9 @@ const FileList = ({
             valueExtractor: f => f.basename,
             label: 'Name'
         },
-        size: {
-            valueExtractor: f => f.size,
-            label: 'Size'
-        },
-        lastmodified: {
-            valueExtractor: f => f.lastmod,
-            label: 'Last modified'
+        type: {
+            valueExtractor: f => f.linkedEntityType,
+            label: 'Type'
         },
         dateDeleted: {
             valueExtractor: f => f.dateDeleted,
@@ -137,20 +134,11 @@ const FileList = ({
                             </TableCell>
                             <TableCell align="right" className={classes.headerCell}>
                                 <TableSortLabel
-                                    active={orderBy === 'size'}
+                                    active={orderBy === 'entityType'}
                                     direction={orderAscending ? 'asc' : 'desc'}
-                                    onClick={() => toggleSort('size')}
+                                    onClick={() => toggleSort('entityType')}
                                 >
-                                Size
-                                </TableSortLabel>
-                            </TableCell>
-                            <TableCell align="right" className={classes.headerCell}>
-                                <TableSortLabel
-                                    active={orderBy === 'lastmodified'}
-                                    direction={orderAscending ? 'asc' : 'desc'}
-                                    onClick={() => toggleSort('lastmodified')}
-                                >
-                                Last modified
+                                Type
                                 </TableSortLabel>
                             </TableCell>
                             {showDeleted && (
@@ -216,10 +204,7 @@ const FileList = ({
                                         )}
                                     </TableCell>
                                     <TableCell align="right">
-                                        {file.type === 'file' ? filesize(file.size, {base: 10}) : ''}
-                                    </TableCell>
-                                    <TableCell align="right">
-                                        {file.lastmod ? formatDateTime(file.lastmod) : null}
+                                        {file.linkedEntityType ? getHierarchyLevelByType(hierarchy, file.linkedEntityType).label : null}
                                     </TableCell>
                                     {showDeleted && (
                                         <TableCell align="right">
@@ -247,4 +232,10 @@ const FileList = ({
     );
 };
 
-export default withStyles(styles)(FileList);
+const ContextualFileList = props => {
+    const {hierarchy} = useContext(VocabularyContext);
+
+    return <FileList hierarchy={hierarchy} {...props} />;
+};
+
+export default withStyles(styles)(ContextualFileList);

@@ -6,6 +6,7 @@ import {shallow} from "enzyme";
 import {ExternalStorageBrowser} from "../ExternalStorageBrowser";
 import type {ExternalStorage} from "../ExternalStoragesContext";
 import LoadingInlay from "../../common/components/LoadingInlay";
+import FileList from "../../file/FileList";
 
 afterEach(cleanup);
 
@@ -41,13 +42,12 @@ const initialProps = {
 
 describe('ExternalStorageBrowser', () => {
     it('renders proper view', () => {
-        const {queryByTestId} = render(
-            <ExternalStorageBrowser
-                {...initialProps}
-            />
-        );
+        const wrapper = shallow(<ExternalStorageBrowser
+            {...initialProps}
+        />);
 
-        expect(queryByTestId('externals-storage-view')).toBeInTheDocument();
+        const externalFileList = wrapper.find(FileList).first().props();
+        expect(externalFileList.files.length).toBe(1);
     });
 
     it('show data loading error when ehn error on fetching files occurs', () => {

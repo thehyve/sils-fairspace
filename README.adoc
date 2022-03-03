@@ -981,7 +981,7 @@ with open('testdata.ttl') as testdata:
             'Content-type': 'text/turtle'
         })
     if not response.ok:
-        raise Exception(f"Error uploading metadata: {response.status_code} {response.reason}")
+        raise Exception(f"Error uploading metadata: {response.status_code} {response.reason} {response.json}")
 ----
 ====
 
