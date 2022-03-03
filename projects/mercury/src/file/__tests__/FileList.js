@@ -5,7 +5,7 @@ import '@testing-library/jest-dom/extend-expect';
 
 import {mount} from "enzyme";
 import {TableRow} from "@material-ui/core";
-import FileList from '../FileList';
+import {FileList} from '../FileList';
 
 afterEach(cleanup);
 
@@ -34,9 +34,7 @@ describe('FileList', () => {
         expect(queryByText(/empty directory/i)).not.toBeInTheDocument();
         expect(queryByText(/deleted/i)).not.toBeInTheDocument();
         expect(queryByText(/name/i)).toBeInTheDocument();
-        expect(queryByText(/size/i)).toBeInTheDocument();
-        expect(queryByText(/last modified/i)).toBeInTheDocument();
-        expect(queryByText(/base-file/i)).toBeInTheDocument();
+        expect(queryByText(/type/i)).toBeInTheDocument();
     });
 
     it('renders view with deleted column in "show deleted" mode', () => {
@@ -45,9 +43,7 @@ describe('FileList', () => {
         expect(queryByText(/empty directory/i)).not.toBeInTheDocument();
         expect(queryByText(/deleted/i)).toBeInTheDocument();
         expect(queryByText(/name/i)).toBeInTheDocument();
-        expect(queryByText(/size/i)).toBeInTheDocument();
-        expect(queryByText(/last modified/i)).toBeInTheDocument();
-        expect(queryByText(/base-file/i)).toBeInTheDocument();
+        expect(queryByText(/type/i)).toBeInTheDocument();
     });
 
     it('calls onPathCheckboxClick when the checkbox container is clicked', () => {

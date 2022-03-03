@@ -25,13 +25,12 @@ import TablePaginationActions from "../common/components/TablePaginationActions"
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
 import {getHierarchyLevelByType} from "./fileUtils";
 
-const FileList = ({
-    classes, files, onPathCheckboxClick, onPathDoubleClick,
+export const FileList = ({
+    files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile
+    showDeleted, preselectedFile, hierarchy = {}, classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
-    const {hierarchy} = useContext(VocabularyContext);
 
     const columns = {
         name: {
@@ -233,4 +232,10 @@ const FileList = ({
     );
 };
 
-export default withStyles(styles)(FileList);
+const ContextualFileList = props => {
+    const {hierarchy} = useContext(VocabularyContext);
+
+    return <FileList hierarchy={hierarchy} {...props} />;
+};
+
+export default withStyles(styles)(ContextualFileList);

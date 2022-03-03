@@ -196,7 +196,7 @@ fs:Directory a rdfs:Class, sh:NodeShape ;
     ],
     [
         sh:name "Linked entity type" ;
-        sh:description "" ;
+        sh:description "Type of entity the directory is linked to." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path fs:linkedEntityType ;
@@ -204,7 +204,7 @@ fs:Directory a rdfs:Class, sh:NodeShape ;
     ],
     [
         sh:name "Linked entity" ;
-        sh:description "" ;
+        sh:description "Entity the directory is linked to." ;
         sh:maxCount 1;
         sh:path fs:linkedEntity ;
         fs:machineOnly true ;

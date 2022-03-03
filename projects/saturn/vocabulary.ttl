@@ -33,14 +33,6 @@ sils:aboutSample a rdf:Property .
 sils:aboutAssay a rdf:Property .
 sils:representsEntity a rdf:Property .
 
-fs:Directory sh:property
-    [
-        sh:name "Represents entity" ;
-        sh:description "Entity the directory represents" ;
-        sh:maxCount 1 ;
-        sh:path [ sh:inversePath sils:representsEntity ] ;
-    ] .
-
 
 ## User class Shapes
 sils:department a rdf:Property .
@@ -94,10 +86,11 @@ sils:Department a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:department]
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represent this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        fs:machineOnly true ;
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
 
 sils:investigationDescription a rdf:Property .
@@ -171,10 +164,10 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:principalInvestigator]
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
 
 sils:projectIdentifier a rdf:Property .
@@ -232,10 +225,10 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:project]
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
 
 sils:studyIdentifier a rdf:Property .
@@ -295,10 +288,10 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:study]
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
 
 sils:objectIdentifier a rdf:Property .
@@ -429,10 +422,10 @@ sils:Object a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:object]
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
 
 
@@ -685,10 +678,10 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:path [sh:inversePath sils:sample]
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
 
 sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
@@ -925,10 +918,10 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:path sils:sample
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ],
     [
         sh:name "LCMS machine" ;
@@ -1013,8 +1006,8 @@ fs:ExternalFile a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:comment
     ],
     [
-        sh:name "Directory representation" ;
-        sh:description "Directories that represents this entity" ;
+        sh:name "Entity location" ;
+        sh:description "Location of the entity in the browser." ;
         sh:class fs:Directory ;
-        sh:path [sh:inversePath sils:representsEntity]
+        sh:path [sh:inversePath fs:linkedEntity]
     ] .
