@@ -1,22 +1,15 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {withRouter} from "react-router-dom";
-import {useDropzone} from "react-dropzone";
-import {Typography, withStyles} from "@material-ui/core";
+import {withStyles} from "@material-ui/core";
 import FileList from "./FileList";
 import FileOperations from "./FileOperations";
-import {encodePath, splitPathIntoArray} from "./fileUtils";
-import UploadProgressComponent from "./UploadProgressComponent";
-import UploadsContext, {showCannotOverwriteDeletedError} from "./UploadsContext";
-import {generateUuid} from "../metadata/common/metadataUtils";
-import ConfirmationDialog from "../common/components/ConfirmationDialog";
+import {encodePath} from "./fileUtils";
 import type {OpenedDirectory} from "./DirectoryPage";
+import {showCannotOverwriteDeletedError} from "./UploadsContext";
 
 const styles = (theme) => ({
     container: {
         height: "100%"
-    },
-    uploadProgress: {
-        marginTop: 20
     },
     dropzone: {
         flex: 1,
@@ -40,19 +33,6 @@ const styles = (theme) => ({
         borderColor: theme.palette.error.main
     }
 });
-
-const getConflictingFolders: string[] = (newFiles, existingFolderNames) => {
-    const droppedFolderNames = new Set(
-        newFiles
-            .filter(f => splitPathIntoArray(f.path).length > 1)
-            .map(f => splitPathIntoArray(f.path)[0])
-    );
-    return Array.from(droppedFolderNames).filter(f => existingFolderNames.includes(f));
-};
-
-const getConflictingFiles: string[] = (newFiles, existingFileNames) => (
-    newFiles.filter(f => existingFileNames.includes(f.path)).map(c => c.name)
-);
 
 type ContextualFileBrowserProperties = {
     history: History;
@@ -85,76 +65,14 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         history
     } = props;
     const isWritingEnabled = !openedDirectory.isDeleted;
-
-    const existingFileNames = files ? files.filter(file => file.type === "file").map(file => file.basename) : [];
-    const existingFolderNames = files ? files.filter(file => file.type === "directory").map(file => file.basename) : [];
-
-    const isOverwriteCandidateDeleted = (filenames: string[]) => {
-        const fileCandidates = files ? files.filter(file => filenames.some(name => name === file.basename)) : [];
-        return fileCandidates.length > 0 && fileCandidates.some(f => f.dateDeleted);
-    };
-
-    const {startUpload, maxFileSize} = useContext(UploadsContext);
-    const [showOverwriteConfirmation, setShowOverwriteConfirmation] = useState(false);
     const [showCannotOverwriteWarning, setShowCannotOverwriteWarning] = useState(false);
-    const [overwriteFileCandidateNames, setOverwriteFileCandidateNames] = useState([]);
-    const [overwriteFolderCandidateNames, setOverwriteFolderCandidateNames] = useState([]);
-    const [currentUpload, setCurrentUpload] = useState({});
-    const [isFolderUpload, setIsFolderUpload] = useState();
-
-    const {
-        getRootProps,
-        getInputProps,
-        isDragActive,
-        isDragAccept,
-        isDragReject,
-        open
-    } = useDropzone({
-        noClick: true,
-        noKeyboard: true,
-        multiple: true,
-        onDropAccepted: (droppedFiles) => {
-            const newUpload = {
-                id: generateUuid(),
-                files: droppedFiles,
-                destinationPath: openedDirectory.path,
-            };
-            const newOverwriteFolderCandidates = getConflictingFolders(droppedFiles, existingFolderNames);
-            const newOverwriteFileCandidates = getConflictingFiles(droppedFiles, existingFileNames);
-
-            if (newOverwriteFileCandidates.length > 0 || newOverwriteFolderCandidates.length > 0) {
-                setOverwriteFileCandidateNames(newOverwriteFileCandidates);
-                setOverwriteFolderCandidateNames(newOverwriteFolderCandidates);
-                if (isOverwriteCandidateDeleted([...newOverwriteFileCandidates, ...newOverwriteFolderCandidates])) {
-                    setShowCannotOverwriteWarning(true);
-                    return;
-                }
-                setCurrentUpload(newUpload);
-                setShowOverwriteConfirmation(true);
-            } else {
-                startUpload(newUpload).then(refreshFiles);
-            }
-        }
-    });
+    const [overwriteFileCandidateNames] = useState([]);
+    const [overwriteFolderCandidateNames] = useState([]);
 
     // Deselect all files on history changes
-    useEffect(() => {
-        const historyListener = history.listen(() => {
-            selection.deselectAll();
-        });
-
-        // Specify how to clean up after this effect:
-        return historyListener;
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [history]);
-
-    // A hook to make sure that isFolderUpload state is changed before opening the upload dialog
-    useEffect(() => {
-        if (isFolderUpload !== undefined) {
-            open();
-        }
-    }, [isFolderUpload, open]);
+    /* eslint-disable react-hooks/exhaustive-deps */
+    useEffect(() => history.listen(() => selection.deselectAll()),
+        [history]);
 
     useEffect(() => {
         if (showCannotOverwriteWarning) {
@@ -162,22 +80,6 @@ export const FileBrowser = (props: FileBrowserProperties) => {
             showCannotOverwriteDeletedError([...overwriteFileCandidateNames, ...overwriteFolderCandidateNames].length);
         }
     }, [overwriteFileCandidateNames, overwriteFolderCandidateNames, showCannotOverwriteWarning]);
-
-    const uploadFolder = () => {
-        if (isFolderUpload) {
-            open();
-        } else {
-            setIsFolderUpload(true);
-        }
-    };
-
-    const uploadFile = () => {
-        if (!isFolderUpload) {
-            open();
-        } else {
-            setIsFolderUpload(false);
-        }
-    };
 
     // A highlighting of a path means only this path would be selected/checked
     const handlePathHighlight = path => {
@@ -198,60 +100,6 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         }
     };
 
-    const handleCloseUpload = () => {
-        setShowOverwriteConfirmation(false);
-        setOverwriteFileCandidateNames([]);
-        setCurrentUpload({});
-    };
-
-    const renderOverwriteConfirmationMessage = () => (
-        <Typography variant="body2" component="span">
-            {(overwriteFolderCandidateNames.length > 1) && (
-                <span>
-                    Folders: <em>{overwriteFolderCandidateNames.join(', ')}</em> already exist <br />
-                    and their content might be overwritten.<br />
-                </span>
-            )}
-            {(overwriteFolderCandidateNames.length === 1) && (
-                <span>
-                    Folder <em>{overwriteFolderCandidateNames[0]} </em>
-                    already exists and its content might be overwritten.<br />
-                </span>
-            )}
-            {(overwriteFileCandidateNames.length > 1) && (
-                <span>
-                    Files: <em>{overwriteFileCandidateNames.join(', ')}</em> already exist.<br />
-                </span>
-            )}
-            {(overwriteFileCandidateNames.length === 1) && (
-                <span>
-                    File <em>{overwriteFileCandidateNames[0]}</em> already exists.<br />
-                </span>
-            )}
-            {(overwriteFolderCandidateNames.length + overwriteFileCandidateNames.length === 1) ? (
-                <span>Do you want to <b>overwrite</b> it?</span>
-            ) : (
-                <span>Do you want to <b>overwrite</b> them?</span>
-            )}
-        </Typography>
-    );
-
-    const renderOverwriteConfirmation = () => (
-        <ConfirmationDialog
-            open
-            title="Warning"
-            content={renderOverwriteConfirmationMessage()}
-            dangerous
-            agreeButtonText="Overwrite"
-            onAgree={() => {
-                startUpload(currentUpload).then(refreshFiles);
-                handleCloseUpload();
-            }}
-            onDisagree={handleCloseUpload}
-            onClose={handleCloseUpload}
-        />
-    );
-
     const renderFileOperations = () => (
         <div style={{marginTop: 8}}>
             <FileOperations
@@ -263,35 +111,22 @@ export const FileBrowser = (props: FileBrowserProperties) => {
                 fileActions={fileActions}
                 clearSelection={selection.deselectAll}
                 refreshFiles={refreshFiles}
-                uploadFolder={uploadFolder}
-                uploadFile={uploadFile}
-                maxFileSize={maxFileSize}
             />
         </div>
     );
 
     return (
         <div data-testid="files-view" className={classes.container}>
-            <div
-                {...getRootProps()}
-                className={`${classes.dropzone} ${isDragActive && classes.activeStyle} ${isDragAccept && classes.acceptStyle} ${isDragReject && classes.rejectStyle}`}
-            >
-                <input {...getInputProps()} {...(isFolderUpload && {webkitdirectory: ""})} />
-                <FileList
-                    files={files.map(item => ({...item, selected: selection.isSelected(item.filename)}))}
-                    onPathCheckboxClick={path => selection.toggle(path.filename)}
-                    onPathHighlight={handlePathHighlight}
-                    onPathDoubleClick={handlePathDoubleClick}
-                    onAllSelection={shouldSelectAll => (shouldSelectAll ? selection.selectAll(files.map(file => file.filename)) : selection.deselectAll())}
-                    showDeleted={showDeleted}
-                    preselectedFile={preselectedFile}
-                />
-                {renderFileOperations()}
-            </div>
-            <div className={classes.uploadProgress}>
-                <UploadProgressComponent />
-            </div>
-            {showOverwriteConfirmation && (renderOverwriteConfirmation())}
+            <FileList
+                files={files.map(item => ({...item, selected: selection.isSelected(item.filename)}))}
+                onPathCheckboxClick={path => selection.toggle(path.filename)}
+                onPathHighlight={handlePathHighlight}
+                onPathDoubleClick={handlePathDoubleClick}
+                onAllSelection={shouldSelectAll => (shouldSelectAll ? selection.selectAll(files.map(file => file.filename)) : selection.deselectAll())}
+                showDeleted={showDeleted}
+                preselectedFile={preselectedFile}
+            />
+            {renderFileOperations()}
         </div>
     );
 };

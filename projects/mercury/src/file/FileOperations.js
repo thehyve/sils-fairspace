@@ -1,16 +1,12 @@
 import React, {useContext, useState} from 'react';
-import {Badge, IconButton, ListItem, ListItemText, withStyles} from "@material-ui/core";
-import {BorderColor, CloudUpload, CreateNewFolder, Delete, Restore, RestoreFromTrash} from '@material-ui/icons';
+import {Badge, IconButton, withStyles} from "@material-ui/core";
+import {BorderColor, CreateNewFolder, Delete, RestoreFromTrash} from '@material-ui/icons';
 import ContentCopy from "mdi-material-ui/ContentCopy";
 import ContentCut from "mdi-material-ui/ContentCut";
 import ContentPaste from "mdi-material-ui/ContentPaste";
-import Download from "mdi-material-ui/Download";
-import MenuItem from "@material-ui/core/MenuItem";
-import Menu from "@material-ui/core/Menu";
-import Divider from "@material-ui/core/Divider";
 import ErrorDialog from "../common/components/ErrorDialog";
 
-import {getParentPath, isListOnlyFile, joinPaths} from "./fileUtils";
+import {getParentPath, joinPaths} from "./fileUtils";
 import {COPY, CUT} from '../constants';
 import FileOperationsGroup from "./FileOperationsGroup";
 import ClipboardContext from '../common/contexts/ClipboardContext';
@@ -18,7 +14,6 @@ import ConfirmationButton from "../common/components/ConfirmationButton";
 import CreateDirectoryButton from "./buttons/CreateDirectoryButton";
 import ProgressButton from "../common/components/ProgressButton";
 import RenameButton from "./buttons/RenameButton";
-import ShowFileVersionsButton from "./buttons/ShowFileVersionsButton";
 import styles from "./FileOperations.styles";
 
 export const Operations = {
@@ -39,17 +34,11 @@ export const FileOperations = ({
     selectedPaths,
     clearSelection,
     fileActions = {},
-    classes,
     files,
     refreshFiles,
-    uploadFolder,
-    uploadFile,
-    maxFileSize,
     clipboard
 }) => {
     const [activeOperation, setActiveOperation] = useState();
-    const [anchorEl, setAnchorEl] = useState(null);
-
     const busy = !!activeOperation;
 
     const noPathSelected = selectedPaths.length === 0;
@@ -58,7 +47,6 @@ export const FileOperations = ({
     const moreThanOneItemSelected = selectedPaths.length > 1;
     const selectedDeletedItems = selectedItems.filter(f => f.dateDeleted);
     const isDeletedItemSelected = selectedDeletedItems.length > 0;
-    const isListOnlyItemSelected = isListOnlyFile(selectedItem);
     const isDisabledForMoreThanOneSelection = selectedPaths.length === 0 || moreThanOneItemSelected;
     const isClipboardItemsOnOpenedPath = !clipboard.isEmpty() && clipboard.filenames.map(f => getParentPath(f)).includes(openedDirectory.path);
     const isPasteDisabled = !isWritingEnabled || clipboard.isEmpty() || (isClipboardItemsOnOpenedPath && clipboard.method === CUT);
@@ -135,30 +123,6 @@ export const FileOperations = ({
             return false;
         });
 
-    const handleRevert = (versionToRevert) => fileOperation(Operations.REVERT, fileActions.revertToVersion(selectedItem, versionToRevert))
-        .catch((err) => {
-            ErrorDialog.showError("An error occurred while reverting a file to a previous version", err, () => handleRevert(versionToRevert));
-            return false;
-        });
-
-    const handleUploadMenuClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleUploadMenuClose = () => {
-        setAnchorEl(null);
-    };
-
-    const handleUploadFile = () => {
-        handleUploadMenuClose();
-        uploadFile();
-    };
-
-    const handleUploadFolder = () => {
-        handleUploadMenuClose();
-        uploadFolder();
-    };
-
     const addBadgeIfNotEmpty = (badgeContent, children) => {
         if (badgeContent) {
             return (
@@ -212,51 +176,10 @@ export const FileOperations = ({
                                 </IconButton>
                             </CreateDirectoryButton>
                         </ProgressButton>
-
-                        <IconButton
-                            aria-label="Upload"
-                            title="Upload &hellip;"
-                            disabled={busy}
-                            onClick={handleUploadMenuClick}
-                        >
-                            <CloudUpload />
-                        </IconButton>
-                        <Menu
-                            id="upload-menu"
-                            anchorEl={anchorEl}
-                            keepMounted
-                            open={Boolean(anchorEl)}
-                            onClose={handleUploadMenuClose}
-                            className={classes.uploadMenu}
-                        >
-                            <MenuItem onClick={handleUploadFile}>Upload files</MenuItem>
-                            <MenuItem onClick={handleUploadFolder}>Upload folder</MenuItem>
-                            <Divider className={classes.uploadMenuHelperDivider} />
-                            <ListItem className={classes.uploadMenuHelper}>
-                                <ListItemText
-                                    secondary={`Size limit: ${maxFileSize}`}
-                                    className={classes.uploadMenuHelperText}
-                                />
-                            </ListItem>
-                        </Menu>
-
                     </>
                 )}
             </FileOperationsGroup>
             <FileOperationsGroup>
-                <IconButton
-                    title={`Download ${selectedItem.basename}`}
-                    aria-label={`Download ${selectedItem.basename}`}
-                    disabled={
-                        isDisabledForMoreThanOneSelection || selectedItem.type !== 'file'
-                        || isDeletedItemSelected || busy || isListOnlyItemSelected
-                    }
-                    component="a"
-                    href={fileActions.getDownloadLink(selectedItem.filename)}
-                    download
-                >
-                    <Download />
-                </IconButton>
                 {isWritingEnabled && (
                     <>
                         <ProgressButton active={activeOperation === Operations.RENAME}>
@@ -310,7 +233,6 @@ export const FileOperations = ({
                                 </ConfirmationButton>
                             </ProgressButton>
                         )}
-
                     </>
                 )}
             </FileOperationsGroup>
@@ -346,26 +268,6 @@ export const FileOperations = ({
                             </IconButton>
                         </ProgressButton>
                     </>
-                )}
-            </FileOperationsGroup>
-            <FileOperationsGroup>
-                {!isExternalStorage && (
-                    <ProgressButton active={activeOperation === Operations.REVERT}>
-                        <ShowFileVersionsButton
-                            selectedFile={selectedItem}
-                            onRevert={handleRevert}
-                            disabled={isDisabledForMoreThanOneSelection || selectedItem.type !== 'file' || isDeletedItemSelected || busy}
-                            isWritingEnabled={isWritingEnabled}
-                        >
-                            <IconButton
-                                aria-label="Show history"
-                                title="Show history"
-                                disabled={isDisabledForMoreThanOneSelection || selectedItem.type !== 'file' || isDeletedItemSelected || busy}
-                            >
-                                <Restore />
-                            </IconButton>
-                        </ShowFileVersionsButton>
-                    </ProgressButton>
                 )}
             </FileOperationsGroup>
         </>
