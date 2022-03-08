@@ -3,7 +3,7 @@ import React from "react";
 import {Button, Dialog, DialogActions, DialogContent, DialogTitle} from "@material-ui/core";
 import ControlledTextField from "../../common/components/ControlledTextField";
 
-export default ({onClose, onSubmit, submitDisabled, title, control}) => (
+export default ({onClose, onSubmit, submitDisabled, title, control, entitySelector}) => (
     <Dialog
         open
         onClose={onClose}
@@ -28,6 +28,7 @@ export default ({onClose, onSubmit, submitDisabled, title, control}) => (
                         'aria-label': "Name",
                     }}
                 />
+                {entitySelector}
             </form>
         </DialogContent>
         <DialogActions>
