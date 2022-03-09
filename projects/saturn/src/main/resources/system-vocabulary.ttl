@@ -18,6 +18,7 @@ fs:importantProperty a rdf:Property .
 fs:partOfHierarchy a rdf:Property .
 fs:hierarchyRoot a rdf:Property .
 fs:hierarchyDescendants a rdf:Property .
+fs:representsExternalFile a rdf:Property .
 
 fs:ownedBy a rdf:Property .
 fs:belongsTo a rdf:Property .

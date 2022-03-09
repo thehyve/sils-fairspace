@@ -3,9 +3,10 @@ import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core";
 import FileList from "./FileList";
 import FileOperations from "./FileOperations";
-import {encodePath} from "./fileUtils";
-import type {OpenedDirectory} from "./DirectoryPage";
+import {encodePath, isDirectory} from "./fileUtils";
 import {showCannotOverwriteDeletedError} from "./UploadsContext";
+import type {OpenedDirectory} from "./DirectoryPage";
+import type {HierarchyLevel} from "../metadata/common/vocabularyUtils";
 
 const styles = (theme) => ({
     container: {
@@ -90,8 +91,8 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         }
     };
 
-    const handlePathDoubleClick = (path) => {
-        if (path.type === 'directory') {
+    const handlePathDoubleClick = (path: File, linkedEntity: HierarchyLevel) => {
+        if (isDirectory(path, linkedEntity)) {
             /* TODO Remove additional encoding (encodeURI) after upgrading to history to version>=4.10
              *      This version contains this fix: https://github.com/ReactTraining/history/pull/656
              *      It requires react-router-dom version>=6 to be released.

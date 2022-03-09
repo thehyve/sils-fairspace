@@ -9,7 +9,7 @@ import {
     CONTENT_TYPE_URI,
     CREATED_BY_URI,
     DATE_CREATED_URI,
-    DATE_MODIFIED_URI,
+    DATE_MODIFIED_URI, IS_EXTERNAL_FILE_REPRESENTATION,
     LABEL_URI,
     MODIFIED_BY_URI
 } from '../../constants';
@@ -21,7 +21,7 @@ type PropertyType = {
     key: string;
 }
 
-const systemProperties = [CONTENT_TYPE_URI, DATE_CREATED_URI, CREATED_BY_URI, DATE_MODIFIED_URI, MODIFIED_BY_URI];
+const systemProperties = [CONTENT_TYPE_URI, DATE_CREATED_URI, CREATED_BY_URI, DATE_MODIFIED_URI, MODIFIED_BY_URI, IS_EXTERNAL_FILE_REPRESENTATION];
 
 const systemPropertiesLast = compareBy(x => systemProperties.indexOf(x.key));
 

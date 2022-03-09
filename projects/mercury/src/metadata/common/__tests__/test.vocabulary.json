@@ -244,6 +244,9 @@
     "http://www.w3.org/ns/shacl#name": [{
         "@value": "Project"
     }],
+    "https://fairspace.nl/ontology#namePlural": [{
+      "@value": "Projects"
+    }],
     "http://www.w3.org/ns/shacl#property": [{
       "@id": "_:label"
     }, {
@@ -282,6 +285,9 @@
     "http://www.w3.org/ns/shacl#name": [{
       "@value": "Research project"
     }],
+    "https://fairspace.nl/ontology#namePlural": [{
+      "@value": "Research projects"
+    }],
     "https://fairspace.nl/ontology#partOfHierarchy": [{
       "@value": true
     }],
@@ -308,6 +314,9 @@
     }],
     "http://www.w3.org/ns/shacl#name": [{
       "@value": "External research project"
+    }],
+    "https://fairspace.nl/ontology#namePlural": [{
+      "@value": "External research projects"
     }],
     "http://www.w3.org/2000/01/rdf-schema#subClassOf": [{
       "@id": "https://fairspace.nl/ontology#ResearchProject"

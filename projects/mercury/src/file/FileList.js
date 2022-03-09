@@ -23,12 +23,12 @@ import ColumnFilterInput from "../common/components/ColumnFilterInput";
 import MessageDisplay from "../common/components/MessageDisplay";
 import TablePaginationActions from "../common/components/TablePaginationActions";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
-import {getHierarchyLevelByType} from "./fileUtils";
+import {getHierarchyLevelByType, isDirectory} from "./fileUtils";
 
 export const FileList = ({
     files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile, hierarchy = {}, classes = {}
+    showDeleted, preselectedFile, hierarchy = [], classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
 
@@ -157,6 +157,7 @@ export const FileList = ({
                     <TableBody>
                         {pagedItems.map((file) => {
                             const checkboxVisibility = hoveredFileName === file.filename || file.selected ? 'visible' : 'hidden';
+                            const linkedEntity = getHierarchyLevelByType(hierarchy, file.linkedEntityType);
 
                             return (
                                 <TableRow
@@ -164,7 +165,7 @@ export const FileList = ({
                                     key={file.filename}
                                     selected={file.selected}
                                     onClick={() => onPathHighlight(file)}
-                                    onDoubleClick={() => onPathDoubleClick(file)}
+                                    onDoubleClick={() => onPathDoubleClick(file, linkedEntity)}
                                     onMouseEnter={() => setHoveredFileName(file.filename)}
                                     onMouseLeave={() => setHoveredFileName('')}
                                     className={file.dateDeleted && classes.deletedFileRow}
@@ -186,12 +187,12 @@ export const FileList = ({
                                     }
 
                                     <TableCell style={{padding: 5}} align="left">
-                                        {file.type === 'directory' ? <FolderOpen /> : <NoteOutlined />}
+                                        {isDirectory(file, linkedEntity) ? <FolderOpen /> : <NoteOutlined />}
                                     </TableCell>
                                     <TableCell>
-                                        {file.type === 'directory' ? (
+                                        {isDirectory(file, linkedEntity) ? (
                                             <Link
-                                                onClick={(e) => {e.stopPropagation(); onPathDoubleClick(file);}}
+                                                onClick={(e) => {e.stopPropagation(); onPathDoubleClick(file, linkedEntity);}}
                                                 color="inherit"
                                                 variant="body2"
                                                 component="button"
@@ -204,7 +205,7 @@ export const FileList = ({
                                         )}
                                     </TableCell>
                                     <TableCell align="right">
-                                        {file.linkedEntityType ? getHierarchyLevelByType(hierarchy, file.linkedEntityType).label : null}
+                                        {file.linkedEntityType ? linkedEntity.label : null}
                                     </TableCell>
                                     {showDeleted && (
                                         <TableCell align="right">
