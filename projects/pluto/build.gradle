@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        mockitoVersion = '3.6.28'
+        mockitoVersion = '3.12.0'
     }
 }
 
