@@ -40,7 +40,7 @@ repositories {
 
 lombok.version = "1.18.20"
 
-jacoco.toolVersion = "0.8.6"
+jacoco.toolVersion = "0.8.7"
 
 dependencies {
 //    implementation fileTree(dir: 'libs', include: '*.jar') // jena-fuseki-server-*.jar jena-text-es-*.jar
