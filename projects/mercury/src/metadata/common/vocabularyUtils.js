@@ -14,6 +14,7 @@ export type HierarchyLevel = {
     labelPlural: string;
     allowedDescendantTypes: string[];
     isRoot: boolean;
+    representsExternalFile: boolean;
 };
 
 /**
@@ -255,6 +256,7 @@ export const determineHierarchy = (vocabulary): HierarchyLevel[] => {
         isRoot: c['@id'] === hierarchyRoot['@id'],
         label: getFirstPredicateValue(c, constants.SHACL_NAME),
         labelPlural: getFirstPredicateValue(c, constants.NAME_PLURAL),
+        representsExternalFile: getFirstPredicateValue(c, constants.IS_EXTERNAL_FILE_REPRESENTATION) === true,
         allowedDescendantTypes: getAllowedDescendantTypes(c)
     }));
 };

@@ -34,7 +34,7 @@ import {
 } from "../constants";
 import {determinePropertyShapesForTypes, determineShapeForTypes} from "../metadata/common/vocabularyUtils";
 import {getFirstPredicateId, getFirstPredicateValue} from "../metadata/common/jsonLdUtils";
-import {getPathHierarchy} from "./fileUtils";
+import {getHierarchyLevelByType, getPathHierarchy, isDirectory} from "./fileUtils";
 import EmptyInformationDrawer from "../common/components/EmptyInformationDrawer";
 
 const useStyles = makeStyles((theme) => ({
@@ -233,9 +233,10 @@ const MetadataCard = (props) => {
 
 const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false, forceExpand}, ref) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
+    const {hierarchy} = useContext(VocabularyContext);
 
     let body;
-    let isDirectory;
+    let isCurrentPathDirectory;
     let cardTitle = "Metadata";
     let avatar = <FolderOpenOutlined />;
     if (error) {
@@ -245,16 +246,16 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
     } else if (!data) {
         body = <div>No metadata found</div>;
     } else {
-        const {iscollection, linkedEntityIri} = data;
+        const {linkedEntityIri, linkedEntityType} = data;
         cardTitle = `Metadata for ${data.basename}`;
-        isDirectory = iscollection && (iscollection.toLowerCase() === 'true');
+        isCurrentPathDirectory = isDirectory(data, getHierarchyLevelByType(hierarchy, linkedEntityType));
         body = (
             <LinkedDataEntityFormWithLinkedData
                 subject={linkedEntityIri}
                 hasEditRight={hasEditRight}
             />
         );
-        if (!isDirectory) {
+        if (!isCurrentPathDirectory) {
             avatar = <InsertDriveFileOutlined />;
         }
     }
@@ -265,7 +266,7 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
             title={cardTitle}
             avatar={avatar}
             forceExpand={forceExpand}
-            metadataUploadPath={hasEditRight && forceExpand && isDirectory && path}
+            metadataUploadPath={hasEditRight && forceExpand && isCurrentPathDirectory && path}
         >
             {body}
         </MetadataCard>

@@ -938,12 +938,14 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:path sils:hasLCMSAssayMode
     ] .
 
-fs:ExternalFile a rdfs:Class, sh:NodeShape ;
+sils:externalFileLink a rdf:Property .
+
+sils:ExternalFile a rdfs:Class, sh:NodeShape ;
     sh:description "A file mock referencing an external file." ;
     sh:name "External file" ;
-    fs:machineOnly true ;
     sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo) ;
     fs:partOfHierarchy true ;
+    fs:representsExternalFile true ;
     sh:property
     [
         sh:name "Created by" ;
@@ -990,12 +992,14 @@ fs:ExternalFile a rdfs:Class, sh:NodeShape ;
         sh:order 0
     ],
     [
-        sh:name "External links" ;
-        sh:description "Link to the actual file." ;
-        dash:singleLine true ; ;
+        sh:name "External path" ;
+        sh:description "File link, URL pointing to the external storage." ;
+        dash:singleLine true ;
+        sh:maxCount 1 ;
         fs:importantProperty true ;
         fs:externalLink true ;
-        sh:path sh:IRI ;
+        sh:datatype xsd:string ;
+        sh:path sils:externalFileLink ;
         sh:order 1 ;
     ],
     [
@@ -1003,7 +1007,8 @@ fs:ExternalFile a rdfs:Class, sh:NodeShape ;
         sh:description "" ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path rdfs:comment
+        sh:path rdfs:comment ;
+        sh:order 2 ;
     ],
     [
         sh:name "Entity location" ;

@@ -121,9 +121,10 @@ public class FS {
 
     public static final String LINKED_ENTITY_TYPE_URI = NS + "linkedEntityType";
     public static final Property linkedEntityType = createProperty(LINKED_ENTITY_TYPE_URI);
-
     public static final String LINKED_ENTITY_URI = NS + "linkedEntity";
     public static final Property linkedEntity = createProperty(LINKED_ENTITY_URI);
+    public static final String REPRESENTS_EXTERNAL_FILE = NS + "representsExternalFile";
+    public static final Property representsExternalFile = createProperty(REPRESENTS_EXTERNAL_FILE);
 
     public static final String IS_HIERARCHY_ROOT_URI = NS + "hierarchyRoot";
     public static final Property isHierarchyRoot = createProperty(IS_HIERARCHY_ROOT_URI);

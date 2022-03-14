@@ -9,6 +9,8 @@ import {HierarchyLevel} from "../metadata/common/vocabularyUtils";
 const NON_SAFE_FILE_NAME_CHARACTERS = ['/', '\\'];
 const NON_SAFE_FILE_NAMES = ['.', '..'];
 
+export const isDirectory = (file: File, linkedEntity: HierarchyLevel) => (file.type === 'directory' && !linkedEntity.representsExternalFile);
+
 export const getStrippedPath = (path) => {
     const stripped = path.startsWith(PATH_SEPARATOR) ? path.substring(1) : path;
     return path.endsWith(PATH_SEPARATOR) ? stripped.slice(0, -1) : stripped;

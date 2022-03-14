@@ -175,7 +175,9 @@ describe('Directory types hierarchy', () => {
             {
                 type: "https://fairspace.nl/ontology#Project",
                 label: "Project",
+                labelPlural: "Projects",
                 isRoot: true,
+                representsExternalFile: false,
                 allowedDescendantTypes: [
                     "https://fairspace.nl/ontology#ResearchProject"
                 ]
@@ -183,7 +185,9 @@ describe('Directory types hierarchy', () => {
             {
                 type: "https://fairspace.nl/ontology#ResearchProject",
                 label: "Research project",
+                labelPlural: "Research projects",
                 isRoot: false,
+                representsExternalFile: false,
                 allowedDescendantTypes: [
                     "https://fairspace.nl/ontology#ExternalResearchProject"
                 ]
@@ -191,7 +195,9 @@ describe('Directory types hierarchy', () => {
             {
                 type: "https://fairspace.nl/ontology#ExternalResearchProject",
                 label: "External research project",
+                labelPlural: "External research projects",
                 isRoot: false,
+                representsExternalFile: false,
                 allowedDescendantTypes: []
             }
         ]);

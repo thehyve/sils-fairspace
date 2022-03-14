@@ -19,7 +19,7 @@ const getSubject = () => (
 );
 
 const BrowserRoutes = () => {
-    const {currentUser} = useContext(UserContext);
+    const {currentUser = {}} = useContext(UserContext);
 
     return (
         <Switch>

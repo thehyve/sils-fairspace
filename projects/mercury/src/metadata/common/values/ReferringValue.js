@@ -44,6 +44,9 @@ export const ReferringValue = ({property, entry}) => {
                 </LinkedDataLink>
             );
     }
+    if (property.isExternalLink) {
+        return <a href={entry.value} target="_blank" rel="noopener noreferrer">{entry.value}</a>;
+    }
 
     return displayValue;
 };
