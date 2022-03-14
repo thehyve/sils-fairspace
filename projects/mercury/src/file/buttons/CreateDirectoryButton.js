@@ -1,28 +1,25 @@
-/* eslint-disable no-unused-vars */
 import React, {useContext, useState} from 'react';
 import useIsMounted from "react-is-mounted-hook";
 import Switch from '@material-ui/core/Switch';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import {ListItem} from "@material-ui/core";
 import FileNameDialog from "./FileNameDialog";
 import {useFormField} from "../../common/hooks/UseFormField";
 import {getAllowedDirectoryTypes, isValidFileName} from "../fileUtils";
 import ErrorDialog from "../../common/components/ErrorDialog";
 import {getLabelForType} from "../../metadata/common/vocabularyUtils";
 import VocabularyContext from "../../metadata/vocabulary/VocabularyContext";
-import LinkedDataProperty from "../../metadata/common/LinkedDataProperty";
 import LinkedDataDropdown from "../../metadata/common/LinkedDataDropdown";
-import UseLinkedData from "../../metadata/common/UseLinkedData";
 
 const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryType}) => {
     const [opened, setOpened] = useState(false);
-    const [useExistingEntity, setUseExistingEntity] = React.useState(true);
-
     const {vocabulary, hierarchy} = useContext(VocabularyContext);
     const isMounted = useIsMounted();
     const allowedTypes = getAllowedDirectoryTypes(hierarchy, parentDirectoryType);
     const entityType = allowedTypes.length > 0 ? allowedTypes[0] : "";
+
+    const [linkedEntityIri, setLinkedEntityIri] = React.useState("");
+    const [useExisting, setUseExisting] = React.useState(false);
 
     const nameControl = useFormField('', value => (
         !!value && isValidFileName(value)
@@ -40,19 +37,20 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryTyp
     };
 
     const createDirectory = () => {
-        onCreate(nameControl.value, entityType)
+        onCreate(nameControl.value, entityType, linkedEntityIri)
             .then(shouldClose => isMounted() && shouldClose && closeDialog());
     };
 
     const validateAndCreate = () => nameControl.valid && createDirectory();
 
     const handleCreateNewEntityChoice = (event) => {
-        setUseExistingEntity(event.target.checked);
+        setUseExisting(event.target.checked);
     };
 
     const onLinkedEntitySelected = (value) => {
         if (value) {
             nameControl.setValue(value.label);
+            setLinkedEntityIri(value.id);
         }
     };
 
@@ -61,22 +59,22 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryTyp
             return [];
         }
 
-        const properties = {property: {className: entityType},
+        const p = {property: {className: entityType},
             clearTextOnSelection: false,
             onChange: onLinkedEntitySelected};
-        return LinkedDataDropdown(properties);
+        return LinkedDataDropdown(p);
     };
 
     const entitySelector = (
         <FormGroup readOnly>
             <FormControlLabel
                 label="Use existing"
-                checked={useExistingEntity}
+                checked={useExisting}
                 control={
                     <Switch onChange={handleCreateNewEntityChoice} />
                 }
             />
-            {useExistingEntity && linkedDataSelector()}
+            {useExisting && linkedDataSelector()}
         </FormGroup>
     );
 
@@ -99,6 +97,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryTyp
                 }}
                 submitDisabled={Boolean(!nameControl.valid)}
                 title={"Create new " + getLabelForType(vocabulary, entityType)}
+                readonly={useExisting}
                 control={nameControl}
                 entitySelector={entitySelector}
             />
