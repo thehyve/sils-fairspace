@@ -142,6 +142,15 @@ public class WebDAVServlet extends HttpServlet {
                 .orElse(null);
     }
 
+    // The client can send a link of an existing entity. If filled, it is used and a new directory is
+    // attacted to an existing metadata item. If empty, a new metadata object is created.
+    static String linkedEntityIri() {
+        return Optional.ofNullable(getCurrentRequest())
+                .map(r -> r.getHeader("Linked-Entity-IRI"))
+                .map(String::trim)
+                .orElse(null);
+    }
+
     static boolean includeMetadataLinks() {
         return "true".equalsIgnoreCase(getCurrentRequest().getHeader("With-Metadata-Links"));
     }

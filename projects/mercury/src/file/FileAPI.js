@@ -101,8 +101,9 @@ class FileAPI {
      * @param options
      * @returns {*}
      */
-    createDirectory(path, entityType, options = defaultOptions) {
+    createDirectory(path, entityType, linkedEntityIri, options = defaultOptions) {
         options.headers = {...options.headers, "Entity-Type": entityType};
+        options.headers = {...options.headers, "Linked-Entity-IRI": linkedEntityIri ?? ""};
         return this.client().createDirectory(path, options)
             .catch(e => {
                 if (e && e.response) {
