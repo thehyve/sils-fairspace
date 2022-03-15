@@ -77,6 +77,7 @@ describe('getFileName', () => {
         expect(getFileName('ccc.ext')).toEqual('ccc.ext');
         expect(getFileName('aaa/bbb.ext/')).toEqual('bbb.ext');
         expect(getFileName('aaa/bbb')).toEqual('bbb');
+        expect(getFileName('/aaa')).toEqual('aaa');
     });
 });
 

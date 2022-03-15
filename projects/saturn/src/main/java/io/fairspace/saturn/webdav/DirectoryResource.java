@@ -90,20 +90,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                 .map(ModelUtils::getType)
                 .orElseThrow(() -> new BadRequestException("Parent directory is not linked with entity of a valid type."));
 
-        var validTypeURIs = new ArrayList<String>();
-        VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy)
-                .filterKeep(shape -> shape.getURI().equals(parentType.getURI()))
-                .forEachRemaining(res -> res.getProperty(FS.hierarchyDescendants)
-                        .getList()
-                        .mapWith(RDFNode::asResource)
-                        .mapWith(org.apache.jena.rdf.model.Resource::getURI)
-                        .forEach(validTypeURIs::add));
-
-        if (!validTypeURIs.contains(type.getURI())) {
-            var message = "The provided linked entity type is invalid: " + type.getURI();
-            setErrorMessage(message);
-            throw new BadRequestException(message);
-        }
+        validateIfTypeIsValidForParent(type, parentType);
     }
 
     @Override

@@ -5,17 +5,17 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FileNameDialog from "./FileNameDialog";
 import {useFormField} from "../../common/hooks/UseFormField";
-import {getAllowedDirectoryTypes, isValidFileName} from "../fileUtils";
+import {isValidFileName} from "../fileUtils";
 import ErrorDialog from "../../common/components/ErrorDialog";
 import {getLabelForType} from "../../metadata/common/vocabularyUtils";
 import VocabularyContext from "../../metadata/vocabulary/VocabularyContext";
 import LinkedDataDropdown from "../../metadata/common/LinkedDataDropdown";
 
-const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryType}) => {
+const CreateDirectoryButton = ({children, disabled, onCreate, allowedTypes}) => {
     const [opened, setOpened] = useState(false);
-    const {vocabulary, hierarchy} = useContext(VocabularyContext);
+    const {vocabulary} = useContext(VocabularyContext);
     const isMounted = useIsMounted();
-    const allowedTypes = getAllowedDirectoryTypes(hierarchy, parentDirectoryType);
+
     const entityType = allowedTypes.length > 0 ? allowedTypes[0] : "";
 
     const [linkedEntityIri, setLinkedEntityIri] = React.useState("");

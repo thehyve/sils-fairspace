@@ -106,7 +106,7 @@ public class DavFactory implements ResourceFactory {
         }
 
         if(access == Access.None && userService.currentUser().isAdmin()) {
-            return Access.List;
+            return Access.Write;
         }
 
         return access;

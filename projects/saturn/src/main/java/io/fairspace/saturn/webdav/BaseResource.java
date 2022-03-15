@@ -27,11 +27,13 @@ import static io.fairspace.saturn.auth.RequestContext.getUserURI;
 import static io.fairspace.saturn.rdf.ModelUtils.*;
 import static io.fairspace.saturn.rdf.SparqlUtils.parseXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.Vocabularies.USER_VOCABULARY;
+import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
 import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static io.milton.property.PropertySource.PropertyAccessibility.READ_ONLY;
 import static io.milton.property.PropertySource.PropertyAccessibility.WRITABLE;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.beanutils.PropertyUtils.getPropertyDescriptor;
 import static org.apache.commons.beanutils.PropertyUtils.getPropertyDescriptors;
@@ -50,16 +52,14 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     @Property
     public String getLinkedEntityType() {
-        return Optional
-                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntityType))
+        return ofNullable(subject.getPropertyResourceValue(FS.linkedEntityType))
                 .map(Resource::toString)
                 .orElse(null);
     }
 
     @Property
     public String getLinkedEntityIri() {
-        return Optional
-                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntity))
+        return ofNullable(subject.getPropertyResourceValue(FS.linkedEntity))
                 .map(Resource::toString)
                 .orElse(null);
     }
@@ -155,7 +155,13 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
             name = name.trim();
         }
         validateTarget(parent, name);
-        move(subject, (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : null, name, true);
+
+        var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : null;
+        var parentType = ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
+        var type = subject.getPropertyResourceValue(FS.linkedEntityType);
+        validateIfTypeIsValidForParent(type, parentType);
+
+        move(subject, parentSubject, name, true);
     }
 
     private void move(Resource subject, Resource parent, String name, boolean isTop) {
@@ -206,6 +212,29 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         return newVer;
     }
 
+    protected void validateIfTypeIsValidForParent(org.apache.jena.rdf.model.Resource type, org.apache.jena.rdf.model.Resource parentType) throws BadRequestException {
+        var validTypeURIs = new ArrayList<String>();
+        if (parentType == null) {
+            VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot)
+                    .mapWith(RDFNode::asResource)
+                    .mapWith(org.apache.jena.rdf.model.Resource::getURI)
+                    .forEach(validTypeURIs::add);
+        } else {
+            VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy)
+                    .filterKeep(shape -> shape.getURI().equals(parentType.getURI()))
+                    .forEachRemaining(res -> res.getProperty(FS.hierarchyDescendants)
+                            .getList()
+                            .mapWith(RDFNode::asResource)
+                            .mapWith(org.apache.jena.rdf.model.Resource::getURI)
+                            .forEach(validTypeURIs::add));
+        }
+        if (!validTypeURIs.contains(type.getURI())) {
+            var message = "The provided linked entity type is invalid: " + type.getURI();
+            setErrorMessage(message);
+            throw new BadRequestException(message);
+        }
+    }
+
     @Override
     public void copyTo(io.milton.resource.CollectionResource parent, String name)
             throws NotAuthorizedException, BadRequestException, ConflictException {
@@ -213,6 +242,11 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
             name = name.trim();
         }
         var parentSubject = parent instanceof DirectoryResource ? ((DirectoryResource) parent).subject : factory.rootSubject;
+
+        var parentType = parentSubject.getPropertyResourceValue(FS.linkedEntityType);
+        var type = subject.getPropertyResourceValue(FS.linkedEntityType);
+        validateIfTypeIsValidForParent(type, parentType);
+
         copy(subject, parentSubject, name, factory.currentUserResource(), timestampLiteral());
     }
 
@@ -224,7 +258,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
                 .addProperty(FS.dateCreated, date)
                 .addProperty(FS.createdBy, user);
 
-        copyProperties(subject, newSubject, RDF.type, FS.contentType);
+        copyProperties(subject, newSubject, RDF.type, FS.contentType, FS.linkedEntity, FS.linkedEntityType);
 
         if (subject.hasProperty(FS.versions)) {
             var src = getListProperty(subject, FS.versions).getHead().asResource();
