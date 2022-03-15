@@ -10,14 +10,12 @@ import io.milton.resource.CollectionResource;
 import io.milton.resource.MakeCollectionableResource;
 import io.milton.resource.PropFindableResource;
 import io.milton.resource.Resource;
-import lombok.extern.log4j.*;
+import lombok.extern.log4j.Log4j2;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavFactory.childSubject;
@@ -39,9 +37,15 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
         return factory.getResource(childSubject(factory.rootSubject, childName));
     }
 
+    private ResIterator getHierarchyRootClasses() {
+        return VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot);
+    }
+
     @Override
     public List<? extends Resource> getChildren() {
-        return factory.rootSubject.getModel().listSubjectsWithProperty(FS.belongsTo, FS.ROOT_URI)
+        var hierarchyRootClasses = getHierarchyRootClasses().toSet();
+        return factory.rootSubject.getModel().listSubjectsWithProperty(RDF.type, FS.Directory)
+                .filterKeep(root -> hierarchyRootClasses.contains(root.getPropertyResourceValue(FS.linkedEntityType)))
                 .mapWith(factory::getResource)
                 .filterDrop(Objects::isNull)
                 .toList();
@@ -66,7 +70,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
     }
 
     private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource type) throws BadRequestException {
-        var hasValidType = VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot)
+        var hasValidType = getHierarchyRootClasses()
                 .filterKeep(root -> root.getURI().equals(type.getURI()))
                 .hasNext();
         if (!hasValidType) {
@@ -114,8 +118,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .addProperty(FS.createdBy, user)
                 .addProperty(FS.dateCreated, timestampLiteral())
                 .addProperty(FS.dateModified, timestampLiteral())
-                .addProperty(FS.modifiedBy, user)
-                .addProperty(FS.belongsTo, FS.ROOT_URI);
+                .addProperty(FS.modifiedBy, user);
 
         factory.addLinkedEntity(name, subj, type);
 

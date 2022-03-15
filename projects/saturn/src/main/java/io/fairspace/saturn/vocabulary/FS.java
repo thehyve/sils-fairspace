@@ -159,8 +159,6 @@ public class FS {
     public static final String NIL_URI = NS + "nil";
     public static final Property nil = createProperty(NIL_URI);
 
-    public static final String ROOT_URI = NS + "root";
-
     public static final String IS_ADMIN_URI = NS + "isAdmin";
     public static final String CAN_VIEW_PUBLIC_METADATA_URI = NS + "canViewPublicMetadata";
     public static final String CAN_VIEW_PUBLIC_DATA_URI = NS + "canViewPublicData";
