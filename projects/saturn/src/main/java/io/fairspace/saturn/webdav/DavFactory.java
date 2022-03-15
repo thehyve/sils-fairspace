@@ -170,7 +170,24 @@ public class DavFactory implements ResourceFactory {
         return createResource(type);
     }
 
-    public void createLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {
+    public void addLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {
+        linkedDirectory.addProperty(FS.linkedEntityType, type);
+
+        var entityIri = linkedEntityIri();
+
+        if(entityIri != null && !entityIri.isEmpty()) {
+            addExistingEntity(linkedDirectory, entityIri);
+        }
+        else {
+            addNewLinkedEntity(name, linkedDirectory, type);
+        }
+    }
+
+    private void addExistingEntity(org.apache.jena.rdf.model.Resource linkedDirectory, String entityIri) {
+        linkedDirectory.addProperty(FS.linkedEntity, rootSubject.getModel().getResource(entityIri));
+    }
+
+    private void addNewLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {
         var newEntity = linkedDirectory.getModel()
                 .createResource(generateMetadataIri().getURI())
                 .addProperty(RDF.type, type)
@@ -179,6 +196,5 @@ public class DavFactory implements ResourceFactory {
                 .addProperty(FS.dateCreated, WebDAVServlet.timestampLiteral());
 
         linkedDirectory.addProperty(FS.linkedEntity, newEntity);
-        linkedDirectory.addProperty(FS.linkedEntityType, type);
     }
 }

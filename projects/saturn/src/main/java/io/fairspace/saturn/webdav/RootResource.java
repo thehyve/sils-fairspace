@@ -117,7 +117,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .addProperty(FS.modifiedBy, user)
                 .addProperty(FS.belongsTo, FS.ROOT_URI);
 
-        factory.createLinkedEntity(name, subj, type);
+        factory.addLinkedEntity(name, subj, type);
 
         return (CollectionResource) factory.getResource(subj, Access.Manage);
     }

@@ -19,7 +19,6 @@ export const useLinkedDataNoContext = (subject, context = {}) => {
     const [propertiesLoaded, setPropertiesLoaded] = useState(false);
     const [values, setValues] = useState({});
     const [typeInfo, setTypeInfo] = useState({});
-
     const {shapes, shapesLoading, shapesError, fetchLinkedDataForSubject} = context;
 
     const updateLinkedData = useCallback(() => {
