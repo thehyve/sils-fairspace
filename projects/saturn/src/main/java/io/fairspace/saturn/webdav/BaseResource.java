@@ -33,7 +33,6 @@ import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static io.milton.property.PropertySource.PropertyAccessibility.READ_ONLY;
 import static io.milton.property.PropertySource.PropertyAccessibility.WRITABLE;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.beanutils.PropertyUtils.getPropertyDescriptor;
 import static org.apache.commons.beanutils.PropertyUtils.getPropertyDescriptors;
@@ -52,14 +51,16 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
     @Property
     public String getLinkedEntityType() {
-        return ofNullable(subject.getPropertyResourceValue(FS.linkedEntityType))
+        return Optional
+                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntityType))
                 .map(Resource::toString)
                 .orElse(null);
     }
 
     @Property
     public String getLinkedEntityIri() {
-        return ofNullable(subject.getPropertyResourceValue(FS.linkedEntity))
+        return Optional
+                .ofNullable(subject.getPropertyResourceValue(FS.linkedEntity))
                 .map(Resource::toString)
                 .orElse(null);
     }
@@ -157,7 +158,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         validateTarget(parent, name);
 
         var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : null;
-        var parentType = ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
+        var parentType = Optional.ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
         validateIfTypeIsValidForParent(type, parentType);
 
@@ -241,6 +242,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         if (name != null) {
             name = name.trim();
         }
+        validateTarget(parent, name);
         var parentSubject = parent instanceof DirectoryResource ? ((DirectoryResource) parent).subject : factory.rootSubject;
 
         var parentType = parentSubject.getPropertyResourceValue(FS.linkedEntityType);

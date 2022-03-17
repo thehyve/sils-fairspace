@@ -16,6 +16,7 @@ describe('FileOperations', () => {
         method: COPY,
         filenames: ['a'],
         isEmpty: () => false,
+        linkedEntityType: "http://localhost#valid-type",
         length: () => 1
     };
 
@@ -38,6 +39,7 @@ describe('FileOperations', () => {
         clearSelection={clearSelection}
         fileActions={fileActions}
         openedDirectory={{path: openedPath}}
+        allowedTypes={["http://localhost#valid-type"]}
         isWritingEnabled
     />);
 
@@ -100,6 +102,7 @@ describe('FileOperations', () => {
                 method: COPY,
                 filenames: [],
                 isEmpty: () => true,
+                linkedEntityType: "http://localhost#valid-type",
                 length: () => 0
             };
 
@@ -111,6 +114,7 @@ describe('FileOperations', () => {
             const currentDirClipboard = {
                 method: CUT,
                 filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#valid-type",
                 isEmpty: () => false,
                 length: () => 1
             };
@@ -118,11 +122,12 @@ describe('FileOperations', () => {
             wrapper = renderFileOperations(currentDirClipboard, fileActionsMock, openedPath);
             expect(wrapper.find('[aria-label="Paste"]').prop("disabled")).toEqual(true);
         });
-        it('should be enabled if the clipboard contains files cut from the other directory', () => {
+        it('should be enabled if the clipboard contains files cut from the other directory with valid type', () => {
             const openedPath = '/other-directory';
             const currentDirClipboard = {
                 method: CUT,
                 filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#valid-type",
                 isEmpty: () => false,
                 length: () => 1
             };
@@ -130,11 +135,25 @@ describe('FileOperations', () => {
             wrapper = renderFileOperations(currentDirClipboard, fileActionsMock, openedPath);
             expect(wrapper.find('[aria-label="Paste"]').prop("disabled")).toEqual(false);
         });
+        it('should be disabled if the clipboard contains files cut from the other directory with invalid type', () => {
+            const openedPath = '/other-directory';
+            const currentDirClipboard = {
+                method: CUT,
+                filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#invalid-type",
+                isEmpty: () => false,
+                length: () => 1
+            };
+
+            wrapper = renderFileOperations(currentDirClipboard, fileActionsMock, openedPath);
+            expect(wrapper.find('[aria-label="Paste"]').prop("disabled")).toEqual(true);
+        });
         it('should be enabled if the clipboard contains files copied from the current directory', () => {
             const openedPath = '/subdirectory';
             const currentDirClipboard = {
                 method: COPY,
                 filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#valid-type",
                 isEmpty: () => false,
                 length: () => 1
             };

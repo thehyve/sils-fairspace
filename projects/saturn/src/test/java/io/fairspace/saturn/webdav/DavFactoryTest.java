@@ -433,6 +433,39 @@ public class DavFactoryTest {
         assertNotNull(factory.getResource(null, BASE_PATH + "/dir0/new"));
     }
 
+    @Test
+    public void testMoveDirectory() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        var dir1 = (FolderResource) root.createCollection("d1");
+        var dir2 = (FolderResource) root.createCollection("d2");
+
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir11 = (MakeCollectionableResource) dir1.createCollection("dir1");
+        var dir22 = dir2.createCollection("dir2");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project");
+        var subdir = dir11.createCollection("old");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Study");
+        ((FolderResource) subdir).createCollection("dir_x");
+
+        ((MoveableResource) subdir).moveTo(dir22, "new");
+
+        assertNull(factory.getResource(null, BASE_PATH + "/d1/dir1/old"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/d2/dir2/new"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/d2/dir2/new/dir_x"));
+    }
+
+    @Test(expected = BadRequestException.class)
+    public void testMoveDirectoryOnDifferentHierarchyLevelFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        var dir0 = root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir01 = ((FolderResource) dir0).createCollection("dir01");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project");
+        var dir011 = ((FolderResource) dir01).createCollection("dir011");
+
+        ((MoveableResource) dir011).moveTo(dir0, "dir0");
+    }
+
     @Test(expected = ConflictException.class)
     public void testMoveDirectoryToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -456,23 +489,36 @@ public class DavFactoryTest {
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Study");
         ((FolderResource) subdir).createCollection("dir_x");
 
-        ((MoveableResource) subdir).moveTo(dir22, "new");
+        ((CopyableResource) subdir).copyTo(dir22, "new");
 
-        assertNull(factory.getResource(null, BASE_PATH + "/d1/dir1/old"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/d1/dir1/old"));
+        assertNotNull(factory.getResource(null, BASE_PATH + "/d1/dir1/old/dir_x"));
         assertNotNull(factory.getResource(null, BASE_PATH + "/d2/dir2/new"));
         assertNotNull(factory.getResource(null, BASE_PATH + "/d2/dir2/new/dir_x"));
     }
 
-    @Ignore("To be fixed after deciding on copy/paste functionality")
-    @Test(expected = ConflictException.class)
-    public void testCopyDirectoryToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+    @Test(expected = BadRequestException.class)
+    public void testCopyDirectoryOnDifferentHierarchyLevelFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
         var dir0 = root.createCollection("dir0");
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
-        var dir1 = ((FolderResource) dir0).createCollection("dir1");
-        var dir2 = ((FolderResource) dir0).createCollection("dir2");
+        var dir01 = ((FolderResource) dir0).createCollection("dir01");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project");
+        var dir011 = ((FolderResource) dir01).createCollection("dir011");
 
-        ((CopyableResource) dir2).copyTo(dir0, "dir1");
+        ((CopyableResource) dir011).copyTo(dir0, "dir0");
+    }
+
+    @Test(expected = ConflictException.class)
+    public void testCopyDirectoryToExistingFails() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        var dir01 = root.createCollection("dir01");
+        var dir02 = root.createCollection("dir02");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir011 = ((FolderResource) dir01).createCollection("my_dir");
+        var dir021 = ((FolderResource) dir02).createCollection("my_dir");
+
+        ((CopyableResource) dir021).copyTo(dir01, "my_dir");
     }
 
 }
