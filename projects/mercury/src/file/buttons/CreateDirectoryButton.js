@@ -45,12 +45,19 @@ const CreateDirectoryButton = ({children, disabled, onCreate, parentDirectoryTyp
 
     const handleCreateNewEntityChoice = (event) => {
         setUseExisting(event.target.checked);
+        if (!event.target.checked) {
+            setLinkedEntityIri("");
+            nameControl.setValue("");
+        }
     };
 
     const onLinkedEntitySelected = (value) => {
         if (value) {
             nameControl.setValue(value.label);
             setLinkedEntityIri(value.id);
+        } else {
+            setLinkedEntityIri("");
+            nameControl.setValue("");
         }
     };
 

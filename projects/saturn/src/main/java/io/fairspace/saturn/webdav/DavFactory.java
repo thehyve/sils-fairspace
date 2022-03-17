@@ -6,11 +6,13 @@ import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.net.URI;
+import java.util.Optional;
 
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
 import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
@@ -21,6 +23,8 @@ import static io.fairspace.saturn.webdav.AccessMode.MetadataPublished;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
 import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
+import static io.fairspace.saturn.util.ValidationUtils.*;
+import static org.apache.jena.graph.NodeFactory.createURI;
 
 public class DavFactory implements ResourceFactory {
     // Represents the root URI, not stored in the database
@@ -170,7 +174,7 @@ public class DavFactory implements ResourceFactory {
         return createResource(type);
     }
 
-    public void addLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {
+    public void addLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) throws BadRequestException {
         linkedDirectory.addProperty(FS.linkedEntityType, type);
 
         var entityIri = linkedEntityIri();
@@ -183,8 +187,29 @@ public class DavFactory implements ResourceFactory {
         }
     }
 
-    private void addExistingEntity(org.apache.jena.rdf.model.Resource linkedDirectory, String entityIri) {
-        linkedDirectory.addProperty(FS.linkedEntity, rootSubject.getModel().getResource(entityIri));
+    private void addExistingEntity(org.apache.jena.rdf.model.Resource linkedDirectory, String entityIri) throws BadRequestException {
+        var resource = rootSubject.getModel().wrapAsResource(createURI(entityIri));
+
+        var directoryType = Optional
+                .ofNullable(linkedDirectory.getPropertyResourceValue(FS.linkedEntityType))
+                .map(org.apache.jena.rdf.model.Resource::toString)
+                .orElse(null);
+
+        var existingEntityType = Optional
+                .ofNullable(resource.getProperty(RDF.type))
+                .map(org.apache.jena.rdf.model.Statement::getObject)
+                .map(org.apache.jena.rdf.model.RDFNode::toString)
+                .orElse(null);
+
+        if (directoryType != null && directoryType.equals(existingEntityType)
+            && rootSubject.getModel().containsResource(resource)) {
+            linkedDirectory.addProperty(FS.linkedEntity, resource);
+        }
+        else {
+            var message = "No entity found for the given entity iri.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
+        }
     }
 
     private void addNewLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {

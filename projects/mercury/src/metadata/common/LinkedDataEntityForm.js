@@ -85,12 +85,9 @@ export const LinkedDataEntityForm = ({
                     property={p}
                     values={values[p.key]}
                     validationErrors={validationErrors[p.key]}
-                    onAdd={editable ? (value) => onAdd(p, value) : () => {
-                    }}
-                    onChange={editable ? (value, index) => onChange(p, value, index) : () => {
-                    }}
-                    onDelete={editable ? (index) => onDelete(p, index) : () => {
-                    }}
+                    onAdd={editable ? (value) => onAdd(p, value) : () => {}}
+                    onChange={editable ? (value, index) => onChange(p, value, index) : () => {}}
+                    onDelete={editable ? (index) => onDelete(p, index) : () => {}}
                 />
             </ListItem>
         );
