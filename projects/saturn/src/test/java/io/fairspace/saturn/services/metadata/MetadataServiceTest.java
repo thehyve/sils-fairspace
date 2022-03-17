@@ -3,8 +3,7 @@ package io.fairspace.saturn.services.metadata;
 import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
 import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.services.metadata.validation.ComposedValidator;
-import io.fairspace.saturn.services.metadata.validation.UniqueLabelValidator;
-import io.fairspace.saturn.services.metadata.validation.ValidationException;
+import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
 import io.fairspace.saturn.vocabulary.FS;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Property;
@@ -52,7 +51,7 @@ public class MetadataServiceTest {
         setupRequestContext();
         when(permissions.canReadMetadata(any())).thenReturn(true);
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(txn, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        api = new MetadataService(txn, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions);
     }
 
     @Test
@@ -163,20 +162,8 @@ public class MetadataServiceTest {
         ));
     }
 
-    @Test(expected = ValidationException.class)
-    public void putDuplicateLabelFails() {
-        api.put(modelOf(
-                createStatement(S1, RDF.type, FS.Workspace),
-                createStatement(S1, RDFS.label, createStringLiteral("Test"))
-                ));
-        api.put(modelOf(
-                createStatement(S2, RDF.type, FS.Workspace),
-                createStatement(S2, RDFS.label, createStringLiteral("Test"))
-        ));
-    }
-
-    @Test(expected = ValidationException.class)
-    public void patchDuplicateLabelFails() {
+    @Test
+    public void patchDuplicateLabelDoesNotFail() {
         txn.executeWrite(m -> m
                 .add(S1, RDF.type, FS.Workspace)
                 .add(S1, RDFS.label, "Test 1")
@@ -185,18 +172,6 @@ public class MetadataServiceTest {
         );
 
         api.patch(modelOf(createStatement(S1, RDFS.label, createStringLiteral("Test 2 "))));
-    }
-
-    @Test(expected = ValidationException.class)
-    public void patchDuplicateLabelWithWhitespaceFails() {
-        txn.executeWrite(m -> m
-                .add(S1, RDF.type, FS.Workspace)
-                .add(S1, RDFS.label, "Test 1")
-                .add(S2, RDF.type, FS.Workspace)
-                .add(S2, RDFS.label, "Test 2")
-        );
-
-        api.patch(modelOf(createStatement(S1, RDFS.label, createStringLiteral(" Test 2  "))));
     }
 
     @Test

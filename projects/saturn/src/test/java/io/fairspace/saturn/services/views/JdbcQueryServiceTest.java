@@ -100,7 +100,7 @@ public class JdbcQueryServiceTest {
         queryService = new JdbcQueryService(ConfigLoader.CONFIG.search, viewStoreClientFactory, tx, davFactory.root);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions);
 
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
