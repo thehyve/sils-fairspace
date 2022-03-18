@@ -6,7 +6,7 @@ import ContentCut from "mdi-material-ui/ContentCut";
 import ContentPaste from "mdi-material-ui/ContentPaste";
 import ErrorDialog from "../common/components/ErrorDialog";
 
-import {getParentPath, joinPaths} from "./fileUtils";
+import {getAllowedDirectoryTypes, getParentPath, joinPaths} from "./fileUtils";
 import {COPY, CUT} from '../constants';
 import FileOperationsGroup from "./FileOperationsGroup";
 import ClipboardContext from '../common/contexts/ClipboardContext';
@@ -15,6 +15,7 @@ import CreateDirectoryButton from "./buttons/CreateDirectoryButton";
 import ProgressButton from "../common/components/ProgressButton";
 import RenameButton from "./buttons/RenameButton";
 import styles from "./FileOperations.styles";
+import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
 
 export const Operations = {
     PASTE: 'PASTE',
@@ -31,6 +32,7 @@ export const FileOperations = ({
     showDeleted,
     isExternalStorage = false,
     openedDirectory = {},
+    allowedTypes = [],
     selectedPaths,
     clearSelection,
     fileActions = {},
@@ -49,7 +51,8 @@ export const FileOperations = ({
     const isDeletedItemSelected = selectedDeletedItems.length > 0;
     const isDisabledForMoreThanOneSelection = selectedPaths.length === 0 || moreThanOneItemSelected;
     const isClipboardItemsOnOpenedPath = !clipboard.isEmpty() && clipboard.filenames.map(f => getParentPath(f)).includes(openedDirectory.path);
-    const isPasteDisabled = !isWritingEnabled || clipboard.isEmpty() || (isClipboardItemsOnOpenedPath && clipboard.method === CUT);
+    const isLinkedEntityTypeValidForParent = !clipboard.isEmpty() && allowedTypes.includes(clipboard.linkedEntityType);
+    const isPasteDisabled = !isWritingEnabled || clipboard.isEmpty() || (isClipboardItemsOnOpenedPath && clipboard.method === CUT) || !isLinkedEntityTypeValidForParent;
 
     const fileOperation = (operationCode, operationPromise) => {
         setActiveOperation(operationCode);
@@ -68,12 +71,12 @@ export const FileOperations = ({
 
     const handleCut = e => {
         if (e) e.stopPropagation();
-        clipboard.cut(selectedPaths);
+        clipboard.cut(selectedPaths, selectedItem.linkedEntityType);
     };
 
     const handleCopy = e => {
         if (e) e.stopPropagation();
-        clipboard.copy(selectedPaths);
+        clipboard.copy(selectedPaths, selectedItem.linkedEntityType);
     };
 
     const handlePaste = e => {
@@ -165,7 +168,7 @@ export const FileOperations = ({
                             <CreateDirectoryButton
                                 onCreate={(name, entityType, linkedEntityIri) => handleCreateDirectory(name, entityType, linkedEntityIri)}
                                 disabled={busy}
-                                parentDirectoryType={openedDirectory.directoryType}
+                                allowedTypes={allowedTypes}
                             >
                                 <IconButton
                                     aria-label="Create directory"
@@ -276,8 +279,10 @@ export const FileOperations = ({
 
 const ContextualFileOperations = props => {
     const clipboard = useContext(ClipboardContext);
+    const {hierarchy} = useContext(VocabularyContext);
+    const allowedTypes = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType);
 
-    return <FileOperations clipboard={clipboard} {...props} />;
+    return <FileOperations clipboard={clipboard} allowedTypes={allowedTypes} {...props} />;
 };
 
 export default withStyles(styles)(ContextualFileOperations);

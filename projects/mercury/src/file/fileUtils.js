@@ -107,7 +107,7 @@ export const getValidPath = (path) => {
 };
 
 export function getFileName(path) {
-    const normalizedPath = path.endsWith(PATH_SEPARATOR) ? path.substring(0, path.length - 1) : path;
+    const normalizedPath = getStrippedPath(path);
     const pos = normalizedPath.lastIndexOf(PATH_SEPARATOR);
     return (pos > 0) ? normalizedPath.substring(pos + 1) : normalizedPath;
 }
