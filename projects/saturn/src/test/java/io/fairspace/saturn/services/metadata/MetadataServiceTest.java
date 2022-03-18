@@ -212,4 +212,16 @@ public class MetadataServiceTest {
         assertTrue(ds.getDefaultModel().contains(STMT1.getSubject(), FS.modifiedBy));
         assertTrue(ds.getDefaultModel().contains(STMT1.getSubject(), FS.dateModified));
     }
+
+    @Test
+    public void delete_linked_entity() {
+        txn.executeWrite(m -> m
+                .add(STMT1)
+                .add(STMT2)
+                .add(createStatement(S2, RDF.type, FS.Directory))
+                .add(createStatement(S2, FS.linkedEntity, S1))
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> api.softDelete(S1));
+    }
 }

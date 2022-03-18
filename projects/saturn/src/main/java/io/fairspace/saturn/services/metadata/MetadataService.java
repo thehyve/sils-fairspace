@@ -116,14 +116,24 @@ public class MetadataService {
             if (!permissions.canWriteMetadata(resource)) {
                 throw new AccessDeniedException(resource.getURI());
             }
+
             var machineOnly = resource.listProperties(RDF.type)
                     .mapWith(Statement::getObject)
                     .filterKeep(SYSTEM_VOCABULARY::containsResource)
                     .hasNext();
-
             if (machineOnly) {
                 throw new IllegalArgumentException("Cannot mark as deleted machine-only entity " + resource);
             }
+
+            var isLinkedEntity = model.listStatements(null, FS.linkedEntity, resource)
+                    .filterKeep(statement -> statement.getSubject().hasProperty(RDF.type, FS.Directory))
+                    .hasNext();
+            if (isLinkedEntity) {
+                throw new IllegalArgumentException(
+                        "Cannot mark as deleted entity " + resource + ", because it is linked to existing directory."
+                );
+            }
+
             if (resource.getModel().containsResource(resource) && !resource.hasProperty(FS.dateDeleted)) {
                 resource.addLiteral(FS.dateDeleted, toXSDDateTimeLiteral(Instant.now()));
                 resource.addProperty(FS.deletedBy, model.wrapAsResource(getUserURI()));
