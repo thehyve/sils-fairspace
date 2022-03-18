@@ -6,13 +6,14 @@ import MenuItem from "@material-ui/core/MenuItem";
 /**
  * This component is an input field that is aware of it's touched (blur) state and will only error if it's touched
  */
-const ControlledTextField = ({control: {value, touched, setValue, valid, declareTouched}, selectOptions = [], ...props}) => (
+const ControlledTextField = ({control: {value, touched, setValue, valid, declareTouched}, selectOptions = [], readonly = false, ...props}) => (
     <TextField
         {...props}
         value={value}
         onChange={e => setValue(e.target.value)}
         onBlur={declareTouched}
         error={touched && !valid}
+        disabled={readonly}
     >
         {selectOptions.map(option => <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </TextField>

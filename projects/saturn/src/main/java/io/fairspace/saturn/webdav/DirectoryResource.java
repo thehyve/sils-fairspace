@@ -79,7 +79,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         //create linked entity
         var type = factory.getLinkedEntityType();
         validateLinkedEntityType(subj, type);
-        factory.createLinkedEntity(newName, subj, type);
+        factory.addLinkedEntity(newName, subj, type);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
     }

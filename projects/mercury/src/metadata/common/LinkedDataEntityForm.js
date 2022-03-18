@@ -73,6 +73,26 @@ export const LinkedDataEntityForm = ({
         return <MessageDisplay message={errorMessage} />;
     }
 
+    function getPropertyListItem(p) {
+        return (
+            <ListItem
+                key={p.key}
+                disableGutters
+                style={{display: 'block'}}
+            >
+                <LinkedDataProperty
+                    formEditable={editable}
+                    property={p}
+                    values={values[p.key]}
+                    validationErrors={validationErrors[p.key]}
+                    onAdd={editable ? (value) => onAdd(p, value) : () => {}}
+                    onChange={editable ? (value, index) => onChange(p, value, index) : () => {}}
+                    onDelete={editable ? (index) => onDelete(p, index) : () => {}}
+                />
+            </ListItem>
+        );
+    }
+
     return (
         <form
             id={id}
@@ -100,23 +120,7 @@ export const LinkedDataEntityForm = ({
                             compareBy(p => (typeof p.order === 'number' ? p.order : Number.MAX_SAFE_INTEGER)),
                             compareBy('label')
                         ))
-                        .map(p => (
-                            <ListItem
-                                key={p.key}
-                                disableGutters
-                                style={{display: 'block'}}
-                            >
-                                <LinkedDataProperty
-                                    formEditable={editable}
-                                    property={p}
-                                    values={values[p.key]}
-                                    validationErrors={validationErrors[p.key]}
-                                    onAdd={editable ? (value) => onAdd(p, value) : () => {}}
-                                    onChange={editable ? (value, index) => onChange(p, value, index) : () => {}}
-                                    onDelete={editable ? (index) => onDelete(p, index) : () => {}}
-                                />
-                            </ListItem>
-                        ))
+                        .map(p => getPropertyListItem(p))
                 }
             </List>
         </form>
