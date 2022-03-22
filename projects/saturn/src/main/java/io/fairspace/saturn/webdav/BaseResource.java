@@ -173,7 +173,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         }
         validateTarget(parent, name);
 
-        var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : null;
+        var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : factory.rootSubject;
         var parentType = Optional.ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
         validateIfTypeIsValidForParent(type, parentType);
