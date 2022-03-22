@@ -6,6 +6,7 @@ import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -47,7 +48,7 @@ public class DavFactory implements ResourceFactory {
         return getResource(rootSubject.getModel().createResource(baseUri + "/" + encodePath(path)));
     }
 
-    Resource getResource(org.apache.jena.rdf.model.Resource subject) {
+    public Resource getResource(org.apache.jena.rdf.model.Resource subject) {
         if (subject.equals(rootSubject)) {
             return root;
         }

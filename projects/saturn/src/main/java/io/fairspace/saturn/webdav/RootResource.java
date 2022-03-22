@@ -115,6 +115,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
         subj.addProperty(RDF.type, FS.Directory)
                 .addProperty(RDFS.label, name)
                 .addProperty(RDFS.comment, "")
+                .addProperty(FS.belongsTo, factory.rootSubject)
                 .addProperty(FS.createdBy, user)
                 .addProperty(FS.dateCreated, timestampLiteral())
                 .addProperty(FS.dateModified, timestampLiteral())
