@@ -3,11 +3,13 @@ package io.fairspace.saturn.services.metadata;
 import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
 import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.vocabulary.FS;
+import io.fairspace.saturn.webdav.DavFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shacl.vocabulary.SHACLM;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Before;
@@ -41,12 +43,14 @@ public class ReadableMetadataServiceTest {
     private MetadataService api;
     private Model vocabulary = SYSTEM_VOCABULARY.union(createDefaultModel());
     @Mock
+    private DavFactory davFactory;
+    @Mock
     MetadataPermissions permissions;
 
     @Before
     public void setUp() {
         when(permissions.canReadMetadata(any())).thenReturn(true);
-        api = new MetadataService(txn, vocabulary, null, permissions);
+        api = new MetadataService(txn, vocabulary, null, permissions, davFactory);
     }
 
     @Test
