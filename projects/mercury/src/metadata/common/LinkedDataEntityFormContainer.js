@@ -146,9 +146,15 @@ LinkedDataEntityFormContainer.propTypes = {
 };
 
 export const LinkedDataEntityFormWithLinkedData = (
-    {subject, hasEditRight, setHasCollectionMetadataUpdates}
+    {subject, hasEditRight, setHasCollectionMetadataUpdates, updateDate}
 ) => {
     const {typeInfo, properties, values, linkedDataLoading, linkedDataError, updateLinkedData} = useLinkedData(subject);
+
+    useEffect(() => {
+        if (updateLinkedData) {
+            updateLinkedData();
+        }
+    }, [updateLinkedData, updateDate]);
 
     return (
         <LinkedDataEntityFormContainer

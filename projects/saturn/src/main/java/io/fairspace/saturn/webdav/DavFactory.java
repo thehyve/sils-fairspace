@@ -6,7 +6,6 @@ import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -23,7 +22,6 @@ import static io.fairspace.saturn.webdav.AccessMode.MetadataPublished;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
 import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
-import static io.fairspace.saturn.util.ValidationUtils.*;
 import static org.apache.jena.graph.NodeFactory.createURI;
 
 public class DavFactory implements ResourceFactory {
