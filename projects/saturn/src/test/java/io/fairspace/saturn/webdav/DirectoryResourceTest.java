@@ -92,9 +92,9 @@ public class DirectoryResourceTest {
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
         Context context = new Context();
-        metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions);
-        context.set(METADATA_SERVICE, metadataService);
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
+        metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
+        context.set(METADATA_SERVICE, metadataService);
 
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
