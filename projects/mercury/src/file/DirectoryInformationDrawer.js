@@ -171,42 +171,40 @@ const MetadataCard = (props) => {
     const inputProps = metadataUploadPath && getInputProps();
     const dropzoneClassName = () => `${classes.card} ${isDragActive && classes.activeStyle} ${isDragReject && classes.rejectStyle} ${isDragAccept && classes.acceptStyle}`;
 
-    function CsvUpload() {
-        return (
-            <>
-                {metadataUploadPath && (uploadingMetadata
-                    ? <CircularProgress size={10} />
-                    : allowCsvUpload && (
-                        <Tooltip
-                            interactive
-                            title={(
-                                <>
-                                    <div>Upload metadata in CSV format.</div>
-                                    <div>
-                                        {'Download '}
-                                        <Link
-                                            download="metadata.csv"
-                                            href={'data:text/csv;charset=utf-8,' + encodeURIComponent(fileTemplate)}
-                                        >template file
-                                        </Link>
-                                    </div>
-                                </>
-                            )}
-                        >
-                            <IconButton onClick={open}><CloudUpload /></IconButton>
-                        </Tooltip>
-                    ))}
-                <IconButton
-                    onClick={toggleExpand}
-                    aria-expanded={expanded}
-                    aria-label="Show more"
-                    className={expanded ? classes.expandOpen : ''}
-                >
-                    <ExpandMore />
-                </IconButton>
-            </>
-        );
-    }
+    const csvUpload = () => (
+        <>
+            {metadataUploadPath && (uploadingMetadata
+                ? <CircularProgress size={10} />
+                : allowCsvUpload && (
+                    <Tooltip
+                        interactive
+                        title={(
+                            <>
+                                <div>Upload metadata in CSV format.</div>
+                                <div>
+                                    {'Download '}
+                                    <Link
+                                        download="metadata.csv"
+                                        href={'data:text/csv;charset=utf-8,' + encodeURIComponent(fileTemplate)}
+                                    >template file
+                                    </Link>
+                                </div>
+                            </>
+                        )}
+                    >
+                        <IconButton onClick={open}><CloudUpload /></IconButton>
+                    </Tooltip>
+                ))}
+            <IconButton
+                onClick={toggleExpand}
+                aria-expanded={expanded}
+                aria-label="Show more"
+                className={expanded ? classes.expandOpen : ''}
+            >
+                <ExpandMore />
+            </IconButton>
+        </>
+    );
 
     return (
         <Card
@@ -220,7 +218,7 @@ const MetadataCard = (props) => {
                 subheader={metadataUploadPath && 'Drag \'n\' drop a metadata file here or click the edit button below to see all available fields.'}
                 avatar={avatar}
                 style={{wordBreak: 'break-word'}}
-                action={CsvUpload()}
+                action={csvUpload()}
             />
             <Collapse in={expanded} timeout="auto" unmountOnExit>
                 <CardContent>
