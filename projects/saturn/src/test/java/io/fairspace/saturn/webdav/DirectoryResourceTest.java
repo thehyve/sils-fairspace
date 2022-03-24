@@ -6,7 +6,7 @@ import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.services.metadata.MetadataPermissions;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ComposedValidator;
-import io.fairspace.saturn.services.metadata.validation.UniqueLabelValidator;
+import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.services.workspaces.Workspace;
@@ -92,7 +92,7 @@ public class DirectoryResourceTest {
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
         Context context = new Context();
-        metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions);
         context.set(METADATA_SERVICE, metadataService);
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
 

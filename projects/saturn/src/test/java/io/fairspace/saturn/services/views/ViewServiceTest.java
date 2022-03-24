@@ -74,7 +74,7 @@ public class ViewServiceTest {
         viewService = new ViewService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, ds, viewStoreClientFactory);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions);
 
         setupRequestContext();
         var request = getCurrentRequest();

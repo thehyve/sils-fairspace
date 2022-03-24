@@ -77,7 +77,6 @@ public class Services {
                 new ProtectMachineOnlyPredicatesValidator(VOCABULARY),
                 new URIPrefixValidator(((Resource) davFactory.root).getUniqueId()),
                 new DeletionValidator(),
-                new UniqueLabelValidator(),
                 new ShaclValidator(VOCABULARY));
 
         metadataService = new MetadataService(transactions, VOCABULARY, metadataValidator, metadataPermissions);
