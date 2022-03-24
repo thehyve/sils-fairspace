@@ -119,6 +119,8 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
         && !openedDirectory.isDeleted
     );
 
+    const allowCsvUpload = openedDirectory && openedDirectory.path.length < path.length;
+
     return (
         <BreadcrumbsContextProvider
             label={hierarchyRoot.labelPlural || hierarchyRoot.label}
@@ -185,6 +187,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                         selected={selection.selected}
                         showDeleted={showDeleted}
                         atLeastSingleRootDirectoryExists={!!openedDirectory.iri || files.length > 0}
+                        allowCsvUpload={allowCsvUpload}
                     />
                 </Grid>
             </Grid>

@@ -150,6 +150,7 @@ export const LinkedDataEntityFormWithLinkedData = (
 ) => {
     const {typeInfo, properties, values, linkedDataLoading, linkedDataError, updateLinkedData} = useLinkedData(subject);
 
+    // after csv upload refresh needed. Do this using upload date because updateLinkedData is not changed
     useEffect(() => {
         if (updateLinkedData) {
             updateLinkedData();
