@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 // @flow
 import React, {useContext, useState} from 'react';
 import {Card, CardContent, CardHeader, Collapse, DialogContentText, IconButton, Typography} from '@material-ui/core';
@@ -20,9 +19,6 @@ import MessageDisplay from '../common/components/MessageDisplay';
 import ErrorDialog from "../common/components/ErrorDialog";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
 import {
-    COLLECTION_URI,
-    DIRECTORY_URI,
-    FILE_URI,
     MACHINE_ONLY_URI,
     SHACL_CLASS,
     SHACL_DATATYPE,
@@ -72,9 +68,9 @@ type ContextualDirectoryInformationDrawerProperties = {
     atLeastSingleRootDirectoryExists: boolean;
 };
 
-const generateTemplate = (vocabulary) => {
+const generateTemplate = (vocabulary, metadataType) => {
     const userProps = flatMap(
-        [FILE_URI, DIRECTORY_URI, COLLECTION_URI]
+        [metadataType]
             .map(uri => determinePropertyShapesForTypes(vocabulary, [uri]))
     ).filter(ps => !getFirstPredicateValue(ps, MACHINE_ONLY_URI));
 
@@ -114,30 +110,29 @@ const generateTemplate = (vocabulary) => {
     const entityNames = uniqueProps.filter(ps => !getFirstPredicateId(ps, SHACL_DATATYPE))
         .map(ps => JSON.stringify(getFirstPredicateValue(ps, SHACL_NAME)).replaceAll('"', "'"));
     const sampleEntityNames = entityNames.length > 2 ? entityNames.slice(0, 2).join(' and ') : entityNames.join(' and ');
-    const sampleRow = suffix => uniqueProps.map(prop => (type(prop) === "string" ? "\"Sample text value\"" : `${type(prop)}${suffix}`));
+    const sampleRow = suffix => uniqueProps.map(prop => ((type(prop) === "string" || type(prop) === "markdown") ? "\"Sample text value\"" : `${type(prop)}${suffix}`));
 
     return '#   This section describes the CSV-based format used for bulk metadata uploads.\n'
-        + `#   Entities (e.g. ${sampleEntityNames}) can be referenced by ID or unique label; multiple values must be separated by the pipe symbol |.\n`
+        + `#   Entities (e.g. ${sampleEntityNames}) can be referenced by ID; multiple values must be separated by the pipe symbol |.\n`
         + '#\n'
         + table([
             ['#', 'COLUMN', 'DESCRIPTION', 'TYPE', 'CARDINALITY', 'PREDICATE'],
             ['#', 'Path', 'A relative path to a file or a directory; use ./ for the current directory or collection.', 'string', '1..1', ''],
             ...doc]) + '\n#\n'
-        + '"Path",' + uniqueProps.map(ps => JSON.stringify(getFirstPredicateValue(ps, SHACL_NAME))).join(',') + '\n'
+        + '"HierarchyItem",' + uniqueProps.map(ps => JSON.stringify(getFirstPredicateValue(ps, SHACL_NAME))).join(',') + '\n'
         + '# PUT YOUR DATA BELOW FOLLOWING SAMPLE ROWS. REMOVE THIS LINE AND THE SAMPLE ROWS AFTERWARDS.\n'
-        + '# ./,' + sampleRow("_0").join(',') + '\n'
-        + '# ./file1,' + sampleRow("_1").join(',') + '\n'
-        + '# ./file2,' + sampleRow("_2").join(',') + '\n';
+        + '# Department_01,' + sampleRow("_0").join(',') + '\n'
+        + '# Department_02,' + sampleRow("_1").join(',') + '\n';
 };
 
 const MetadataCard = (props) => {
-    const {title, avatar, children, forceExpand, metadataUploadPath} = props;
+    const {title, avatar, children, forceExpand, allowCsvUpload, metadataUploadPath, metadataUploadType, setUpdateDate} = props;
     const [expandedManually, setExpandedManually] = useState(null); // true | false | null
     const expanded = (expandedManually != null) ? expandedManually : forceExpand;
     const toggleExpand = () => setExpandedManually(!expanded === forceExpand ? null : !expanded);
     const classes = useStyles();
     const {vocabulary} = useContext(VocabularyContext);
-    const fileTemplate = vocabulary && metadataUploadPath && generateTemplate(vocabulary);
+    const fileTemplate = vocabulary && metadataUploadPath && generateTemplate(vocabulary, metadataUploadType);
     const [uploadingMetadata, setUploadingMetadata] = useState(false);
     const {enqueueSnackbar} = useSnackbar();
 
@@ -145,6 +140,7 @@ const MetadataCard = (props) => {
         setUploadingMetadata(true);
         LocalFileAPI.uploadMetadata(metadataUploadPath, file)
             .then(() => enqueueSnackbar('Metadata have been successfully uploaded'))
+            .then(() => setUpdateDate(Date.Now))
             .catch(e => {
                 const errorContents = (
                     <DialogContentText>
@@ -175,6 +171,41 @@ const MetadataCard = (props) => {
     const inputProps = metadataUploadPath && getInputProps();
     const dropzoneClassName = () => `${classes.card} ${isDragActive && classes.activeStyle} ${isDragReject && classes.rejectStyle} ${isDragAccept && classes.acceptStyle}`;
 
+    const csvUpload = () => (
+        <>
+            {metadataUploadPath && (uploadingMetadata
+                ? <CircularProgress size={10} />
+                : allowCsvUpload && (
+                    <Tooltip
+                        interactive
+                        title={(
+                            <>
+                                <div>Upload metadata in CSV format.</div>
+                                <div>
+                                    {'Download '}
+                                    <Link
+                                        download="metadata.csv"
+                                        href={'data:text/csv;charset=utf-8,' + encodeURIComponent(fileTemplate)}
+                                    >template file
+                                    </Link>
+                                </div>
+                            </>
+                        )}
+                    >
+                        <IconButton onClick={open}><CloudUpload /></IconButton>
+                    </Tooltip>
+                ))}
+            <IconButton
+                onClick={toggleExpand}
+                aria-expanded={expanded}
+                aria-label="Show more"
+                className={expanded ? classes.expandOpen : ''}
+            >
+                <ExpandMore />
+            </IconButton>
+        </>
+    );
+
     return (
         <Card
             {...rootProps}
@@ -187,40 +218,7 @@ const MetadataCard = (props) => {
                 subheader={metadataUploadPath && 'Drag \'n\' drop a metadata file here or click the edit button below to see all available fields.'}
                 avatar={avatar}
                 style={{wordBreak: 'break-word'}}
-                action={(
-                    <>
-                        {metadataUploadPath && (uploadingMetadata
-                            ? <CircularProgress size={10} />
-                            : (
-                                <Tooltip
-                                    interactive
-                                    title={(
-                                        <>
-                                            <div>Upload metadata in CSV format.</div>
-                                            <div>
-                                                {'Download '}
-                                                <Link
-                                                    download="metadata.csv"
-                                                    href={'data:text/csv;charset=utf-8,' + encodeURIComponent(fileTemplate)}
-                                                >template file
-                                                </Link>
-                                            </div>
-                                        </>
-                                    )}
-                                >
-                                    <IconButton onClick={open}><CloudUpload /></IconButton>
-                                </Tooltip>
-                            ))}
-                        <IconButton
-                            onClick={toggleExpand}
-                            aria-expanded={expanded}
-                            aria-label="Show more"
-                            className={expanded ? classes.expandOpen : ''}
-                        >
-                            <ExpandMore />
-                        </IconButton>
-                    </>
-                )}
+                action={csvUpload()}
             />
             <Collapse in={expanded} timeout="auto" unmountOnExit>
                 <CardContent>
@@ -231,11 +229,14 @@ const MetadataCard = (props) => {
     );
 };
 
-const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false, forceExpand}, ref) => {
+const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false, forceExpand, allowCsvUpload}, ref) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
     const {hierarchy} = useContext(VocabularyContext);
+    const [updateDate, setUpdateDate] = useState(Date.now());
 
     let body;
+    let linkedEntityType;
+    let linkedEntityIri;
     let isCurrentPathDirectory;
     let cardTitle = "Metadata";
     let avatar = <FolderOpenOutlined />;
@@ -246,13 +247,14 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
     } else if (!data) {
         body = <div>No metadata found</div>;
     } else {
-        const {linkedEntityIri, linkedEntityType} = data;
+        ({linkedEntityIri, linkedEntityType} = data);
         cardTitle = `Metadata for ${data.basename}`;
         isCurrentPathDirectory = isDirectory(data, getHierarchyLevelByType(hierarchy, linkedEntityType));
         body = (
             <LinkedDataEntityFormWithLinkedData
                 subject={linkedEntityIri}
                 hasEditRight={hasEditRight}
+                updateDate={updateDate}
             />
         );
         if (!isCurrentPathDirectory) {
@@ -266,7 +268,10 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
             title={cardTitle}
             avatar={avatar}
             forceExpand={forceExpand}
+            allowCsvUpload={allowCsvUpload}
             metadataUploadPath={hasEditRight && forceExpand && isCurrentPathDirectory && path}
+            metadataUploadType={linkedEntityType}
+            setUpdateDate={setUpdateDate}
         >
             {body}
         </MetadataCard>
@@ -278,10 +283,11 @@ type DirectoryInformationDrawerProps = {
     atLeastSingleRootDirectoryExists: boolean;
     showDeleted: boolean;
     selected: string;
+    allowCsvUpload: boolean;
 };
 
 export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProps) => {
-    const {path, showDeleted, selected, atLeastSingleRootDirectoryExists} = props;
+    const {path, showDeleted, selected, atLeastSingleRootDirectoryExists, allowCsvUpload} = props;
 
     const paths = getPathHierarchy(path);
     if (selected && selected.length === 1 && selected[0] !== path) {
@@ -302,6 +308,7 @@ export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProp
                 showDeleted={showDeleted}
                 hasEditRight // TODO: access rights
                 forceExpand={index === paths.length - 1}
+                allowCsvUpload={allowCsvUpload}
             />
         ))
     );

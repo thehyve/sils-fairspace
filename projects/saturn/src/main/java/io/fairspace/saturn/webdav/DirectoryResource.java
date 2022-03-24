@@ -16,6 +16,7 @@ import io.milton.resource.DeletableCollectionResource;
 import io.milton.resource.FolderResource;
 import io.milton.resource.Resource;
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shacl.vocabulary.SHACLM;
@@ -209,7 +210,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     private void uploadFiles(Map<String, FileItem> files) throws NotAuthorizedException, ConflictException, BadRequestException {
-        for(var entry: files.entrySet()) {
+        for (var entry : files.entrySet()) {
             uploadFile(entry.getKey(), entry.getValue());
         }
     }
@@ -260,34 +261,17 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                      .withIgnoreEmptyLines()
                      .parse(reader)) {
             var headers = new HashSet<>(csvParser.getHeaderNames());
-            if (!headers.contains("Path")) {
-                setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". Invalid file format. 'Path' column is missing.");
+            if (!headers.contains("HierarchyItem")) {
+                setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". Invalid file format. 'HierarchyItem' column is missing.");
                 throw new BadRequestException(this);
             }
             try {
                 for (var record : csvParser) {
-                    var path = record.get("Path");
-                    org.apache.jena.rdf.model.Resource s;
-                    if (path.equals(".") || path.equals("./") || path.equals("/")) {
-                        s = subject;
-                    } else {
-                        if (path.startsWith("./")) {
-                            path = path.substring(2);
-                        }
-                        path = normalizePath(path);
-                        s = subject.getModel().createResource(subject + "/" + encodePath(path));
-                    }
-                    if (!s.getModel().containsResource(s)) {
-                        setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". File \"" + path + "\" not found");
-                        throw new BadRequestException(this);
-                    }
+                    var directory = getDirectory(record.get("HierarchyItem"), csvParser.getCurrentLineNumber());
 
-                    if (s.hasProperty(FS.dateDeleted)) {
-                        setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". File \"" + path + "\" was deleted");
-                        throw new BadRequestException(this);
-                    }
+                    var classShape = directory.getPropertyResourceValue(FS.linkedEntityType).inModel(VOCABULARY);
+                    var entity = directory.getPropertyResourceValue(FS.linkedEntity).inModel(VOCABULARY);
 
-                    var classShape = s.getPropertyResourceValue(RDF.type).inModel(VOCABULARY);
                     var propertyShapes = new HashMap<String, org.apache.jena.rdf.model.Resource>();
 
                     classShape.listProperties(SHACLM.property)
@@ -304,7 +288,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                             });
 
                     for (var header : headers) {
-                        if (header.equals("Path")) {
+                        if (header.equals("HierarchyItem")) {
                             continue;
                         }
 
@@ -334,7 +318,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                                         .filterKeep(r -> r.getURI().equals(value) || r.hasProperty(RDFS.label, value))
                                         .toList();
                                 if (object.size() == 1) {
-                                    model.add(s, property, object.get(0));
+                                    model.add(entity, property, object.get(0));
                                 } else if (object.size() > 1) {
                                     setErrorMessage("Line " + csvParser.getCurrentLineNumber()
                                             + ". Object \"" + value + "\" of class " + "\"" + class_ + "\" is not unique.");
@@ -346,7 +330,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                                 }
                             } else {
                                 var o = model.createTypedLiteral(value, datatype.getURI());
-                                model.add(s, property, o);
+                                model.add(entity, property, o);
                             }
                         }
                     }
@@ -366,7 +350,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         } catch (ValidationException e) {
             var message = new StringBuilder("Validation of the uploaded metadata failed.\n");
             var n = 0;
-            for (var v: e.getViolations()) {
+            for (var v : e.getViolations()) {
                 var path = v.getSubject().replaceFirst(subject.getURI(), "");
                 path = URLDecoder.decode(path, StandardCharsets.UTF_8);
                 var propertyShapes = VOCABULARY.listResourcesWithProperty(SHACLM.path, createURI(v.getPredicate()));
@@ -392,5 +376,32 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         } catch (Exception e) {
             throw new BadRequestException("Error applying metadata", e);
         }
+    }
+
+    private org.apache.jena.rdf.model.Resource getDirectory(String name, long lineNumber) throws BadRequestException {
+        if (name.equals(".") || name.contains("/") || name.contains("\\")) {
+            String error = "Line " + lineNumber + ". File \"" + name + "\" HierarchyItem contains invalid characters.";
+            setErrorMessage(error);
+            throw new BadRequestException(error);
+        }
+
+        var parent = Optional.of(subject)
+                .map(s -> s.getPropertyResourceValue(FS.belongsTo))
+                .orElse(null);
+
+        var path = parent == null ? factory.rootSubject.getURI() + "/" + encodePath(name) : parent + "/" + encodePath(name);
+        var dirResource = subject.getModel().createResource(path);
+
+        if (!subject.getModel().containsResource(dirResource)) {
+            setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" not found");
+            throw new BadRequestException(this);
+        }
+
+        if (subject.hasProperty(FS.dateDeleted)) {
+            setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" was deleted");
+            throw new BadRequestException(this);
+        }
+
+        return dirResource;
     }
 }
