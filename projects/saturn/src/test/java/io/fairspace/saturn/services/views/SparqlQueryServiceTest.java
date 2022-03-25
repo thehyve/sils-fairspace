@@ -114,7 +114,7 @@ public class SparqlQueryServiceTest {
         queryService = new SparqlQueryService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, filteredDataset);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions);
+        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
 
         setupUsers(model);
 

@@ -3,12 +3,8 @@ package io.fairspace.saturn.webdav;
 import io.fairspace.saturn.rdf.dao.DAO;
 import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
 import io.fairspace.saturn.rdf.transactions.Transactions;
-import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
-import io.fairspace.saturn.services.workspaces.Workspace;
-import io.fairspace.saturn.services.workspaces.WorkspaceRole;
-import io.fairspace.saturn.services.workspaces.WorkspaceService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.Request;
 import io.milton.http.ResourceFactory;
@@ -19,6 +15,8 @@ import io.milton.resource.*;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.util.Context;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.eclipse.jetty.server.Authentication;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -34,10 +32,8 @@ import java.util.Map;
 
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
-import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static java.lang.String.format;
 import static org.apache.jena.query.DatasetFactory.createTxnMem;
-import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -422,12 +418,21 @@ public class DavFactoryTest {
 
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
         var subDir = dir0.createCollection("old");
+        var departmentDirectories = ds.getDefaultModel()
+                .listResourcesWithProperty(RDFS.label, "old")
+                .filterKeep(resource -> resource.hasProperty(RDF.type, FS.Directory))
+                .toList();
+        assertEquals(1, departmentDirectories.size());
+        var departmentDirectory = departmentDirectories.get(0);
+        var departmentLinkedEntity = departmentDirectory.getPropertyResourceValue(FS.linkedEntity);
+        assertTrue(departmentLinkedEntity.hasProperty(RDFS.label, "old"));
 
         ((MoveableResource) subDir).moveTo(dir0, "new");
 
         assertEquals(1, dir0.getChildren().size());
         assertNull(dir0.child("old"));
         assertNotNull(dir0.child("new"));
+        assertEquals("new", ds.getDefaultModel().getProperty(departmentLinkedEntity, RDFS.label).getString());
 
         assertNull(factory.getResource(null, BASE_PATH + "/dir0/old"));
         assertNotNull(factory.getResource(null, BASE_PATH + "/dir0/new"));

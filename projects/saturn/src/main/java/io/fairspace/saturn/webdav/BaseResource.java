@@ -143,10 +143,26 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
-        var existing = parent.child(name);
-        if (existing != null) {
-            throw new ConflictException(existing);
+        if (parent != null && parent.child(name) != null) {
+            var message = "Resource with the name " + name + " already exist in the specified directory.";
+            setErrorMessage(message);
+            throw new ConflictException(message);
         }
+    }
+
+    private void renameLinkedEntity(String name) {
+        subject.getPropertyResourceValue(FS.linkedEntity)
+                .removeAll(RDFS.label)
+                .addProperty(RDFS.label, name);
+    }
+
+    private void moveResourcesWithTheSameLinkedEntity(String name) {
+        subject.getModel()
+                .listStatements(null, FS.linkedEntity, subject.getPropertyResourceValue(FS.linkedEntity))
+                .filterDrop(statement -> statement.getSubject().equals(subject))
+                .forEachRemaining(statement ->
+                        move(statement.getSubject(), statement.getSubject().getPropertyResourceValue(FS.belongsTo), name, true)
+                );
     }
 
     @Override
@@ -157,10 +173,13 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         }
         validateTarget(parent, name);
 
-        var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : null;
+        var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : factory.rootSubject;
         var parentType = Optional.ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
         validateIfTypeIsValidForParent(type, parentType);
+
+        renameLinkedEntity(name);
+        moveResourcesWithTheSameLinkedEntity(name);
 
         move(subject, parentSubject, name, true);
     }
