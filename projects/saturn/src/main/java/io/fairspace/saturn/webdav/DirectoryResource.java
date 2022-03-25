@@ -1,6 +1,5 @@
 package io.fairspace.saturn.webdav;
 
-import io.fairspace.saturn.rdf.ModelUtils;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.vocabulary.FS;
@@ -16,7 +15,6 @@ import io.milton.resource.DeletableCollectionResource;
 import io.milton.resource.FolderResource;
 import io.milton.resource.Resource;
 import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVRecord;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shacl.vocabulary.SHACLM;
@@ -35,7 +33,7 @@ import java.util.stream.Stream;
 import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.rdf.ModelUtils.getStringProperty;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
-import static io.fairspace.saturn.webdav.DavFactory.childSubject;
+import static io.fairspace.saturn.webdav.DavUtils.*;
 import static io.fairspace.saturn.webdav.PathUtils.*;
 import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
 import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
@@ -74,24 +72,12 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
      */
     @Override
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        // create directory
-        var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
+        var subj = createResource(newName)
+                .addProperty(RDF.type, FS.Directory);
 
-        //create linked entity
-        var type = factory.getLinkedEntityType();
-        validateLinkedEntityType(subj, type);
-        factory.addLinkedEntity(newName, subj, type);
+        factory.linkEntityToSubject(subj);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
-    }
-
-    private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource resource, org.apache.jena.rdf.model.Resource type) throws BadRequestException {
-        var parentType = Optional.ofNullable(resource.getPropertyResourceValue(FS.belongsTo))
-                .map(r -> r.getPropertyResourceValue(FS.linkedEntity))
-                .map(ModelUtils::getType)
-                .orElseThrow(() -> new BadRequestException("Parent directory is not linked with entity of a valid type."));
-
-        validateIfTypeIsValidForParent(type, parentType);
     }
 
     @Override
@@ -113,37 +99,12 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     private org.apache.jena.rdf.model.Resource createResource(String name) throws ConflictException, NotAuthorizedException, BadRequestException {
-        if (name != null) {
-            name = name.trim();
-        }
-        if (name == null || name.isEmpty()) {
-            var message = "The name is empty.";
-            setErrorMessage(message);
-            throw new BadRequestException(message);
-        }
-        if (name.contains("\\")) {
-            var message = "The name contains an illegal character (\\)";
-            setErrorMessage(message);
-            throw new BadRequestException(message);
-        }
+        validateResourceName(name);
+        name = name.trim();
+        validateResourceDoesNotExist(this, name);
 
-        var subj = childSubject(subject, name);
+        var subj = factory.createDavResource(name, subject);
 
-        var existing = factory.getResourceByType(subj, access);
-        if (existing != null) {
-            throw new ConflictException(existing);
-        }
-
-        subj.getModel()
-                .removeAll(subj, null, null)
-                .removeAll(null, null, subj);
-        var t = WebDAVServlet.timestampLiteral();
-
-        subj.addProperty(RDFS.label, name)
-                .addProperty(FS.createdBy, factory.currentUserResource())
-                .addProperty(FS.dateCreated, t);
-
-        subj.addProperty(FS.belongsTo, subject);
         updateParents(subject);
         return subj;
     }
@@ -246,7 +207,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         }
     }
 
-    private void uploadMetadata(FileItem file) throws BadRequestException, ConflictException, NotAuthorizedException {
+    private void uploadMetadata(FileItem file) throws BadRequestException {
         if (file == null) {
             setErrorMessage("Missing 'file' parameter");
             throw new BadRequestException(this);

@@ -1,12 +1,12 @@
 package io.fairspace.saturn.webdav;
 
+import io.fairspace.saturn.rdf.ModelUtils;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
-import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -20,10 +20,10 @@ import static io.fairspace.saturn.util.EnumUtils.max;
 import static io.fairspace.saturn.util.EnumUtils.min;
 import static io.fairspace.saturn.webdav.AccessMode.DataPublished;
 import static io.fairspace.saturn.webdav.AccessMode.MetadataPublished;
+import static io.fairspace.saturn.webdav.DavUtils.*;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
 import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static org.apache.jena.rdf.model.ResourceFactory.createResource;
-import static org.apache.jena.graph.NodeFactory.createURI;
 
 public class DavFactory implements ResourceFactory {
     // Represents the root URI, not stored in the database
@@ -148,8 +148,18 @@ public class DavFactory implements ResourceFactory {
         return null;
     }
 
-    static org.apache.jena.rdf.model.Resource childSubject(org.apache.jena.rdf.model.Resource subject, String name) {
-        return subject.getModel().createResource(subject.getURI() + "/" + encodePath(name));
+    public org.apache.jena.rdf.model.Resource createDavResource(String name, org.apache.jena.rdf.model.Resource parentSubject) {
+        var subject = childSubject(parentSubject, name);
+        subject.getModel()
+                .removeAll(subject, null, null)
+                .removeAll(null, null, subject);
+
+        subject.addProperty(RDFS.label, name)
+                .addProperty(RDFS.comment, "")
+                .addProperty(FS.createdBy, currentUserResource())
+                .addProperty(FS.dateCreated, timestampLiteral())
+                .addProperty(FS.belongsTo, parentSubject);
+        return subject;
     }
 
     org.apache.jena.rdf.model.Resource currentUserResource() {
@@ -160,65 +170,60 @@ public class DavFactory implements ResourceFactory {
         return resource.getURI().startsWith(rootSubject.getURI());
     }
 
-    org.apache.jena.rdf.model.Resource getLinkedEntityType() throws BadRequestException {
-        var type = entityType();
-        if (type != null) {
-            type = type.trim();
+    public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
+        var linkedEntity = getLinkedEntity(subject);
+        subject.addProperty(FS.linkedEntity, linkedEntity);
+        subject.addProperty(FS.linkedEntityType, linkedEntity.getPropertyResourceValue(RDF.type));
+    }
+
+    private org.apache.jena.rdf.model.Resource getLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
+        var linkedEntityIri = linkedEntityIri();
+        if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
+            return getExistingEntityToLink(subject, linkedEntityIri);
+        } else {
+            var type = entityType();
+            if (type == null || type.isBlank()) {
+                var message = "The linked entity type and the linked entity IRI are empty.";
+                setErrorMessage(message);
+                throw new BadRequestException(message);
+            }
+            var typeResource = createResource(type);
+            validateLinkedEntityType(typeResource);
+            var parentType = Optional.ofNullable(subject.getPropertyResourceValue(FS.belongsTo))
+                    .map(r -> r.getPropertyResourceValue(FS.linkedEntity))
+                    .map(ModelUtils::getType)
+                    .orElse(null);
+            validateIfTypeIsValidForParent(typeResource, parentType);
+            return createNewLinkedEntity(typeResource, subject.getProperty(RDFS.label).getString());
         }
-        if (type == null || type.isEmpty()) {
-            var message = "The linked entity type is empty.";
+    }
+
+    private org.apache.jena.rdf.model.Resource getExistingEntityToLink(org.apache.jena.rdf.model.Resource subject, String entityIri) throws BadRequestException {
+        var existing = rootSubject.getModel().getResource(entityIri);
+        if (existing == null) {
+            var message = "No entity found for the given entity IRI.";
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
-        return createResource(type);
-    }
-
-    public void addLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) throws BadRequestException {
-        linkedDirectory.addProperty(FS.linkedEntityType, type);
-
-        var entityIri = linkedEntityIri();
-
-        if(entityIri != null && !entityIri.isEmpty()) {
-            addExistingEntity(linkedDirectory, entityIri);
-        }
-        else {
-            addNewLinkedEntity(name, linkedDirectory, type);
-        }
-    }
-
-    private void addExistingEntity(org.apache.jena.rdf.model.Resource linkedDirectory, String entityIri) throws BadRequestException {
-        var resource = rootSubject.getModel().wrapAsResource(createURI(entityIri));
-
-        var directoryType = Optional
-                .ofNullable(linkedDirectory.getPropertyResourceValue(FS.linkedEntityType))
-                .map(org.apache.jena.rdf.model.Resource::toString)
-                .orElse(null);
-
-        var existingEntityType = Optional
-                .ofNullable(resource.getProperty(RDF.type))
-                .map(org.apache.jena.rdf.model.Statement::getObject)
-                .map(org.apache.jena.rdf.model.RDFNode::toString)
-                .orElse(null);
-
-        if (directoryType != null && directoryType.equals(existingEntityType)
-            && rootSubject.getModel().containsResource(resource)) {
-            linkedDirectory.addProperty(FS.linkedEntity, resource);
-        }
-        else {
-            var message = "No entity found for the given entity iri.";
+        if (existing.hasProperty(FS.dateDeleted)) {
+            var message = "Entity with the given IRI is marked as deleted.";
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
+
+        var parent = subject.getPropertyResourceValue(FS.belongsTo);
+        var parentType = Optional.ofNullable(parent).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
+        validateIfTypeIsValidForParent(existing.getPropertyResourceValue(RDF.type), parentType);
+
+        return existing;
     }
 
-    private void addNewLinkedEntity(String name, org.apache.jena.rdf.model.Resource linkedDirectory, org.apache.jena.rdf.model.Resource type) {
-        var newEntity = linkedDirectory.getModel()
+    private org.apache.jena.rdf.model.Resource createNewLinkedEntity(org.apache.jena.rdf.model.Resource type, String name) {
+        return rootSubject.getModel()
                 .createResource(generateMetadataIri().getURI())
                 .addProperty(RDF.type, type)
                 .addProperty(RDFS.label, name)
-                .addProperty(FS.createdBy, this.currentUserResource())
-                .addProperty(FS.dateCreated, WebDAVServlet.timestampLiteral());
-
-        linkedDirectory.addProperty(FS.linkedEntity, newEntity);
+                .addProperty(FS.createdBy, currentUserResource())
+                .addProperty(FS.dateCreated, timestampLiteral());
     }
 }
