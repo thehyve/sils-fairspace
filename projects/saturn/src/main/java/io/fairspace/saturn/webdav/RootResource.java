@@ -11,16 +11,14 @@ import io.milton.resource.MakeCollectionableResource;
 import io.milton.resource.PropFindableResource;
 import io.milton.resource.Resource;
 import lombok.extern.log4j.Log4j2;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
-import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
-import static io.fairspace.saturn.webdav.DavFactory.childSubject;
-import static io.fairspace.saturn.webdav.PathUtils.validateRootDirectoryName;
-import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
+import static io.fairspace.saturn.webdav.DavUtils.*;
 import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
 
 @Log4j2
@@ -35,10 +33,6 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
     @Override
     public Resource child(String childName) throws NotAuthorizedException {
         return factory.getResource(childSubject(factory.rootSubject, childName));
-    }
-
-    private ResIterator getHierarchyRootClasses() {
-        return VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot);
     }
 
     @Override
@@ -59,27 +53,6 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .nextOptional();
     }
 
-    protected void validateTargetDirectoryName(String name) throws ConflictException, BadRequestException {
-        validateRootDirectoryName(name);
-        var existing = findRootDirectoryWithName(name);
-        if (existing.isPresent()) {
-            var message = "Target root directory with this name already exists.";
-            setErrorMessage(message);
-            throw new ConflictException(existing.get(), message);
-        }
-    }
-
-    private void validateLinkedEntityType(org.apache.jena.rdf.model.Resource type) throws BadRequestException {
-        var hasValidType = getHierarchyRootClasses()
-                .filterKeep(root -> root.getURI().equals(type.getURI()))
-                .hasNext();
-        if (!hasValidType) {
-            var message = "The provided linked entity type is invalid: " + type.getURI();
-            setErrorMessage(message);
-            throw new BadRequestException(message);
-        }
-    }
-
     /**
      * Creates a new root directory.
      * Returns null if a root directory already exists with the same name (modulo case),
@@ -91,37 +64,20 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
      * @return the directory resource if it was successfully created; null if
      *         a directory with the label already exists (ignoring case);
      * @throws ConflictException if the IRI is already is use by a resource that is not deleted.
-     * @throws BadRequestException if the name is invalid (@see {@link #validateTargetDirectoryName(String)}).
+     * @throws BadRequestException if the name is invalid (@see {@link DavUtils#validateRootDirectoryName(String)}).
      */
     @Override
-    public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException {
-        if (name != null) {
-            name = name.trim();
-        }
-        validateTargetDirectoryName(name);
-        var type = factory.getLinkedEntityType();
-        validateLinkedEntityType(type);
+    public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException, NotAuthorizedException {
+        validateRootDirectoryName(name);
+        name = name.trim();
+        validateResourceDoesNotExist(this, name);
 
-        var subj = childSubject(factory.rootSubject, name);
-        if (subj.hasProperty(RDF.type) && !subj.hasProperty(FS.dateDeleted)) {
-            var message = "Cannot create a root directory with this name.";
-            setErrorMessage(message);
-            throw new ConflictException(message);
-        }
-
-        subj.getModel().removeAll(subj, null, null).removeAll(null, null, subj);
-        var user = factory.currentUserResource();
-
-        subj.addProperty(RDF.type, FS.Directory)
-                .addProperty(RDFS.label, name)
-                .addProperty(RDFS.comment, "")
-                .addProperty(FS.belongsTo, factory.rootSubject)
-                .addProperty(FS.createdBy, user)
-                .addProperty(FS.dateCreated, timestampLiteral())
+        var subj = factory.createDavResource(name, factory.rootSubject)
+                .addProperty(RDF.type, FS.Directory)
                 .addProperty(FS.dateModified, timestampLiteral())
-                .addProperty(FS.modifiedBy, user);
+                .addProperty(FS.modifiedBy, factory.currentUserResource());
 
-        factory.addLinkedEntity(name, subj, type);
+        factory.linkEntityToSubject(subj);
 
         return (CollectionResource) factory.getResource(subj, Access.Manage);
     }

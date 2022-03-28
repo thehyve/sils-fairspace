@@ -11,8 +11,10 @@ import io.milton.property.PropertySource;
 import io.milton.property.PropertySource.PropertyMetaData;
 import io.milton.property.PropertySource.PropertySetException;
 import io.milton.resource.*;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shacl.vocabulary.SHACL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -27,8 +29,8 @@ import static io.fairspace.saturn.auth.RequestContext.getUserURI;
 import static io.fairspace.saturn.rdf.ModelUtils.*;
 import static io.fairspace.saturn.rdf.SparqlUtils.parseXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.Vocabularies.USER_VOCABULARY;
-import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
-import static io.fairspace.saturn.webdav.DavFactory.childSubject;
+import static io.fairspace.saturn.webdav.DavUtils.childSubject;
+import static io.fairspace.saturn.webdav.DavUtils.validateIfTypeIsValidForParent;
 import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static io.milton.property.PropertySource.PropertyAccessibility.READ_ONLY;
@@ -230,29 +232,6 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         var newVer = ver.getModel().createResource();
         copyProperties(ver.asResource(), newVer, RDF.type, FS.dateModified, FS.deletedBy, FS.fileSize, FS.blobId, FS.md5);
         return newVer;
-    }
-
-    protected void validateIfTypeIsValidForParent(org.apache.jena.rdf.model.Resource type, org.apache.jena.rdf.model.Resource parentType) throws BadRequestException {
-        var validTypeURIs = new ArrayList<String>();
-        if (parentType == null) {
-            VOCABULARY.listSubjectsWithProperty(FS.isHierarchyRoot)
-                    .mapWith(RDFNode::asResource)
-                    .mapWith(org.apache.jena.rdf.model.Resource::getURI)
-                    .forEach(validTypeURIs::add);
-        } else {
-            VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy)
-                    .filterKeep(shape -> shape.getURI().equals(parentType.getURI()))
-                    .forEachRemaining(res -> res.getProperty(FS.hierarchyDescendants)
-                            .getList()
-                            .mapWith(RDFNode::asResource)
-                            .mapWith(org.apache.jena.rdf.model.Resource::getURI)
-                            .forEach(validTypeURIs::add));
-        }
-        if (!validTypeURIs.contains(type.getURI())) {
-            var message = "The provided linked entity type is invalid: " + type.getURI();
-            setErrorMessage(message);
-            throw new BadRequestException(message);
-        }
     }
 
     @Override

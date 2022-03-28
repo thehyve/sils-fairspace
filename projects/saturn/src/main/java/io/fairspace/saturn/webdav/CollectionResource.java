@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.fairspace.saturn.rdf.ModelUtils.getStringProperty;
-import static io.fairspace.saturn.webdav.DavFactory.getGrantedPermission;
+import static io.fairspace.saturn.webdav.DavUtils.validateRootDirectoryName;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static java.util.stream.Collectors.joining;
 
@@ -52,7 +52,7 @@ class CollectionResource extends DirectoryResource {
         if (name != null) {
             name = name.trim();
         }
-        factory.root.validateTargetDirectoryName(name);
+        validateRootDirectoryName(name);
         super.moveTo(rDest, name);
     }
 
@@ -64,7 +64,7 @@ class CollectionResource extends DirectoryResource {
         if (name != null) {
             name = name.trim();
         }
-        factory.root.validateTargetDirectoryName(name);
+        validateRootDirectoryName(name);
         super.copyTo(toCollection, name);
     }
 
@@ -237,7 +237,7 @@ class CollectionResource extends DirectoryResource {
             return false;
         }
         return access.canManage()
-                || getGrantedPermission(subject, currentUser) == Access.Manage
+                || factory.getGrantedPermission(subject, currentUser) == Access.Manage
                 || currentUser.hasProperty(FS.isManagerOf, subject.getPropertyResourceValue(FS.ownedBy));
     }
 
