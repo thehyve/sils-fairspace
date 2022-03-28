@@ -97,17 +97,15 @@ class FileAPI {
     /**
      * Creates a new directory within the current collection
      * @param path      Full path within the collection
-     * @param entityType The type of the entity which the directory references
+     * @param entityType The type of entity which the directory represents
      * @param linkedEntityIri If linked to an existing entity, supply the iri
      * @param options
      * @returns {*}
      */
     createDirectory(path, entityType, linkedEntityIri, options = defaultOptions) {
-        if (linkedEntityIri) {
-            options.headers = {...options.headers, "Linked-Entity-IRI": linkedEntityIri ?? ""};
-        } else {
-            options.headers = {...options.headers, "Entity-Type": entityType};
-        }
+        // always send empty iri on new creation to overwrite cached value from previous creation, java reads iri of last added entity if nothing is send
+        options.headers = {...options.headers, "Linked-Entity-IRI": linkedEntityIri ?? ""};
+        options.headers = {...options.headers, "Entity-Type": entityType};
 
         return this.client().createDirectory(path, options)
             .catch(e => {

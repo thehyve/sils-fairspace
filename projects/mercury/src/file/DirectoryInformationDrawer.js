@@ -117,12 +117,12 @@ const generateTemplate = (vocabulary, metadataType) => {
         + '#\n'
         + table([
             ['#', 'COLUMN', 'DESCRIPTION', 'TYPE', 'CARDINALITY', 'PREDICATE'],
-            ['#', 'Path', 'A relative path to a file or a directory; use ./ for the current directory or collection.', 'string', '1..1', ''],
+            ['#', 'HierarchyItem', 'Use the name of the element (e.g. \'Computation biology department\' or \'Sample 2020-09-05\' for the current directory.', 'string', '1..1', ''],
             ...doc]) + '\n#\n'
         + '"HierarchyItem",' + uniqueProps.map(ps => JSON.stringify(getFirstPredicateValue(ps, SHACL_NAME))).join(',') + '\n'
         + '# PUT YOUR DATA BELOW FOLLOWING SAMPLE ROWS. REMOVE THIS LINE AND THE SAMPLE ROWS AFTERWARDS.\n'
-        + '# Department_01,' + sampleRow("_0").join(',') + '\n'
-        + '# Department_02,' + sampleRow("_1").join(',') + '\n';
+        + '# Name_01,' + sampleRow("_0").join(',') + '\n'
+        + '# Name_02,' + sampleRow("_1").join(',') + '\n';
 };
 
 const MetadataCard = (props) => {
