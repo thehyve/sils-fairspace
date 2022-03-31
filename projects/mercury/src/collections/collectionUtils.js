@@ -1,6 +1,5 @@
 import React from "react";
 import {Create, MenuBook, Settings, Toc} from "@material-ui/icons";
-// eslint-disable-next-line import/no-cycle
 import type {
     AccessLevel,
     AccessMode,
@@ -10,10 +9,8 @@ import type {
     PrincipalPermission,
     Status
 } from "./CollectionAPI";
-// eslint-disable-next-line import/no-cycle
 import {accessLevels} from "./CollectionAPI";
 import {compareBy, comparing} from "../common/utils/genericUtils";
-// eslint-disable-next-line import/no-cycle
 import {encodePath} from "../file/fileUtils";
 import {isAdmin} from "../users/userUtils";
 

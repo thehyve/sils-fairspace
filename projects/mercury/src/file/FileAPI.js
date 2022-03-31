@@ -1,7 +1,6 @@
 import {createClient} from "webdav";
 import qs from 'qs';
 import {compareBy, comparing} from '../common/utils/genericUtils';
-// eslint-disable-next-line import/no-cycle
 import {
     decodeHTMLEntities,
     encodePath,
