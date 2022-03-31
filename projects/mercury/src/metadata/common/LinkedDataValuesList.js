@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
-import {Divider, Grid, IconButton, Typography, withStyles} from '@material-ui/core';
-import {Add, Clear} from '@material-ui/icons';
+import {withRouter} from "react-router-dom";
+import {Divider, Grid, IconButton, Typography, Link, withStyles} from '@material-ui/core';
 
+import {Add, Clear} from '@material-ui/icons';
 import {LABEL_URI, STRING_URI} from '../../constants';
 import styles from './LinkedDataValuesTable.styles';
 import StringValue from './values/StringValue';
@@ -83,15 +84,13 @@ type LinkedDataValuesListProps = {
     values: any[];
     classes: any;
     addComponent: any;
+    subject: any;
 };
 
 export const LinkedDataValuesList = (props: LinkedDataValuesListProps) => {
     const {
-        classes = {}, property, values = [], columnDefinition,
-        onOpen = () => {
-        }, onAdd = null, onDelete = () => {
-        },
-        rowDecorator = (entry, children) => children,
+        classes = {}, property, subject, values = [], columnDefinition, onAdd = null, onDelete = () => {}, onOpen = () => {},
+        rowDecorator = (entry, children) => children, history,
         canEdit = true, showHeader = true,
         labelId, addComponent: AddComponent
     } = props;
@@ -110,6 +109,15 @@ export const LinkedDataValuesList = (props: LinkedDataValuesListProps) => {
     // Delete button is enabled, if given entry can be deleted for the property specified and the entry can be edited
     const isDeleteButtonEnabled = () => property.isEditable && canEdit;
     const isAddButtonEnabled = canEdit && !maxValuesReached && AddComponent;
+
+    const onLabelClick = () => history.push(`/metadata?iri=${encodeURIComponent(subject)}`);
+
+    const renderLabel = (entry, idx) => {
+        if (property.isEditable) {
+            return <Typography variant="h6">{columnDefinition.getValue(entry, idx)}</Typography>;
+        }
+        return <Link component="button" onClick={() => onLabelClick()} variant="h6">{columnDefinition.getValue(entry, idx)}</Link>;
+    };
 
     return (
         <>
@@ -136,7 +144,7 @@ export const LinkedDataValuesList = (props: LinkedDataValuesListProps) => {
                     <Grid item xs={property.isEditable ? 10 : 12} className={classes.values}>
                         {
                             columnDefinition.id === LABEL_URI
-                                ? <Typography variant="h6">{columnDefinition.getValue(entry, idx)}</Typography>
+                                ? renderLabel(entry, idx)
                                 : columnDefinition.getValue(entry, idx)
                         }
                         {showRowDividers && <Divider />}
@@ -204,4 +212,4 @@ export const LinkedDataValuesList = (props: LinkedDataValuesListProps) => {
     );
 };
 
-export default withStyles(styles)(LinkedDataValuesList);
+export default withRouter(withStyles(styles)(LinkedDataValuesList));

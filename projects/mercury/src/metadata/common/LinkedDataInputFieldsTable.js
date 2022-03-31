@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import LinkedDataValuesList from "./LinkedDataValuesList";
 
 const LinkedDataInputFieldsTable = (
-    {property, values, validationErrors, onAdd, onChange, onDelete, canEdit,
+    {property, values, validationErrors, onAdd, onChange, onDelete, subject, canEdit,
         labelId, addComponent, editComponent: EditComponent}
 ) => {
     // For input fields there is only a single input field
@@ -27,6 +27,7 @@ const LinkedDataInputFieldsTable = (
         <LinkedDataValuesList
             onAdd={onAdd}
             onDelete={onDelete}
+            subject={subject}
             columnDefinition={columnDefinition}
             property={property}
             values={values}
@@ -43,13 +44,15 @@ LinkedDataInputFieldsTable.propTypes = {
     onDelete: PropTypes.func,
     addComponent: PropTypes.func,
     property: PropTypes.object,
+    subject: PropTypes.object,
     labelId: PropTypes.string,
     canEdit: PropTypes.bool
 };
 
 LinkedDataInputFieldsTable.defaultProps = {
     onChange: () => {},
-    onDelete: () => {}
+    onDelete: () => {},
+    subject: {}
 };
 
 export default LinkedDataInputFieldsTable;

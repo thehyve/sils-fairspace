@@ -188,6 +188,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
                         showDeleted={showDeleted}
                         atLeastSingleRootDirectoryExists={!!openedDirectory.iri || files.length > 0}
                         allowCsvUpload={allowCsvUpload}
+                        refreshFiles={refreshFiles}
                     />
                 </Grid>
             </Grid>
