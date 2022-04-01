@@ -183,3 +183,5 @@ export const getAllowedDirectoryTypes = (hierarchy: HierarchyLevel[], parentDire
 export const getHierarchyLevelByType = (hierarchy: HierarchyLevel[], type: string): HierarchyLevel => (
     hierarchy.find(hl => hl.type === type) || {}
 );
+
+export const getBrowserSubpath = (browserPath: string): string => browserPath.replace(/^\/browser/, "");

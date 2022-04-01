@@ -30,7 +30,7 @@ import {
 } from "../constants";
 import {determinePropertyShapesForTypes, determineShapeForTypes} from "../metadata/common/vocabularyUtils";
 import {getFirstPredicateId, getFirstPredicateValue} from "../metadata/common/jsonLdUtils";
-import {getHierarchyLevelByType, getPathHierarchy, isDirectory} from "./fileUtils";
+import {getBrowserSubpath, getHierarchyLevelByType, getPathHierarchy, isDirectory} from "./fileUtils";
 import EmptyInformationDrawer from "../common/components/EmptyInformationDrawer";
 
 const useStyles = makeStyles((theme) => ({
@@ -66,6 +66,7 @@ type ContextualDirectoryInformationDrawerProperties = {
     selected: any[];
     showDeleted: boolean;
     atLeastSingleRootDirectoryExists: boolean;
+    refreshFiles: () => {};
 };
 
 const generateTemplate = (vocabulary, metadataType) => {
@@ -229,7 +230,10 @@ const MetadataCard = (props) => {
     );
 };
 
-const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false, forceExpand, allowCsvUpload}, ref) => {
+const PathMetadata = React.forwardRef((
+    {path, showDeleted, hasEditRight = false, forceExpand, allowCsvUpload, onRename},
+    ref
+) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
     const {hierarchy} = useContext(VocabularyContext);
     const [updateDate, setUpdateDate] = useState(Date.now());
@@ -255,6 +259,7 @@ const PathMetadata = React.forwardRef(({path, showDeleted, hasEditRight = false,
                 subject={linkedEntityIri}
                 hasEditRight={hasEditRight}
                 updateDate={updateDate}
+                onRename={onRename}
             />
         );
         if (!isCurrentPathDirectory) {
@@ -287,9 +292,10 @@ type DirectoryInformationDrawerProps = {
 };
 
 export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProps) => {
-    const {path, showDeleted, selected, atLeastSingleRootDirectoryExists, allowCsvUpload} = props;
+    const {path, showDeleted, selected, atLeastSingleRootDirectoryExists, allowCsvUpload, refreshFiles, history} = props;
 
     const paths = getPathHierarchy(path);
+
     if (selected && selected.length === 1 && selected[0] !== path) {
         paths.push(selected[0]);
     }
@@ -300,6 +306,15 @@ export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProp
         ) : <></>;
     }
 
+    const onRename = () => {
+        const currentPaths = getPathHierarchy(getBrowserSubpath(history.location.pathname));
+        if (paths.length <= currentPaths.length) {
+            history.push('/browser');
+        } else {
+            refreshFiles();
+        }
+    };
+
     return (
         paths.map((metadataPath, index) => (
             <PathMetadata
@@ -309,6 +324,7 @@ export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProp
                 hasEditRight // TODO: access rights
                 forceExpand={index === paths.length - 1}
                 allowCsvUpload={allowCsvUpload}
+                onRename={onRename}
             />
         ))
     );

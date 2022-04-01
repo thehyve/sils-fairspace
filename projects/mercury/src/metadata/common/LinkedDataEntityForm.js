@@ -63,7 +63,8 @@ export const LinkedDataEntityForm = ({
     onAdd = () => {},
     onDelete = () => {},
     editable = true,
-    typeIri
+    typeIri,
+    subject
 }) => {
     if (loading) {
         return <LoadingInlay />;
@@ -84,6 +85,7 @@ export const LinkedDataEntityForm = ({
                     formEditable={editable}
                     property={p}
                     values={values[p.key]}
+                    subject={subject}
                     validationErrors={validationErrors[p.key]}
                     onAdd={editable ? (value) => onAdd(p, value) : () => {}}
                     onChange={editable ? (value, index) => onChange(p, value, index) : () => {}}
