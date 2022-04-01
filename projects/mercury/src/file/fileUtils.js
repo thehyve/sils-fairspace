@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import {File} from "./FileAPI";
 import {FILE_URI, PATH_SEPARATOR} from "../constants";
 import {getCollectionAbsolutePath} from "../collections/collectionUtils";
