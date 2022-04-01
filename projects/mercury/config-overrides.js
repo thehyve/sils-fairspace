@@ -8,6 +8,7 @@ We fixed it by using the "react-app-rewired" package, and using this custom over
 https://github.com/timarney/react-app-rewired
 */
 const webpack = require('webpack');
+
 module.exports = function override(config, env) {
     config.resolve.fallback = {
         stream: false,
@@ -17,3 +18,5 @@ module.exports = function override(config, env) {
     };
     return config;
 }
+
+process.env.GENERATE_SOURCEMAP = 'false';
