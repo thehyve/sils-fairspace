@@ -11,7 +11,7 @@ import {getLabelForType} from "../../metadata/common/vocabularyUtils";
 import VocabularyContext from "../../metadata/vocabulary/VocabularyContext";
 import LinkedDataDropdown from "../../metadata/common/LinkedDataDropdown";
 
-const CreateDirectoryButton = ({children, disabled, onCreate, allowedTypes}) => {
+const CreateDirectoryButton = ({children, disabled, onCreate, allowedTypes, locationIsRoot}) => {
     const [opened, setOpened] = useState(false);
     const {vocabulary} = useContext(VocabularyContext);
     const isMounted = useIsMounted();
@@ -106,7 +106,7 @@ const CreateDirectoryButton = ({children, disabled, onCreate, allowedTypes}) => 
                 title={"Create new " + getLabelForType(vocabulary, entityType)}
                 readonly={useExisting}
                 control={nameControl}
-                entitySelector={entitySelector}
+                entitySelector={locationIsRoot || entitySelector}
             />
         );
     };
