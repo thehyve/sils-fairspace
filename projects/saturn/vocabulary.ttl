@@ -66,7 +66,7 @@ sils:Department a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the department." ;
         sh:datatype fs:markdown ;
         sh:maxCount 1 ;
-        sh:path sils:departmentDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Location" ;
@@ -126,7 +126,7 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the investigator." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:investigationDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "First name" ;
@@ -198,7 +198,7 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the project." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:projectDescription
+        sh:path rdfs:comment ;
     ] .
 
 sils:studyIdentifier a rdf:Property .
@@ -245,7 +245,7 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the study." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:studyDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Goal" ;
@@ -360,7 +360,7 @@ sils:Object a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the object." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Species" ;
@@ -626,7 +626,7 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Local storage location" ;
@@ -923,7 +923,7 @@ sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the LCMS apparatus." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:LCMSDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Brand model" ;
@@ -1036,7 +1036,7 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the assay." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:assayDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Assay type" ;
