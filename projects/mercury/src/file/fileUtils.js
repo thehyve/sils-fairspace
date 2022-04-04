@@ -1,12 +1,14 @@
-/* eslint-disable import/no-cycle */
 import {File} from "./FileAPI";
 import {FILE_URI, PATH_SEPARATOR} from "../constants";
 import {getCollectionAbsolutePath} from "../collections/collectionUtils";
 import {getExternalStorageAbsolutePath} from "../external-storage/externalStorageUtils";
 import type {ExternalStorage} from "../external-storage/externalStorageUtils";
+import {HierarchyLevel} from "../metadata/common/vocabularyUtils";
 
 const NON_SAFE_FILE_NAME_CHARACTERS = ['/', '\\'];
 const NON_SAFE_FILE_NAMES = ['.', '..'];
+
+export const isDirectory = (file: File, linkedEntity: HierarchyLevel) => (file.type === 'directory' && !linkedEntity.representsExternalFile);
 
 export const getStrippedPath = (path) => {
     const stripped = path.startsWith(PATH_SEPARATOR) ? path.substring(1) : path;
@@ -38,6 +40,9 @@ export const joinPathsAvoidEmpty = (...paths) => {
 };
 
 export const getParentPath = (path: string) => {
+    if(!path || path === '/')
+        return '';
+
     const pos = path.lastIndexOf(PATH_SEPARATOR, path.length - 2);
     return (pos > 1) ? path.substring(0, pos) : '';
 };
@@ -54,7 +59,7 @@ export const getPathHierarchy = (fullPath, skipRootFolder = true) => {
 
     const paths = [];
     let path = fullPath;
-    while (path && path.lastIndexOf(PATH_SEPARATOR) > 0) {
+    while (path && path.lastIndexOf(PATH_SEPARATOR) >= 0 && path.length > 1) {
         paths.push(path);
         path = path.substring(0, path.lastIndexOf(PATH_SEPARATOR));
     }
@@ -96,16 +101,15 @@ export const redirectLink = (iri: string, type: string, storage: ExternalStorage
     return getAbsolutePath(path, storage.name);
 };
 
-export const getPathInfoFromParams = ({collection, path}) => (
-    {
-        collectionName: decodeIfPossible(collection || ''),
-        openedPath: `/${decodeIfPossible(collection || '')}${path
-            ? `/${path.split(PATH_SEPARATOR).map(decodeIfPossible).join(PATH_SEPARATOR)}` : ''}`
+export const getValidPath = (path) => {
+    if (!path) {
+        return "/";
     }
-);
+    return `${PATH_SEPARATOR}${path.split(PATH_SEPARATOR).map(decodeIfPossible).join(PATH_SEPARATOR)}`;
+};
 
 export function getFileName(path) {
-    const normalizedPath = path.endsWith(PATH_SEPARATOR) ? path.substring(0, path.length - 1) : path;
+    const normalizedPath = getStrippedPath(path);
     const pos = normalizedPath.lastIndexOf(PATH_SEPARATOR);
     return (pos > 0) ? normalizedPath.substring(pos + 1) : normalizedPath;
 }
@@ -161,3 +165,26 @@ export const isValidFileName = (fileName) => {
 };
 
 export const isListOnlyFile = (file: File) => file && file.type === 'file' && file.access === "List";
+
+export const getHierarchyRoot = (hierarchy: HierarchyLevel[]): HierarchyLevel => hierarchy.find(l => l.isRoot) || {};
+
+export const getAllowedDirectoryTypes = (hierarchy: HierarchyLevel[], parentDirectoryType: string): string[] => {
+    if (!parentDirectoryType) {
+        const rootLevel = getHierarchyRoot(hierarchy);
+        if (rootLevel === {}) {
+            return [];
+        }
+        return [rootLevel.type];
+    }
+    const parent = hierarchy.find(l => l.type === parentDirectoryType);
+    if (!parent) {
+        return [];
+    }
+    return parent.allowedDescendantTypes;
+};
+
+export const getHierarchyLevelByType = (hierarchy: HierarchyLevel[], type: string): HierarchyLevel => (
+    hierarchy.find(hl => hl.type === type) || {}
+);
+
+export const getBrowserSubpath = (browserPath: string): string => browserPath.replace(/^\/browser/, "");

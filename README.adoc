@@ -981,7 +981,7 @@ with open('testdata.ttl') as testdata:
             'Content-type': 'text/turtle'
         })
     if not response.ok:
-        raise Exception(f"Error uploading metadata: {response.status_code} {response.reason}")
+        raise Exception(f"Error uploading metadata: {response.status_code} {response.reason} {response.json}")
 ----
 ====
 
@@ -2335,7 +2335,7 @@ Requires:
 
 * yarn
 * docker
-* Java 15
+* Java 17
 
 To run the development version, checkout this repository,
 navigate to ``projects/mercury`` and run

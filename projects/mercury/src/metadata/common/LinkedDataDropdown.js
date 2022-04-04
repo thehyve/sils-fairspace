@@ -5,7 +5,14 @@ import {valuesContainsValueOrId} from "./metadataUtils";
 import Dropdown from './values/Dropdown';
 import {LocalSearchAPI} from "../../search/SearchAPI";
 
-export const LinkedDataDropdown = ({property, currentValues, fetchItems, type, debounce, ...otherProps}) => {
+export const LinkedDataDropdown = ({property,
+    currentValues,
+    fetchItems,
+    type,
+    debounce,
+    clearTextOnSelection = true,
+    onChange = {},
+    ...otherProps}) => {
     const fetchRequest = useRef(null);
 
     const search = query => fetchItems({type, query});
@@ -31,9 +38,10 @@ export const LinkedDataDropdown = ({property, currentValues, fetchItems, type, d
     return (
         <Dropdown
             {...otherProps}
-            clearTextOnSelection
+            clearTextOnSelection={clearTextOnSelection}
             loadOptionsOnMount={false}
             loadOptions={debouncedSearch}
+            onChange={onChange}
             isOptionDisabled={option => valuesContainsValueOrId(currentValues, undefined, option.id)}
         />
     );
@@ -54,6 +62,7 @@ LinkedDataDropdown.defaultProps = {
 export default props => (
     <LinkedDataDropdown
         type={props.property.className}
+        onChange={props.onChange}
         {...props}
     />
 );

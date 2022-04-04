@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.rdf.ModelUtils.getStringProperty;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
-import static io.fairspace.saturn.webdav.DavFactory.childSubject;
+import static io.fairspace.saturn.webdav.DavUtils.*;
 import static io.fairspace.saturn.webdav.PathUtils.*;
 import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
 import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
@@ -60,9 +60,22 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         return null;
     }
 
+    /**
+     * Directories in Fairspace are linked to entities. Each directory has an entitytype attribute and an entity iri attribute.
+     * When a new directory is created at the client side, the request is processed here.
+     *
+     * First we create the directory, than create the new entity of the specified type, and save the iri of the
+     * new entity as directory attribute.
+     *
+     * In the frontend when you click a directory, in the right panel you see the properties of the entity. From a user perspective
+     * the directories are the entities.
+     */
     @Override
     public io.milton.resource.CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
-        var subj = createResource(newName).addProperty(RDF.type, FS.Directory);
+        var subj = createResource(newName)
+                .addProperty(RDF.type, FS.Directory);
+
+        factory.linkEntityToSubject(subj);
 
         return (io.milton.resource.CollectionResource) factory.getResource(subj, access);
     }
@@ -86,31 +99,12 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     private org.apache.jena.rdf.model.Resource createResource(String name) throws ConflictException, NotAuthorizedException, BadRequestException {
-        if (name != null) {
-            name = name.trim();
-        }
-        if (name == null || name.isEmpty()) {
-            throw new BadRequestException("The name is empty.");
-        }
-        if (name.contains("\\")) {
-            throw new BadRequestException(
-                    "The name contains an illegal character (\\)");
-        }
+        validateResourceName(name);
+        name = name.trim();
+        validateResourceDoesNotExist(this, name);
 
-        var existing = factory.getResourceByType(childSubject(subject, name), access);
-        if (existing != null) {
-            throw new ConflictException(existing);
-        }
+        var subj = factory.createDavResource(name, subject);
 
-        var subj = childSubject(subject, name);
-        subj.getModel().removeAll(subj, null, null).removeAll(null, null, subj);
-        var t = WebDAVServlet.timestampLiteral();
-
-        subj.addProperty(RDFS.label, name)
-                .addProperty(FS.createdBy, factory.currentUserResource())
-                .addProperty(FS.dateCreated, t);
-
-        subj.addProperty(FS.belongsTo, subject);
         updateParents(subject);
         return subj;
     }
@@ -177,7 +171,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     private void uploadFiles(Map<String, FileItem> files) throws NotAuthorizedException, ConflictException, BadRequestException {
-        for(var entry: files.entrySet()) {
+        for (var entry : files.entrySet()) {
             uploadFile(entry.getKey(), entry.getValue());
         }
     }
@@ -213,7 +207,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         }
     }
 
-    private void uploadMetadata(FileItem file) throws BadRequestException, ConflictException, NotAuthorizedException {
+    private void uploadMetadata(FileItem file) throws BadRequestException {
         if (file == null) {
             setErrorMessage("Missing 'file' parameter");
             throw new BadRequestException(this);
@@ -228,34 +222,17 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                      .withIgnoreEmptyLines()
                      .parse(reader)) {
             var headers = new HashSet<>(csvParser.getHeaderNames());
-            if (!headers.contains("Path")) {
-                setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". Invalid file format. 'Path' column is missing.");
+            if (!headers.contains("HierarchyItem")) {
+                setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". Invalid file format. 'HierarchyItem' column is missing.");
                 throw new BadRequestException(this);
             }
             try {
                 for (var record : csvParser) {
-                    var path = record.get("Path");
-                    org.apache.jena.rdf.model.Resource s;
-                    if (path.equals(".") || path.equals("./") || path.equals("/")) {
-                        s = subject;
-                    } else {
-                        if (path.startsWith("./")) {
-                            path = path.substring(2);
-                        }
-                        path = normalizePath(path);
-                        s = subject.getModel().createResource(subject + "/" + encodePath(path));
-                    }
-                    if (!s.getModel().containsResource(s)) {
-                        setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". File \"" + path + "\" not found");
-                        throw new BadRequestException(this);
-                    }
+                    var directory = getDirectory(record.get("HierarchyItem"), csvParser.getCurrentLineNumber());
 
-                    if (s.hasProperty(FS.dateDeleted)) {
-                        setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". File \"" + path + "\" was deleted");
-                        throw new BadRequestException(this);
-                    }
+                    var classShape = directory.getPropertyResourceValue(FS.linkedEntityType).inModel(VOCABULARY);
+                    var entity = directory.getPropertyResourceValue(FS.linkedEntity).inModel(VOCABULARY);
 
-                    var classShape = s.getPropertyResourceValue(RDF.type).inModel(VOCABULARY);
                     var propertyShapes = new HashMap<String, org.apache.jena.rdf.model.Resource>();
 
                     classShape.listProperties(SHACLM.property)
@@ -272,7 +249,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                             });
 
                     for (var header : headers) {
-                        if (header.equals("Path")) {
+                        if (header.equals("HierarchyItem")) {
                             continue;
                         }
 
@@ -302,7 +279,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                                         .filterKeep(r -> r.getURI().equals(value) || r.hasProperty(RDFS.label, value))
                                         .toList();
                                 if (object.size() == 1) {
-                                    model.add(s, property, object.get(0));
+                                    model.add(entity, property, object.get(0));
                                 } else if (object.size() > 1) {
                                     setErrorMessage("Line " + csvParser.getCurrentLineNumber()
                                             + ". Object \"" + value + "\" of class " + "\"" + class_ + "\" is not unique.");
@@ -314,7 +291,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                                 }
                             } else {
                                 var o = model.createTypedLiteral(value, datatype.getURI());
-                                model.add(s, property, o);
+                                model.add(entity, property, o);
                             }
                         }
                     }
@@ -334,7 +311,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         } catch (ValidationException e) {
             var message = new StringBuilder("Validation of the uploaded metadata failed.\n");
             var n = 0;
-            for (var v: e.getViolations()) {
+            for (var v : e.getViolations()) {
                 var path = v.getSubject().replaceFirst(subject.getURI(), "");
                 path = URLDecoder.decode(path, StandardCharsets.UTF_8);
                 var propertyShapes = VOCABULARY.listResourcesWithProperty(SHACLM.path, createURI(v.getPredicate()));
@@ -360,5 +337,32 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         } catch (Exception e) {
             throw new BadRequestException("Error applying metadata", e);
         }
+    }
+
+    private org.apache.jena.rdf.model.Resource getDirectory(String name, long lineNumber) throws BadRequestException {
+        if (name.equals(".") || name.contains("/") || name.contains("\\")) {
+            String error = "Line " + lineNumber + ". File \"" + name + "\" HierarchyItem contains invalid characters.";
+            setErrorMessage(error);
+            throw new BadRequestException(error);
+        }
+
+        var parent = Optional.of(subject)
+                .map(s -> s.getPropertyResourceValue(FS.belongsTo))
+                .orElse(null);
+
+        var path = parent == null ? factory.rootSubject.getURI() + "/" + encodePath(name) : parent + "/" + encodePath(name);
+        var dirResource = subject.getModel().createResource(path);
+
+        if (!subject.getModel().containsResource(dirResource)) {
+            setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" not found");
+            throw new BadRequestException(this);
+        }
+
+        if (subject.hasProperty(FS.dateDeleted)) {
+            setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" was deleted");
+            throw new BadRequestException(this);
+        }
+
+        return dirResource;
     }
 }

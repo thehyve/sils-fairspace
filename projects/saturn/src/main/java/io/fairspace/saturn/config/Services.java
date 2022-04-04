@@ -20,7 +20,7 @@ import io.fairspace.saturn.webdav.WebDAVServlet;
 import io.milton.resource.Resource;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.extern.log4j.*;
+import lombok.extern.log4j.Log4j2;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.DatasetImpl;
@@ -77,10 +77,8 @@ public class Services {
                 new ProtectMachineOnlyPredicatesValidator(VOCABULARY),
                 new URIPrefixValidator(((Resource) davFactory.root).getUniqueId()),
                 new DeletionValidator(),
-                new UniqueLabelValidator(),
                 new ShaclValidator(VOCABULARY));
-
-        metadataService = new MetadataService(transactions, VOCABULARY, metadataValidator, metadataPermissions);
+        metadataService = new MetadataService(transactions, VOCABULARY, metadataValidator, metadataPermissions, davFactory);
         dataset.getContext().set(METADATA_SERVICE, metadataService);
 
         maintenanceService = new MaintenanceService(userService, dataset, viewStoreClientFactory);

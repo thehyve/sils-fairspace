@@ -5,7 +5,7 @@ import {
     getBaseNameAndExtension,
     getFileName,
     getParentPath, getPathFromIri,
-    getPathInfoFromParams, joinPathsAvoidEmpty, redirectLink
+    getValidPath, joinPathsAvoidEmpty, redirectLink
 } from '../fileUtils';
 import {DIRECTORY_URI, FILE_URI} from "../../constants";
 
@@ -66,6 +66,7 @@ describe('getParentPath', () => {
         expect(getParentPath('aaa/bbb/')).toEqual('aaa');
         expect(getParentPath('/ccc.ext')).toEqual('');
         expect(getParentPath('ccc.ext')).toEqual('');
+        expect(getParentPath('/')).toEqual('');
     });
 });
 
@@ -77,25 +78,15 @@ describe('getFileName', () => {
         expect(getFileName('ccc.ext')).toEqual('ccc.ext');
         expect(getFileName('aaa/bbb.ext/')).toEqual('bbb.ext');
         expect(getFileName('aaa/bbb')).toEqual('bbb');
+        expect(getFileName('/aaa')).toEqual('aaa');
     });
 });
 
-describe('getPathInfoFromParams', () => {
+describe('getValidPath', () => {
     it('gets path info properly', () => {
-        expect(getPathInfoFromParams({collection: '', path: ''})).toEqual({
-            collectionName: '',
-            openedPath: '/'
-        });
-
-        expect(getPathInfoFromParams({collection: undefined, path: undefined})).toEqual({
-            collectionName: '',
-            openedPath: '/'
-        });
-
-        expect(getPathInfoFromParams({collection: 'collectionX', path: 'something/something'})).toEqual({
-            collectionName: 'collectionX',
-            openedPath: '/collectionX/something/something'
-        });
+        expect(getValidPath('')).toEqual("/");
+        expect(getValidPath(undefined)).toEqual("/");
+        expect(getValidPath('something/something')).toEqual('/something/something');
     });
 });
 

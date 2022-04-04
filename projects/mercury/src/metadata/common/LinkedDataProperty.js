@@ -1,6 +1,6 @@
 import React, {useContext} from 'react';
-import PropTypes from "prop-types";
 
+import PropTypes from "prop-types";
 import {FormControl, FormGroup, FormHelperText, FormLabel} from '@material-ui/core';
 import LinkedDataInputFieldsTable from "./LinkedDataInputFieldsTable";
 import LinkedDataRelationTable from "./LinkedDataRelationTable";
@@ -10,7 +10,7 @@ import Iri from "../../common/components/Iri";
 import LinkedDataContext from "../LinkedDataContext";
 
 const LinkedDataProperty = (
-    {formEditable = true, property, values = [], validationErrors = [], onAdd, onChange, onDelete}
+    {formEditable = true, property, values = [], validationErrors = [], onAdd, onChange, onDelete, subject}
 ) => {
     const {editorPath, valueComponentFactory} = useContext(LinkedDataContext);
 
@@ -77,6 +77,7 @@ const LinkedDataProperty = (
                         <LinkedDataInputFieldsTable
                             property={property}
                             values={values}
+                            subject={subject}
                             validationErrors={validationErrors}
                             canEdit={canEdit}
                             onAdd={onAdd}

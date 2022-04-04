@@ -17,18 +17,19 @@ export const handleTextSearchRedirect = (history: History, value: string, contex
     } else if (!isEmptyObject(storage)) {
         history.push(`/external-storages/${storage.name}/${context ? getPathFromIri(context, storage.rootDirectoryIri) : ''}`);
     } else {
-        history.push(`/collections/${context ? getPathFromIri(context) : ''}`);
+        history.push(`/browser/${context ? getPathFromIri(context) : ''}`);
     }
 };
 
 export const getSearchPathSegments = (context, storageName = "") => {
-    const segments = ((context && getPathFromIri(context)) || '').split('/');
+    const rootPath = context === "/" ? "" : context;
+    const segments = ((rootPath && getPathFromIri(rootPath)) || '').split('/');
     const result = [];
     if (segments[0] === '') {
         result.push({label: 'Search results', href: ''});
         return result;
     }
-    let href = storageName ? getExternalStoragePathPrefix(storageName) : '/collections';
+    let href = storageName ? getExternalStoragePathPrefix(storageName) : '/browser';
     segments.forEach(segment => {
         href += '/' + segment;
         result.push({label: segment, href});

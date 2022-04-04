@@ -9,7 +9,7 @@ import {
     CONTENT_TYPE_URI,
     CREATED_BY_URI,
     DATE_CREATED_URI,
-    DATE_MODIFIED_URI,
+    DATE_MODIFIED_URI, IS_EXTERNAL_FILE_REPRESENTATION,
     LABEL_URI,
     MODIFIED_BY_URI
 } from '../../constants';
@@ -21,7 +21,7 @@ type PropertyType = {
     key: string;
 }
 
-const systemProperties = [CONTENT_TYPE_URI, DATE_CREATED_URI, CREATED_BY_URI, DATE_MODIFIED_URI, MODIFIED_BY_URI];
+const systemProperties = [CONTENT_TYPE_URI, DATE_CREATED_URI, CREATED_BY_URI, DATE_MODIFIED_URI, MODIFIED_BY_URI, IS_EXTERNAL_FILE_REPRESENTATION];
 
 const systemPropertiesLast = compareBy(x => systemProperties.indexOf(x.key));
 
@@ -63,7 +63,8 @@ export const LinkedDataEntityForm = ({
     onAdd = () => {},
     onDelete = () => {},
     editable = true,
-    typeIri
+    typeIri,
+    subject
 }) => {
     if (loading) {
         return <LoadingInlay />;
@@ -71,6 +72,27 @@ export const LinkedDataEntityForm = ({
 
     if (errorMessage !== '') {
         return <MessageDisplay message={errorMessage} />;
+    }
+
+    function getPropertyListItem(p) {
+        return (
+            <ListItem
+                key={p.key}
+                disableGutters
+                style={{display: 'block'}}
+            >
+                <LinkedDataProperty
+                    formEditable={editable}
+                    property={p}
+                    values={values[p.key]}
+                    subject={subject}
+                    validationErrors={validationErrors[p.key]}
+                    onAdd={editable ? (value) => onAdd(p, value) : () => {}}
+                    onChange={editable ? (value, index) => onChange(p, value, index) : () => {}}
+                    onDelete={editable ? (index) => onDelete(p, index) : () => {}}
+                />
+            </ListItem>
+        );
     }
 
     return (
@@ -100,23 +122,7 @@ export const LinkedDataEntityForm = ({
                             compareBy(p => (typeof p.order === 'number' ? p.order : Number.MAX_SAFE_INTEGER)),
                             compareBy('label')
                         ))
-                        .map(p => (
-                            <ListItem
-                                key={p.key}
-                                disableGutters
-                                style={{display: 'block'}}
-                            >
-                                <LinkedDataProperty
-                                    formEditable={editable}
-                                    property={p}
-                                    values={values[p.key]}
-                                    validationErrors={validationErrors[p.key]}
-                                    onAdd={editable ? (value) => onAdd(p, value) : () => {}}
-                                    onChange={editable ? (value, index) => onChange(p, value, index) : () => {}}
-                                    onDelete={editable ? (index) => onDelete(p, index) : () => {}}
-                                />
-                            </ListItem>
-                        ))
+                        .map(p => getPropertyListItem(p))
                 }
             </List>
         </form>

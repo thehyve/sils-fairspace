@@ -100,6 +100,7 @@ export const ExternalStorageBrowser = (props: ExternalStorageBrowserProperties) 
             <div className={classes.fileOperations}>
                 <FileOperations
                     selectedPaths={[selection.selected]}
+                    openedDirectory={{}}
                     files={files}
                     isWritingEnabled={false}
                     showDeleted={false}

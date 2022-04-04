@@ -9,14 +9,14 @@ import LinkedDataContext from "../LinkedDataContext";
 import useFormSubmission from "./UseFormSubmission";
 import useNavigationBlocker from "../../common/hooks/UseNavigationBlocker";
 import useLinkedData from "./UseLinkedData";
-import {DATE_DELETED_URI} from "../../constants";
+import {DATE_DELETED_URI, LABEL_URI} from "../../constants";
 import ConfirmationDialog from "../../common/components/ConfirmationDialog";
 import {UpdatePageTitleEditingMark} from '../../common/hooks/UsePageTitleUpdater';
 
 const LinkedDataEntityFormContainer = ({
     subject, typeInfo, hasEditRight = true, showEditButtons = false, fullpage = false,
-    contextMenu = null,
-    properties, values, linkedDataLoading, linkedDataError, updateLinkedData, setHasUpdates = () => {}, ...otherProps
+    contextMenu = null, onRename = () => {}, setHasUpdates = () => {},
+    properties, values, linkedDataLoading, linkedDataError, updateLinkedData, ...otherProps
 }) => {
     const isDeleted = values[DATE_DELETED_URI];
     const [editingEnabled, setEditingEnabled] = useState(hasEditRight && !showEditButtons && !isDeleted);
@@ -33,10 +33,18 @@ const LinkedDataEntityFormContainer = ({
         setEditingEnabled(hasEditRight && !showEditButtons && !isDeleted);
     }, [hasEditRight, isDeleted, showEditButtons]);
 
+    const updateFilesIfLabelChanged = () => {
+        const updates = getUpdates();
+        if (!fullpage && updates && updates[LABEL_URI]) {
+            onRename();
+        }
+    };
+
     const {isUpdating, submitForm} = useFormSubmission(
         () => submitLinkedDataChanges(subject, getUpdates())
             .then(() => {
                 setEditingEnabled(false);
+                updateFilesIfLabelChanged();
                 clearForm();
                 updateLinkedData();
             }),
@@ -106,6 +114,7 @@ const LinkedDataEntityFormContainer = ({
                             onChange={updateValue}
                             onDelete={deleteValue}
                             typeIri={typeInfo.typeIri}
+                            subject={subject}
                         />
                     </Grid>
                     {footer && <Grid item>{footer}</Grid>}
@@ -146,9 +155,16 @@ LinkedDataEntityFormContainer.propTypes = {
 };
 
 export const LinkedDataEntityFormWithLinkedData = (
-    {subject, hasEditRight, setHasCollectionMetadataUpdates}
+    {subject, hasEditRight, setHasCollectionMetadataUpdates, updateDate, onRename}
 ) => {
     const {typeInfo, properties, values, linkedDataLoading, linkedDataError, updateLinkedData} = useLinkedData(subject);
+
+    // after csv upload refresh needed. Do this using upload date because updateLinkedData is not changed
+    useEffect(() => {
+        if (updateLinkedData) {
+            updateLinkedData();
+        }
+    }, [updateLinkedData, updateDate]);
 
     return (
         <LinkedDataEntityFormContainer
@@ -158,6 +174,7 @@ export const LinkedDataEntityFormWithLinkedData = (
             showEditButtons
             properties={properties}
             values={values}
+            onRename={onRename}
             linkedDataLoading={linkedDataLoading}
             linkedDataError={linkedDataError}
             updateLinkedData={updateLinkedData}

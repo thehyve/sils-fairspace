@@ -1,7 +1,6 @@
 import {createClient} from "webdav";
 import qs from 'qs';
 import {compareBy, comparing} from '../common/utils/genericUtils';
-// eslint-disable-next-line import/no-cycle
 import {
     decodeHTMLEntities,
     encodePath,
@@ -29,6 +28,8 @@ export type File = {
     dateCreated: string;
     dateModified?: string;
     dateDeleted?: string;
+    linkedEntityType: string;
+    linkedEntityIri: string;
     access?: string;
     metadataLinks?: string[];
 }
@@ -83,19 +84,28 @@ class FileAPI {
         if (showDeleted) {
             options.headers = {...options.headers, "Show-Deleted": "on"};
         }
-        return this.client().getDirectoryContents(path, options)
+
+        const filelist = this.client().getDirectoryContents(path, options)
             .then(result => result.data
                 .sort(comparing(compareBy('type'), compareBy('filename')))
                 .map(this.mapToFile));
+
+        return filelist;
     }
 
     /**
      * Creates a new directory within the current collection
      * @param path      Full path within the collection
+     * @param entityType The type of entity which the directory represents
+     * @param linkedEntityIri If linked to an existing entity, supply the iri
      * @param options
      * @returns {*}
      */
-    createDirectory(path, options = defaultOptions) {
+    createDirectory(path, entityType, linkedEntityIri, options = defaultOptions) {
+        // always send empty iri on new creation to overwrite cached value from previous creation, java reads iri of last added entity if nothing is send
+        options.headers = {...options.headers, "Linked-Entity-IRI": linkedEntityIri ?? ""};
+        options.headers = {...options.headers, "Entity-Type": entityType};
+
         return this.client().createDirectory(path, options)
             .catch(e => {
                 if (e && e.response) {

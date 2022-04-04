@@ -316,15 +316,4 @@ public class ModelUtils {
                     .forEach(s -> to.addProperty(p, s.getObject()));
         }
     }
-
-    public static void trimLabels(Model model) {
-        model.listSubjectsWithProperty(RDFS.label)
-                .toSet() // convert to set, to prevent updating a model while iterating over its elements
-                .forEach(s -> {
-                    var label = model.getProperty(s, RDFS.label);
-                    model
-                            .removeAll(s, RDFS.label, null)
-                            .add(s, RDFS.label, label.getString().trim());
-                });
-    }
 }

@@ -10,6 +10,9 @@ import LinkedDataContext from "../../LinkedDataContext";
 import NumberValue from "../values/NumberValue";
 import SwitchValue from "../values/SwitchValue";
 import ReferringValue from "../values/ReferringValue";
+import {createMemoryHistory} from "history";
+import {Router} from "react-router-dom";
+import LinkedDataLink from "../LinkedDataLink";
 
 const defaultProperty = {
     key: 'description',
@@ -21,6 +24,9 @@ const defaultProperty = {
 };
 
 const defaultValues = [{value: 'More info'}, {value: 'My first collection'}, {value: 'My second collection'}];
+
+const history: History = createMemoryHistory();
+history.push = jest.fn();
 
 describe('LinkedDataProperty elements', () => {
     it('shows a table with relations for relationShapes', () => {
@@ -69,7 +75,13 @@ describe('LinkedDataProperty elements', () => {
         };
 
         const renderTable = property => {
-            const wrapper = mount(<LinkedDataContext.Provider value={{valueComponentFactory}}><LinkedDataProperty property={property} /></LinkedDataContext.Provider>);
+            const wrapper = mount(
+                <LinkedDataContext.Provider value={{valueComponentFactory}}>
+                    <Router history={history}>
+                        <LinkedDataProperty property={property} />
+                    </Router>
+                </LinkedDataContext.Provider>
+            );
             const table = wrapper.find(LinkedDataInputFieldsTable);
             expect(table.length).toEqual(1);
             return table;

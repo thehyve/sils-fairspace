@@ -9,25 +9,32 @@ const ClipboardContext = React.createContext({
     clear: () => {},
     method: '',
     filenames: [],
+    linkedEntityType: null
 });
 
 export const ClipboardProvider = ({children}) => {
     const [method, setMethod] = useState(CUT);
     const [filenames, setFilenames] = useState([]);
+    const [linkedEntityType, setLinkedEntityType] = useState(null);
 
-    const cut = paths => {
+    const cut = (paths, linkedEntityTypeOfSource) => {
         setMethod(CUT);
         setFilenames(paths);
+        setLinkedEntityType(linkedEntityTypeOfSource);
     };
 
-    const copy = paths => {
+    const copy = (paths, linkedEntityTypeOfSource) => {
         setMethod(COPY);
         setFilenames(paths);
+        setLinkedEntityType(linkedEntityTypeOfSource);
     };
 
     const isEmpty = () => filenames.length === 0;
     const length = () => filenames.length;
-    const clear = () => setFilenames([]);
+    const clear = () => {
+        setFilenames([]);
+        setLinkedEntityType(null);
+    };
 
     return (
         <ClipboardContext.Provider
@@ -39,7 +46,8 @@ export const ClipboardProvider = ({children}) => {
                 clear,
 
                 method,
-                filenames
+                filenames,
+                linkedEntityType
             }}
         >
             {children}

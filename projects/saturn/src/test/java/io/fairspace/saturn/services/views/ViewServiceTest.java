@@ -1,43 +1,54 @@
 package io.fairspace.saturn.services.views;
 
-import io.fairspace.saturn.config.*;
-import io.fairspace.saturn.rdf.transactions.*;
-import io.fairspace.saturn.services.metadata.*;
-import io.fairspace.saturn.services.metadata.validation.*;
-import io.fairspace.saturn.services.users.*;
-import io.fairspace.saturn.services.workspaces.*;
-import io.fairspace.saturn.webdav.*;
+import io.fairspace.saturn.config.Config;
+import io.fairspace.saturn.config.ConfigLoader;
+import io.fairspace.saturn.config.ViewsConfig;
+import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
+import io.fairspace.saturn.rdf.transactions.Transactions;
+import io.fairspace.saturn.rdf.transactions.TxnIndexDatasetGraph;
+import io.fairspace.saturn.services.metadata.MetadataPermissions;
+import io.fairspace.saturn.services.metadata.MetadataService;
+import io.fairspace.saturn.services.metadata.validation.ComposedValidator;
+import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
+import io.fairspace.saturn.services.users.User;
+import io.fairspace.saturn.services.users.UserService;
+import io.fairspace.saturn.webdav.BlobStore;
+import io.fairspace.saturn.webdav.DavFactory;
 import io.milton.http.ResourceFactory;
-import io.milton.http.exceptions.*;
-import io.milton.resource.*;
-import org.apache.jena.query.*;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.sparql.core.*;
-import org.apache.jena.sparql.util.*;
-import org.eclipse.jetty.server.*;
-import org.junit.*;
-import org.junit.runner.*;
-import org.mockito.*;
-import org.mockito.junit.*;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.MakeCollectionableResource;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.util.Context;
+import org.eclipse.jetty.server.Authentication;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.*;
-import java.sql.*;
-import java.util.stream.*;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.stream.Collectors;
 
 import static io.fairspace.saturn.TestUtils.*;
-import static io.fairspace.saturn.TestUtils.mockAuthentication;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
-import static io.fairspace.saturn.config.Services.*;
+import static io.fairspace.saturn.config.Services.FS_ROOT;
+import static io.fairspace.saturn.rdf.ModelUtils.EMPTY_MODEL;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
-import static org.apache.jena.query.DatasetFactory.*;
+import static org.apache.jena.query.DatasetFactory.wrap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ViewServiceTest {
-    static final String BASE_PATH = "/api/webdav";
-    static final String baseUri = ConfigLoader.CONFIG.publicUrl + BASE_PATH;
+    private static final String BASE_PATH = "/api/webdav";
+    private static final String baseUri = ConfigLoader.CONFIG.publicUrl + BASE_PATH;
 
     @Mock
     BlobStore store;
@@ -64,8 +75,6 @@ public class ViewServiceTest {
         Transactions tx = new SimpleTransactions(ds);
         Model model = ds.getDefaultModel();
 
-        var workspaceService = new WorkspaceService(tx, userService);
-
         var context = new Context();
 
         var davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
@@ -74,7 +83,7 @@ public class ViewServiceTest {
         viewService = new ViewService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, ds, viewStoreClientFactory);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
 
         setupRequestContext();
         var request = getCurrentRequest();
@@ -87,14 +96,10 @@ public class ViewServiceTest {
         lenient().when(request.getAuthentication()).thenReturn(userAuthentication);
         lenient().when(userService.currentUser()).thenReturn(user);
 
-        var workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
-        when(request.getAttribute("BLOB")).thenReturn(new BlobInfo("id", 0, "md5"));
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
-        var coll1 = (PutableResource) root.createCollection("coll1");
-        coll1.createNew("coffee.jpg", null, 0L, "image/jpeg");
+        root.createCollection("Dep1");
 
         var testdata = model.read("testdata.ttl");
         api.put(testdata);

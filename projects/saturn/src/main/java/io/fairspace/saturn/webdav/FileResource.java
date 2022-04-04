@@ -21,8 +21,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static io.fairspace.saturn.rdf.ModelUtils.*;
-import static io.fairspace.saturn.webdav.WebDAVServlet.fileVersion;
-import static io.fairspace.saturn.webdav.WebDAVServlet.getBlob;
+import static io.fairspace.saturn.webdav.WebDAVServlet.*;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static java.lang.Integer.parseInt;
 
@@ -46,7 +45,9 @@ class FileResource extends BaseResource implements io.milton.resource.FileResour
         version = (ver != null) ? ver : versions.size();
 
         if (version < 1 || version > versions.size()) {
-            throw new BadRequestException("Invalid file version");
+            var message = "Invalid file version";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
         }
 
         var current = versions.get(subject.getProperty(FS.currentVersion).getInt() - version).asResource();
@@ -92,8 +93,10 @@ class FileResource extends BaseResource implements io.milton.resource.FileResour
 
     void replaceContent(BlobInfo blobInfo) throws BadRequestException, ConflictException, NotAuthorizedException {
         if (subject.hasProperty(FS.dateDeleted)) {
-            throw new ConflictException(this, "Target file with this name already exists and is marked as deleted. " +
-                    "Deleted file cannot be overwritten.");
+            var message = "Target file with this name already exists and is marked as deleted. " +
+                    "Deleted file cannot be overwritten.";
+            setErrorMessage(message);
+            throw new ConflictException(this, message);
         }
 
         var versions = getListProperty(subject, FS.versions).cons(newVersion(blobInfo));
@@ -133,14 +136,18 @@ class FileResource extends BaseResource implements io.milton.resource.FileResour
 
     private void revert(String versionStr) throws BadRequestException, NotAuthorizedException, ConflictException {
         if (!access.canWrite()) {
-            throw new NotAuthorizedException("Not authorized to revert this resource to a previous version.", this, SC_FORBIDDEN);
+            var message = "Not authorized to revert this resource to a previous version.";
+            setErrorMessage(message);
+            throw new NotAuthorizedException(message, this, SC_FORBIDDEN);
         }
 
         int version;
         try {
             version = parseInt(versionStr);
         } catch (Exception e) {
-            throw new BadRequestException(this, "No version provided");
+            var message = "No version provided";
+            setErrorMessage(message);
+            throw new BadRequestException(this, message);
         }
         var versions = getListProperty(subject, FS.versions);
         var ver = versions.get(subject.getProperty(FS.currentVersion).getInt() - version).asResource();

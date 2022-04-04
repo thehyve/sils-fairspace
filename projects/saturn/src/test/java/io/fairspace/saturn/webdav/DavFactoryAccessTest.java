@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.Context;
 import org.eclipse.jetty.server.Authentication;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -32,6 +33,7 @@ import static org.apache.jena.query.DatasetFactory.createTxnMem;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
+@Ignore("To be replaced with new permission model tests.")
 @RunWith(Parameterized.class)
 public class DavFactoryAccessTest {
     public static final String BASE_PATH = "/api/webdav";

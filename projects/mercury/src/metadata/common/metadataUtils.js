@@ -111,6 +111,7 @@ export const shouldPropertyBeHidden = (key, domain) => {
     switch (key) {
         case '@type':
         case consts.TYPE_URI:
+        case consts.LINKED_ENTITY_TYPE_URI:
         case consts.FILE_PATH_URI:
         case consts.CAN_LIST_URI:
         case consts.CAN_READ_URI:
