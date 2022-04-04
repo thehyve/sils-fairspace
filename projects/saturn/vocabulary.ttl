@@ -36,7 +36,6 @@ sils:representsEntity a rdf:Property .
 
 ## User class Shapes
 sils:department a rdf:Property .
-sils:departmentDescription a rdf:Property .
 sils:departmentLocation a rdf:Property .
 sils:departmentContactPersonName a rdf:Property .
 sils:departmentContactPersonTelephone a rdf:Property .
@@ -98,7 +97,6 @@ sils:Department a rdfs:Class, sh:NodeShape ;
     ] .
 
 
-sils:investigationDescription a rdf:Property .
 sils:piFirstName a rdf:Property .
 sils:piLastName a rdf:Property .
 sils:piEmail a rdf:Property .
@@ -160,7 +158,6 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
 
 sils:projectIdentifier a rdf:Property .
 sils:projectTitle a rdf:Property .
-sils:projectDescription a rdf:Property .
 
 sils:Project a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
@@ -203,7 +200,6 @@ sils:Project a rdfs:Class, sh:NodeShape ;
 
 sils:studyIdentifier a rdf:Property .
 sils:studyTitle a rdf:Property .
-sils:studyDescription a rdf:Property .
 sils:studyGoal a rdf:Property .
 sils:studyOrganisms a rdf:Property .
 sils:studyTimePoints a rdf:Property .
@@ -309,7 +305,6 @@ sils:Ploidy a rdfs:Class, sh:NodeShape ;
 
 sils:objectIdentifier a rdf:Property .
 sils:objectTitle a rdf:Property .
-sils:objectDescription a rdf:Property .
 sils:objectSpecies a rdf:Property .
 sils:objectCommonName a rdf:Property .
 sils:objectCountry a rdf:Property .
@@ -553,7 +548,6 @@ sils:PlantGrowthMedium a rdfs:Class, sh:NodeShape ;
 
 sils:sampleIdentifier a rdf:Property .
 sils:sampleName a rdf:Property .
-sils:sampleDescription a rdf:Property .
 sils:sampleLocalStorageLocation a rdf:Property .
 sils:sampleHost a rdf:Property .
 sils:sampleBioSafetyLevel a rdf:Property .
@@ -891,7 +885,6 @@ sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
     ] .
 
 sils:LCMSIdentifier a rdf:Property .
-sils:LCMSDescription a rdf:Property .
 sils:LCMSBrandModel a rdf:Property .
 sils:maximumLCMSResolution a rdf:Property .
 sils:isOfLCMSApparatusType a rdf:Property .
@@ -982,7 +975,6 @@ sils:SequenceTechnology a rdfs:Class, sh:NodeShape ;
 
 sils:assayIdentifier a rdf:Property .
 sils:assayTitle a rdf:Property .
-sils:assayDescription a rdf:Property .
 sils:isOfAssayType a rdf:Property .
 sils:sequenceTechnology a rdf:Property .
 sils:sequencingMode a rdf:Property .
