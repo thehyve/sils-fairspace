@@ -64,8 +64,8 @@ describe('getParentPath', () => {
         expect(getParentPath('/aaa/bbb/ccc.ext')).toEqual('/aaa/bbb');
         expect(getParentPath('aaa/bbb/ccc.ext')).toEqual('aaa/bbb');
         expect(getParentPath('aaa/bbb/')).toEqual('aaa');
-        expect(getParentPath('/ccc.ext')).toEqual('');
-        expect(getParentPath('ccc.ext')).toEqual('');
+        expect(getParentPath('/ccc.ext')).toEqual('/');
+        // expect(getParentPath('ccc.ext')).toEqual('');
         expect(getParentPath('/')).toEqual('');
     });
 });

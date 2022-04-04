@@ -44,7 +44,11 @@ export const getParentPath = (path: string) => {
         return '';
 
     const pos = path.lastIndexOf(PATH_SEPARATOR, path.length - 2);
-    return (pos > 1) ? path.substring(0, pos) : '';
+
+    if(pos === 0)
+        return '/';
+
+    return (pos > 0) ? path.substring(0, pos) : '';
 };
 
 export const getPathFromIri = (iri: string, pathPrefix = "") => {
