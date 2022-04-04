@@ -4,6 +4,7 @@ import {ListItemText, TextField} from '@material-ui/core';
 import {Autocomplete} from '@material-ui/lab';
 import useIsMounted from 'react-is-mounted-hook';
 import {compareBy} from "../../../common/utils/genericUtils";
+import {Tooltip} from "@mui/material";
 
 const Dropdown = ({
     options = null, clearTextOnSelection, placeholder,
@@ -69,7 +70,9 @@ const Dropdown = ({
                 />
             )}
             renderOption={(option) => (
-                <ListItemText primary={option.label} secondary={option.description} />
+                <Tooltip title={option.comment}>
+                    <ListItemText primary={option.label} secondary={option.description}  />
+                </Tooltip>
             )}
         />
     );

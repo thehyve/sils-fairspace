@@ -36,7 +36,6 @@ sils:representsEntity a rdf:Property .
 
 ## User class Shapes
 sils:department a rdf:Property .
-sils:departmentDescription a rdf:Property .
 sils:departmentLocation a rdf:Property .
 sils:departmentContactPersonName a rdf:Property .
 sils:departmentContactPersonTelephone a rdf:Property .
@@ -66,7 +65,7 @@ sils:Department a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the department." ;
         sh:datatype fs:markdown ;
         sh:maxCount 1 ;
-        sh:path sils:departmentDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Location" ;
@@ -98,7 +97,6 @@ sils:Department a rdfs:Class, sh:NodeShape ;
     ] .
 
 
-sils:investigationDescription a rdf:Property .
 sils:piFirstName a rdf:Property .
 sils:piLastName a rdf:Property .
 sils:piEmail a rdf:Property .
@@ -126,7 +124,7 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the investigator." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:investigationDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "First name" ;
@@ -160,7 +158,6 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
 
 sils:projectIdentifier a rdf:Property .
 sils:projectTitle a rdf:Property .
-sils:projectDescription a rdf:Property .
 
 sils:Project a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
@@ -198,12 +195,11 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the project." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:projectDescription
+        sh:path rdfs:comment ;
     ] .
 
 sils:studyIdentifier a rdf:Property .
 sils:studyTitle a rdf:Property .
-sils:studyDescription a rdf:Property .
 sils:studyGoal a rdf:Property .
 sils:studyOrganisms a rdf:Property .
 sils:studyTimePoints a rdf:Property .
@@ -245,7 +241,7 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the study." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:studyDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Goal" ;
@@ -309,7 +305,6 @@ sils:Ploidy a rdfs:Class, sh:NodeShape ;
 
 sils:objectIdentifier a rdf:Property .
 sils:objectTitle a rdf:Property .
-sils:objectDescription a rdf:Property .
 sils:objectSpecies a rdf:Property .
 sils:objectCommonName a rdf:Property .
 sils:objectCountry a rdf:Property .
@@ -360,7 +355,7 @@ sils:Object a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the object." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Species" ;
@@ -553,7 +548,6 @@ sils:PlantGrowthMedium a rdfs:Class, sh:NodeShape ;
 
 sils:sampleIdentifier a rdf:Property .
 sils:sampleName a rdf:Property .
-sils:sampleDescription a rdf:Property .
 sils:sampleLocalStorageLocation a rdf:Property .
 sils:sampleHost a rdf:Property .
 sils:sampleBioSafetyLevel a rdf:Property .
@@ -626,7 +620,7 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Local storage location" ;
@@ -891,7 +885,6 @@ sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
     ] .
 
 sils:LCMSIdentifier a rdf:Property .
-sils:LCMSDescription a rdf:Property .
 sils:LCMSBrandModel a rdf:Property .
 sils:maximumLCMSResolution a rdf:Property .
 sils:isOfLCMSApparatusType a rdf:Property .
@@ -923,7 +916,7 @@ sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the LCMS apparatus." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:LCMSDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Brand model" ;
@@ -982,7 +975,6 @@ sils:SequenceTechnology a rdfs:Class, sh:NodeShape ;
 
 sils:assayIdentifier a rdf:Property .
 sils:assayTitle a rdf:Property .
-sils:assayDescription a rdf:Property .
 sils:isOfAssayType a rdf:Property .
 sils:sequenceTechnology a rdf:Property .
 sils:sequencingMode a rdf:Property .
@@ -1036,7 +1028,7 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:description "The description of the assay." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:assayDescription
+        sh:path rdfs:comment ;
     ],
     [
         sh:name "Assay type" ;

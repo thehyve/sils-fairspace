@@ -40,6 +40,9 @@ export const joinPathsAvoidEmpty = (...paths) => {
 };
 
 export const getParentPath = (path: string) => {
+    if(!path || path === '/')
+        return '';
+
     const pos = path.lastIndexOf(PATH_SEPARATOR, path.length - 2);
     return (pos > 1) ? path.substring(0, pos) : '';
 };

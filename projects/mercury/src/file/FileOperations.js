@@ -169,6 +169,7 @@ export const FileOperations = ({
                                 onCreate={(name, entityType, linkedEntityIri) => handleCreateDirectory(name, entityType, linkedEntityIri)}
                                 disabled={busy}
                                 allowedTypes={allowedTypes}
+                                locationIsRoot={getParentPath(openedDirectory.path) === ""}
                             >
                                 <IconButton
                                     aria-label="Create directory"
