@@ -8,7 +8,7 @@ import {Divider, Switch, withStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import FileBrowser from "./FileBrowser";
 import DirectoryInformationDrawer from './DirectoryInformationDrawer';
-import {getHierarchyRoot, getValidPath, splitPathIntoArray, getParentPath} from "./fileUtils";
+import {getHierarchyRoot, getValidPath, splitPathIntoArray} from "./fileUtils";
 import * as consts from '../constants';
 import BreadcrumbsContextProvider from "../common/contexts/BreadcrumbsContextProvider";
 import {useMultipleSelection} from "./UseSelection";
@@ -91,8 +91,8 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
     const getMetadataSearchRedirect = () => `${getMetadataViewsPath()}?${queryString.stringify({view: RESOURCES_VIEW, context: getLocationContext()})}`;
 
     const getSearchPlaceholder = () => {
-        const parentFolderName = getParentPath(openedDirectory.path);
-        return parentFolderName ? `Search in ${parentFolderName}` : `Search in all ${hierarchyRoot.labelPlural || hierarchyRoot.label}`;
+        const openedFolderName = openedDirectory.path ? openedDirectory.path.substring(openedDirectory.path.lastIndexOf('/') + 1) : null;
+        return openedFolderName ? `Search in ${openedFolderName}` : `Search in all ${hierarchyRoot.labelPlural || hierarchyRoot.label}`;
     };
 
     const handleTextSearch = (value) => handleTextSearchRedirect(history, value, getLocationContext());
