@@ -5,6 +5,7 @@ import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.services.metadata.validation.MetadataRequestValidator;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.services.metadata.validation.ViolationHandler;
+import io.fairspace.saturn.webdav.DavFactory;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -53,12 +54,15 @@ public class MetadataServiceValidationTest {
     private Transactions txn;
     private MetadataService api;
 
+    @Mock
+    private DavFactory davFactory;
+
     @Before
     public void setUp() {
         ds = createTxnMem();
         txn = new SimpleTransactions(ds);
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(txn, VOCABULARY, validator, permissions);
+        api = new MetadataService(txn, VOCABULARY, validator, permissions, davFactory);
 
         setupRequestContext();
     }

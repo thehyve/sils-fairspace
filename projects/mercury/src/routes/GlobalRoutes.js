@@ -1,8 +1,7 @@
 import React from 'react';
 import {Redirect, Route, Switch} from "react-router-dom";
-
-import WorkspaceLayout from '../layout/WorkspaceLayout';
 import logout from "./logout";
+import BrowserLayout from "../layout/BrowserLayout";
 
 const GlobalRoutes = () => (
     <Switch>
@@ -20,10 +19,10 @@ const GlobalRoutes = () => (
 
         <Route
             path="/"
-            component={WorkspaceLayout}
+            component={BrowserLayout}
         />
 
-        <Redirect to="/workspaces" />
+        <Redirect to="/browser" />
     </Switch>
 );
 

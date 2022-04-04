@@ -1,13 +1,15 @@
 import React, {useContext} from 'react';
 import {NavLink} from "react-router-dom";
 import {Divider, List, ListItem, ListItemIcon, ListItemText} from "@material-ui/core";
-import {Assignment, Folder, FolderSpecial, OpenInNew, VerifiedUser, Widgets} from "@material-ui/icons";
+import {Assignment, Folder, FolderSpecial, OpenInNew, VerifiedUser} from "@material-ui/icons";
 import ServicesContext from "../common/contexts/ServicesContext";
 import UserContext from "../users/UserContext";
 import {isAdmin} from "../users/userUtils";
 import MetadataViewContext from "../metadata/views/MetadataViewContext";
 import ExternalStoragesContext from "../external-storage/ExternalStoragesContext";
 import {getExternalStoragePathPrefix} from "../external-storage/externalStorageUtils";
+import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
+import {getHierarchyRoot} from "../file/fileUtils";
 
 export default () => {
     const {pathname} = window.location;
@@ -15,33 +17,25 @@ export default () => {
     const {currentUser} = useContext(UserContext);
     const {externalStorages} = useContext(ExternalStoragesContext);
     const {views} = useContext(MetadataViewContext);
+    const {hierarchy} = useContext(VocabularyContext);
+    const hierarchyRoot = getHierarchyRoot(hierarchy);
+
     // eslint-disable-next-line no-template-curly-in-string
     const interpolate = s => s.replace('${username}', currentUser.username);
     return (
         <>
             <List>
                 <ListItem
+                    key="browser"
                     component={NavLink}
-                    to="/workspaces"
+                    to="/browser"
                     button
-                    selected={pathname.startsWith('/workspace')}
-                >
-                    <ListItemIcon>
-                        <Widgets />
-                    </ListItemIcon>
-                    <ListItemText primary="Workspaces" />
-                </ListItem>
-                <ListItem
-                    key="collections"
-                    component={NavLink}
-                    to="/collections"
-                    button
-                    selected={pathname.startsWith('/collections')}
+                    selected={pathname.startsWith('/browser')}
                 >
                     <ListItemIcon>
                         <Folder />
                     </ListItemIcon>
-                    <ListItemText primary="Collections" />
+                    <ListItemText primary={hierarchyRoot.labelPlural || hierarchyRoot.label} />
                 </ListItem>
                 {externalStorages && externalStorages.map(storage => (
                     <ListItem

@@ -50,7 +50,6 @@ public class JdbcQueryServiceTest {
     UserService userService;
     @Mock
     private MetadataPermissions permissions;
-    WorkspaceService workspaceService;
     MetadataService api;
     QueryService queryService;
     MaintenanceService maintenanceService;
@@ -90,8 +89,6 @@ public class JdbcQueryServiceTest {
 
         maintenanceService = new MaintenanceService(userService, ds, viewStoreClientFactory);
 
-        workspaceService = new WorkspaceService(tx, userService);
-
         var context = new Context();
 
         var davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
@@ -100,7 +97,7 @@ public class JdbcQueryServiceTest {
         queryService = new JdbcQueryService(ConfigLoader.CONFIG.search, viewStoreClientFactory, tx, davFactory.root);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
 
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
@@ -120,11 +117,6 @@ public class JdbcQueryServiceTest {
         var taxonomies = model.read("taxonomies.ttl");
         api.put(taxonomies);
 
-        var workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-        workspaceService.setUserRole(workspace.getIri(), workspaceManager.getIri(), WorkspaceRole.Manager);
-        workspaceService.setUserRole(workspace.getIri(), user.getIri(), WorkspaceRole.Member);
-
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
         when(request.getAttribute("BLOB")).thenReturn(new BlobInfo("id", 0, "md5"));
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);

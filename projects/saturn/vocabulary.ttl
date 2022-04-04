@@ -15,99 +15,148 @@
 
 ## Augmented system class shapes
 
-# Project               > File, Directory, Collection
-# Investigation         > File, Directory, Collection
-# Study                 > File, Directory, Collection
-# Observation unit      > File
-# Sample                > File
-# Assay                 > File
+# Department             > Directory
+# Principal Investigator > Directory
+# Project                > Directory
+# Study                  > Directory
+# Object                 > Directory
+# Sample                 > Directory
+# Assay                  > Directory
+# External File          > Directory
 
+sils:aboutDepartment a rdf:Property .
+sils:aboutPrincipalInvestigator a rdf:Property .
 sils:aboutProject a rdf:Property .
-sils:aboutInvestigation a rdf:Property .
 sils:aboutStudy a rdf:Property .
-sils:aboutObservationUnit a rdf:Property .
+sils:aboutObject a rdf:Property .
 sils:aboutSample a rdf:Property .
 sils:aboutAssay a rdf:Property .
+sils:representsEntity a rdf:Property .
 
-fs:File sh:property
-    [
-        sh:name "Is about project" ;
-        sh:description "Projects that are featured in this collection." ;
-        sh:class sils:Project ;
-        sh:path sils:aboutProject
-    ],
-    [
-        sh:name "Is about investigation" ;
-        sh:description "Investigations that are featured in this collection." ;
-        sh:class sils:Investigation ;
-        sh:path sils:aboutInvestigation
-    ],
-    [
-        sh:name "Is about study" ;
-        sh:description "Studies that are featured in this collection." ;
-        sh:class sils:Study ;
-        sh:path sils:aboutStudy
-    ],
-    [
-        sh:name "Is about observation unit" ;
-        sh:description "Observation units that are featured in this collection." ;
-        sh:class sils:ObservationUnit ;
-        sh:path sils:aboutObservationUnit
-    ],
-    [
-        sh:name "Is about sample" ;
-        sh:description "Samples that are featured in this collection." ;
-        sh:class sils:Sample ;
-        sh:path sils:aboutSample
-    ],
-    [
-        sh:name "Is about assay" ;
-        sh:description "Assays that are featured in this collection." ;
-        sh:class sils:Assay ;
-        sh:path sils:aboutAssay
-    ] .
-
-fs:Directory sh:property
-    [
-        sh:name "Is about project" ;
-        sh:description "Projects that are featured in this collection." ;
-        sh:class sils:Project ;
-        sh:path sils:aboutProject
-    ],
-    [
-        sh:name "Is about investigation" ;
-        sh:description "Investigations that are featured in this collection." ;
-        sh:class sils:Investigation ;
-        sh:path sils:aboutInvestigation
-    ],
-    [
-        sh:name "Is about study" ;
-        sh:description "Studies that are featured in this collection." ;
-        sh:class sils:Study ;
-        sh:path sils:aboutStudy
-    ] .
-
-fs:Collection sh:property
-    [
-        sh:name "Is about project" ;
-        sh:description "Projects that are featured in this collection." ;
-        sh:class sils:Project ;
-        sh:path sils:aboutProject
-    ],
-    [
-        sh:name "Is about investigation" ;
-        sh:description "Investigations that are featured in this collection." ;
-        sh:class sils:Investigation ;
-        sh:path sils:aboutInvestigation
-    ],
-    [
-        sh:name "Is about study" ;
-        sh:description "Studies that are featured in this collection." ;
-        sh:class sils:Study ;
-        sh:path sils:aboutStudy
-    ] .
 
 ## User class Shapes
+sils:department a rdf:Property .
+sils:departmentDescription a rdf:Property .
+sils:departmentLocation a rdf:Property .
+sils:departmentContactPersonName a rdf:Property .
+sils:departmentContactPersonTelephone a rdf:Property .
+sils:departmentContactPersonEmail a rdf:Property .
+
+sils:Department a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "A division of a large organization such as a government, university, or business, dealing with a specific area of activity." ;
+    sh:name "Department" ;
+    fs:namePlural "Departments" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs  ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:PrincipalInvestigator ) ;
+    fs:hierarchyRoot true ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique department label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the department." ;
+        sh:datatype fs:markdown ;
+        sh:maxCount 1 ;
+        sh:path sils:departmentDescription
+    ],
+    [
+        sh:name "Location" ;
+        sh:description "The location of the department." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:departmentLocation
+    ],
+    [
+        sh:name "Contact person name" ;
+        sh:description "Name of the contact person." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:departmentContactPersonName
+    ],
+    [
+        sh:name "Contact person telephone" ;
+        sh:description "Contact person phone number." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:departmentContactPersonTelephone
+    ],
+    [
+        sh:name "Contact person email" ;
+        sh:description "Contact person email address." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:departmentContactPersonEmail
+    ] .
+
+
+sils:investigationDescription a rdf:Property .
+sils:piFirstName a rdf:Property .
+sils:piLastName a rdf:Property .
+sils:piEmail a rdf:Property .
+sils:ORCID a rdf:Property .
+
+sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "A Principal Investigator (PI)." ;
+    sh:name "Principal Investigator" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Project ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique principal investigator label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:investigationDescription
+    ],
+    [
+        sh:name "First name" ;
+        sh:description "The first name of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:piFirstName
+    ],
+    [
+        sh:name "Last name" ;
+        sh:description "The last name of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:piLastName
+    ],
+    [
+        sh:name "Email" ;
+        sh:description "The email address of the investigator." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:piEmail
+    ],
+    [
+        sh:name "ORCID" ;
+        sh:description "The Open Researcher and Contributor ID (ORCID) of the investigator. It is a nonproprietary alphanumeric code to uniquely identify scientific and other academic authors and contributors." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:ORCID
+    ] .
+
 
 sils:projectIdentifier a rdf:Property .
 sils:projectTitle a rdf:Property .
@@ -118,6 +167,8 @@ sils:Project a rdfs:Class, sh:NodeShape ;
     sh:description "A research programme or a grant-funded programme of work." ;
     sh:name "Project" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Study ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -148,169 +199,23 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path sils:projectDescription
-    ],
-    [
-        sh:name "Investigations" ;
-        sh:description "Linked investigations" ;
-        sh:path [sh:inversePath sils:project]
-    ],
-    [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutProject]
-    ] .
-
-sils:Organization a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "An organization is an entity – such as a company, an institution, or an association – comprising one or more people and having a particular purpose." ;
-    sh:name "Organization" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique organization label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-sils:Department a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "A division of a large organization such as a government, university, or business, dealing with a specific area of activity." ;
-    sh:name "Department" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique department label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-sils:investigationIdentifier a rdf:Property .
-sils:investigationTitle a rdf:Property .
-sils:investigationDescription a rdf:Property .
-sils:firstName a rdf:Property .
-sils:lastName a rdf:Property .
-sils:email a rdf:Property .
-sils:ORCID a rdf:Property .
-sils:organization a rdf:Property .
-sils:department a rdf:Property .
-
-sils:project a rdf:Property .
-
-sils:Investigation a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "An investigation." ;
-    sh:name "Investigation" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique investigation label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ],
-    [
-        sh:name "Identifier" ;
-        sh:description "The identifier of the investigation." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:investigationIdentifier
-    ],
-    [
-        sh:name "Title" ;
-        sh:description "The title of the investigation." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:investigationTitle
-    ],
-    [
-        sh:name "Description" ;
-        sh:description "The description of the investigation." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:investigationDescription
-    ],
-    [
-        sh:name "Project" ;
-        sh:description "The project this investigation belongs to." ;
-        sh:maxCount 1 ;
-        sh:class sils:Project ;
-        sh:path sils:project
-    ],
-    [
-        sh:name "First name" ;
-        sh:description "The first name of the investigator." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:firstName
-    ],
-    [
-        sh:name "Last name" ;
-        sh:description "The last name of the investigator." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:lastName
-    ],
-    [
-        sh:name "Email" ;
-        sh:description "The email address of the investigator." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:email
-    ],
-    [
-        sh:name "ORCID" ;
-        sh:description "The Open Researcher and Contributor ID (ORCID) of the investigator. It is a nonproprietary alphanumeric code to uniquely identify scientific and other academic authors and contributors." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:ORCID
-    ],
-    [
-        sh:name "Organization" ;
-        sh:description "The organization the investigator belongs to." ;
-        sh:maxCount 1 ;
-        sh:class sils:Organization ;
-        sh:path sils:organization
-    ],
-    [
-        sh:name "Department" ;
-        sh:description "The department the investigator belongs to." ;
-        sh:maxCount 1 ;
-        sh:class sils:Department ;
-        sh:path sils:department
-    ],
-    [
-        sh:name "Studies" ;
-        sh:description "Linked studies" ;
-        sh:path [sh:inversePath sils:investigation]
-    ],
-    [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutInvestigation]
     ] .
 
 sils:studyIdentifier a rdf:Property .
 sils:studyTitle a rdf:Property .
 sils:studyDescription a rdf:Property .
-
-sils:investigation a rdf:Property .
+sils:studyGoal a rdf:Property .
+sils:studyOrganisms a rdf:Property .
+sils:studyTimePoints a rdf:Property .
+sils:studyTreatments a rdf:Property .
 
 sils:Study a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
     sh:description "A study (or experiment) comprises a series of observation units and assays (or measurements) of one or more types, undertaken to answer a particular biological question." ;
     sh:name "Study" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Object ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -343,170 +248,35 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:path sils:studyDescription
     ],
     [
-        sh:name "Investigation" ;
-        sh:description "The investigation this study belongs to." ;
+        sh:name "Goal" ;
+        sh:description "The goal of the study." ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:class sils:Investigation ;
-        sh:path sils:investigation
+        sh:path sils:studyGoal
     ],
     [
-        sh:name "Observation units" ;
-        sh:description "Linked observation units" ;
-        sh:path [sh:inversePath sils:study]
+        sh:name "Organisms" ;
+        sh:description "Organisms that are being studied." ;
+        sh:datatype xsd:string ;
+        sh:path sils:studyOrganisms
     ],
     [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutStudy]
+        sh:name "Time points" ;
+        sh:description "List of time points that are being monitored." ;
+        sh:datatype xsd:string ;
+        sh:path sils:studyTimePoints
+    ],
+    [
+        sh:name "Treatments" ;
+        sh:description "List of conditions that are being studied." ;
+        sh:datatype xsd:string ;
+        sh:path sils:studyTreatments
     ] .
 
-sils:observationUnitIdentifier a rdf:Property .
-sils:observationUnitTitle a rdf:Property .
-sils:observationUnitDescription a rdf:Property .
-sils:country a rdf:Property .
-sils:localRegionName a rdf:Property .
-sils:continent a rdf:Property .
-sils:latitude a rdf:Property .
-sils:longitude a rdf:Property .
-sils:altitude a rdf:Property .
-sils:depth a rdf:Property .
-sils:elevation a rdf:Property .
-
-sils:study a rdf:Property .
-
-sils:ObservationUnit a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "An observation unit is an object that is subject to instances of observation and measurement. For example in a study each living entity (animal or plant), bioreactor or area studied is one observation unit. When studying 50 different animals, each animal should become one observation unit." ;
-    sh:name "Observation unit" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique observation unit label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ],
-    [
-        sh:name "Identifier" ;
-        sh:description "The identifier of the observation unit." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:observationUnitIdentifier
-    ],
-    [
-        sh:name "Title" ;
-        sh:description "The title of the observation unit." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:observationUnitTitle
-    ],
-    [
-        sh:name "Description" ;
-        sh:description "The description of the observation unit." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:observationUnitDescription
-    ],
-    [
-        sh:name "Study" ;
-        sh:description "The study this observation unit belongs to." ;
-        sh:maxCount 1 ;
-        sh:class sils:Study ;
-        sh:path sils:study
-    ],
-    [
-        sh:name "Country" ;
-        sh:description "The country where this observation unit resides in." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:country
-    ],
-    [
-        sh:name "Local region name" ;
-        sh:description "The name of the local region where this observation unit resides in." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:localRegionName
-    ],
-    [
-        sh:name "Continent" ;
-        sh:description "The continent where this observation unit resides in." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:continent
-    ],
-    [
-        sh:name "Latitude" ;
-        sh:description "The latitude coordinates of where this observation unit is located." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:latitude
-    ],
-    [
-        sh:name "Longitude" ;
-        sh:description "The longitude coordinates of where this observation unit is located." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:longitude
-    ],
-    [
-        sh:name "Altitude" ;
-        sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this observation unit is located." ;
-        sh:datatype xsd:decimal ;
-        sh:maxCount 1 ;
-        sh:path sils:altitude
-    ],
-    [
-        sh:name "Depth" ;
-        sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this observation unit is located." ;
-        sh:datatype xsd:decimal ;
-        sh:maxCount 1 ;
-        sh:path sils:depth
-    ],
-    [
-        sh:name "Elevation" ;
-        sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this observation unit is located." ;
-        sh:datatype xsd:decimal ;
-        sh:maxCount 1 ;
-        sh:path sils:elevation
-    ],
-    [
-        sh:name "Samples" ;
-        sh:description "Linked samples" ;
-        sh:path [sh:inversePath sils:observationUnit]
-    ],
-    [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutObservationUnit]
-    ] .
-
-sils:taxonomyId a rdf:Property .
-
-sils:TaxonomyIDs a rdfs:Class, sh:NodeShape ;
-    sh:closed false ;
-    sh:description "The taxonomy ID of the sample/observation unit." ;
-    sh:name "Taxonomy ID" ;
-    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
-    sh:property
-    [
-        sh:name "Label" ;
-        sh:description "Unique taxonomy ID label." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        dash:singleLine true ;
-        fs:importantProperty true ;
-        sh:path rdfs:label
-    ] .
-
-sils:isOfSpecies a rdf:Property .
 
 sils:Species a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The species of the sample/observation unit." ;
+    sh:description "The species of the sample/object." ;
     sh:name "Species" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
@@ -520,31 +290,313 @@ sils:Species a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
+sils:Ploidy a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "The number of complete sets of chromosomes in a cell." ;
+    sh:name "Ploidy" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique ploidy label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+
+sils:objectIdentifier a rdf:Property .
+sils:objectTitle a rdf:Property .
+sils:objectDescription a rdf:Property .
+sils:objectSpecies a rdf:Property .
+sils:objectCommonName a rdf:Property .
+sils:objectCountry a rdf:Property .
+sils:objectLocalRegionName a rdf:Property .
+sils:objectContinent a rdf:Property .
+sils:objectLatitude a rdf:Property .
+sils:objectLongitude a rdf:Property .
+sils:objectAltitude a rdf:Property .
+sils:objectDepth a rdf:Property .
+sils:objectElevation a rdf:Property .
+sils:objectPloidy a rdf:Property .
+sils:objectGenotype a rdf:Property .
+sils:objectTreatment a rdf:Property .
+
+sils:Object a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "An object that is subject to instances of observation and measurement. For example in a study each living entity (animal or plant), bioreactor or area studied is one object. When studying 50 different animals, each animal should become one object." ;
+    sh:name "Object" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Sample ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique object label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the object." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectIdentifier
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the object." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectTitle
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the object." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectDescription
+    ],
+    [
+        sh:name "Species" ;
+        sh:description "The species of the organism." ;
+        sh:class sils:Species ;
+        sh:maxCount 1 ;
+        sh:path sils:objectSpecies
+    ],
+    [
+        sh:name "Common name" ;
+        sh:description "The common name of the organism." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectCommonName
+    ],
+    [
+        sh:name "Country" ;
+        sh:description "The country where this object resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectCountry
+    ],
+    [
+        sh:name "Local region name" ;
+        sh:description "The name of the local region where this object resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectLocalRegionName
+    ],
+    [
+        sh:name "Continent" ;
+        sh:description "The continent where this object resides in." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectContinent
+    ],
+    [
+        sh:name "Latitude" ;
+        sh:description "The latitude coordinates of where this object is located." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectLatitude
+    ],
+    [
+        sh:name "Longitude" ;
+        sh:description "The longitude coordinates of where this object is located." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectLongitude
+    ],
+    [
+        sh:name "Altitude" ;
+        sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this object is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:objectAltitude
+    ],
+    [
+        sh:name "Depth" ;
+        sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this object is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:objectDepth
+    ],
+    [
+        sh:name "Elevation" ;
+        sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this object is located." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:objectElevation
+    ],
+    [
+        sh:name "Ploidy" ;
+        sh:description "The number of complete sets of chromosomes in a cell." ;
+        sh:class sils:Ploidy ;
+        sh:maxCount 1 ;
+        sh:path sils:objectPloidy
+    ],
+    [
+        sh:name "Genotype" ;
+        sh:description "Wild type, knock out etc." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectGenotype
+    ],
+    [
+        sh:name "Object treatment" ;
+        sh:description "Information about the object treatment." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:objectTreatment
+    ] .
+
+
+sils:PlantStructure a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Plant anatomy." ;
+    sh:name "Plant structure" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique plant structure label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+sils:PlantDevelopmentalStage a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Developmental stage of the plant." ;
+    sh:name "Plant developmental stage" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique plant developmental stage label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+sils:SampleHealthState a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Health state at sampling." ;
+    sh:name "Sample health state" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique health state label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+sils:SampleDiseaseStatus a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Disease status at sampling." ;
+    sh:name "Sample disease status" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique disease status label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+sils:GrowthFacility a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Facility where the plant was grown." ;
+    sh:name "Growth facility" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique growth facility label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
+sils:PlantGrowthMedium a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "On what medium the plant was grown." ;
+    sh:name "plant growth medium" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique plant growth medium label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label
+    ] .
+
 sils:sampleIdentifier a rdf:Property .
 sils:sampleName a rdf:Property .
 sils:sampleDescription a rdf:Property .
-
-sils:localStorageLocation a rdf:Property .
-sils:host a rdf:Property .
-sils:bioSafetyLevel a rdf:Property .
+sils:sampleLocalStorageLocation a rdf:Property .
+sils:sampleHost a rdf:Property .
+sils:sampleBioSafetyLevel a rdf:Property .
 sils:sampleSize a rdf:Property .
 sils:sampleCondition a rdf:Property .
-sils:material a rdf:Property .
-sils:samplingStrategy a rdf:Property .
-sils:sampleTreatment a rdf:Property .
-sils:collectionDate a rdf:Property .
-sils:collectionTime a rdf:Property .
-sils:timePoint a rdf:Property .
-sils:collectionTemperature a rdf:Property .
-sils:collectionPH a rdf:Property .
-
-sils:observationUnit a rdf:Property .
+sils:sampleMaterial a rdf:Property .
+sils:sampleCollectedBy a rdf:Property .
+sils:sampleCollectionDate a rdf:Property .
+sils:sampleCollectionTime a rdf:Property .
+sils:sampleTimePoint a rdf:Property .
+sils:sampleCollectionTemperature a rdf:Property .
+sils:sampleCollectionPH a rdf:Property .
+sils:sampleStorageTemperature a rdf:Property .
+sils:sampleCollectionDeviceOrMethod a rdf:Property .
+sils:sampleMaterialProcessing a rdf:Property .
+sils:sampleIsolationAndGrowthCondition a rdf:Property .
+sils:samplePlantStructure a rdf:Property .
+sils:samplePlantDevelopmentalStage a rdf:Property .
+sils:sampleAge a rdf:Property .
+sils:sampleHealthState a rdf:Property .
+sils:sampleDiseaseStatus a rdf:Property .
+sils:sampleGrowthFacility a rdf:Property .
+sils:samplePlantGrowthMedium a rdf:Property .
+sils:sampleDayAirTemperatureRegimen a rdf:Property .
+sils:sampleNightAirTemperatureRegimen a rdf:Property .
+sils:sampleRadiationRegimen a rdf:Property .
+sils:sampleLightDurationPerDay a rdf:Property .
+sils:sampleCountry a rdf:Property .
+sils:sampleLocalRegionName a rdf:Property .
+sils:sampleContinent a rdf:Property .
+sils:sampleLatitude a rdf:Property .
+sils:sampleLongitude a rdf:Property .
+sils:sampleAltitude a rdf:Property .
+sils:sampleDepth a rdf:Property .
+sils:sampleElevation a rdf:Property .
 
 sils:Sample a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "A biological sample taken from an observation unit that can potentially be processed further to acquire data from. A multitude of samples can be taken from one or more observation units when for example performing time-scale experiments or sampling from different regions of the observation unit." ;
+    sh:description "A biological sample taken from an object that can potentially be processed further to acquire data from. A multitude of samples can be taken from one or more objects when for example performing time-scale experiments or sampling from different regions of the object." ;
     sh:name "Sample" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:Assay ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -577,46 +629,25 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:path sils:sampleDescription
     ],
     [
-        sh:name "Observation unit" ;
-        sh:description "The observation unit this sample belongs to." ;
-        sh:maxCount 1 ;
-        sh:class sils:ObservationUnit ;
-        sh:path sils:observationUnit
-    ],
-    [
         sh:name "Local storage location" ;
         sh:description "The location of where this sample is stored locally." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:localStorageLocation
-    ],
-    # [
-    #     sh:name "Taxonomy ID" ;
-    #     sh:description "The taxonomic identifier of the sample according to https://www.uniprot.org/taxonomy." ;
-    #     sh:maxCount 1 ;
-    #     sh:class sils:TaxonomyIDs ;
-    #     sh:path sils:taxonomyId
-    # ],
-    [
-        sh:name "Sample organism" ;
-        sh:description "The species of the sample." ;
-        sh:maxCount 1 ;
-        sh:class sils:Species ;
-        sh:path sils:isOfSpecies
+        sh:path sils:sampleLocalStorageLocation
     ],
     [
         sh:name "Host" ;
         sh:description "If applicable, the host name of which the sample was obtained." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:host
+        sh:path sils:sampleHost
     ],
     [
         sh:name "Biosafety level" ;
         sh:description "The biosafety level of the sample." ;
         sh:datatype xsd:string ;    # It can be BSL-1, BSL-2 or 1, 2, thus can't be an integer.
         sh:maxCount 1 ;
-        sh:path sils:bioSafetyLevel
+        sh:path sils:sampleBioSafetyLevel
     ],
     [
         sh:name "Sample size" ;
@@ -637,122 +668,210 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:description "The material of which the sample is composed of." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:material
+        sh:path sils:sampleMaterial
     ],
     [
-        sh:name "Sampling strategy" ;
-        sh:description "The strategy used to perform the sampling procedure." ;
+        sh:name "Collected by" ;
+        sh:description "The person who collected the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:samplingStrategy
-    ],
-    [
-        sh:name "Sample treatment" ;
-        sh:description "The treatment applied to the sample." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:sampleTreatment
+        sh:path sils:sampleCollectedBy
     ],
     [
         sh:name "Collection date" ;
         sh:description "The date when this sample was collected (yyyy-mm-dd, ISO 8601)." ;
         sh:datatype xsd:date ;
         sh:maxCount 1 ;
-        sh:path sils:collectionDate
+        sh:path sils:sampleCollectionDate
     ],
     [
         sh:name "Collection time" ;
         sh:description "The time this sample was collected (24h notation)." ;
         sh:datatype xsd:integer ;
         sh:maxCount 1 ;
-        sh:path sils:collectionTime
+        sh:path sils:sampleCollectionTime
     ],
     [
         sh:name "Time point" ;
         sh:description "If applicable, the time series time point." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:timePoint
+        sh:path sils:sampleTimePoint
     ],
     [
         sh:name "Collection temperature" ;
         sh:description "The temperature (°C) when the sample was collected." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:collectionTemperature
+        sh:path sils:sampleCollectionTemperature
     ],
     [
         sh:name "Collection pH" ;
         sh:description "The pH when this sample was collected." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:collectionPH
+        sh:path sils:sampleCollectionPH
+    ],
+    [
+        sh:name "Sample storage temperature" ;
+        sh:description "The temperature (°C) at which the sample is stored." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleStorageTemperature
+    ],
+    [
+        sh:name "Sample collection device or method" ;
+        sh:description "The device or method that was used to collect the sample." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleCollectionDeviceOrMethod
+    ],
+    [
+        sh:name "Sample material processing" ;
+        sh:description "How the sample was processed." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleMaterialProcessing
+    ],
+    [
+        sh:name "Isolation and growth condition" ;
+        sh:description "How the sample was grown." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleIsolationAndGrowthCondition
+    ],
+    [
+        sh:name "Plant structure" ;
+        sh:description "Plant anatomy." ;
+        sh:class sils:PlantStructure  ;
+        sh:maxCount 1 ;
+        sh:path sils:samplePlantStructure
+    ],
+    [
+        sh:name "Plant development stage" ;
+        sh:description "Developmental stage of the plant." ;
+        sh:class sils:PlantDevelopmentalStage ;
+        sh:maxCount 1 ;
+        sh:path sils:samplePlantDevelopmentalStage
+    ],
+    [
+        sh:name "Sample age" ;
+        sh:description "Age of the object at sampling." ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleAge
+    ],
+    [
+        sh:name "Sample health state" ;
+        sh:description "Health state at sampling." ;
+        sh:class sils:SampleHealthState ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleHealthState
+    ],
+    [
+        sh:name "Sample disease status" ;
+        sh:description "Disease status at sampling." ;
+        sh:class sils:SampleDiseaseStatus ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleDiseaseStatus
+    ],
+    [
+        sh:name "Growth facility" ;
+        sh:description "Facility where the plant was grown (glasshouse etc.)." ;
+        sh:class sils:GrowthFacility ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleGrowthFacility
+    ],
+    [
+        sh:name "Plant growth medium" ;
+        sh:description "On what medium the plant was grown." ;
+        sh:class sils:PlantGrowthMedium ;
+        sh:maxCount 1 ;
+        sh:path sils:samplePlantGrowthMedium
+    ],
+    [
+        sh:name "Day air temperature regimen" ;
+        sh:description "The temperature (°C) at daytime." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleDayAirTemperatureRegimen
+    ],
+    [
+        sh:name "Night air temperature regimen" ;
+        sh:description "The temperature (°C) at nighttime." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleNightAirTemperatureRegimen
+    ],
+    [
+        sh:name "Radiation regimen" ;
+        sh:description "The radiation intensity." ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleRadiationRegimen
+    ],
+    [
+        sh:name "Light duration per day" ;
+        sh:description "The amount of light per day (24h notation)." ;
+        sh:datatype xsd:integer ;
+        sh:maxCount 1 ;
+        sh:path sils:sampleLightDurationPerDay
     ],
     [
         sh:name "Country" ;
         sh:description "The country where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:country
+        sh:path sils:sampleCountry
     ],
     [
         sh:name "Local region name" ;
         sh:description "The name of the local region where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:localRegionName
+        sh:path sils:sampleLocalRegionName
     ],
     [
         sh:name "Continent" ;
         sh:description "The continent where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:continent
+        sh:path sils:sampleContinent
     ],
     [
         sh:name "Latitude" ;
         sh:description "The latitude coordinates of where this sample is located." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:latitude
+        sh:path sils:sampleLatitude
     ],
     [
         sh:name "Longitude" ;
         sh:description "The longitude coordinates of where this sample is located." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:longitude
+        sh:path sils:sampleLongitude
     ],
     [
         sh:name "Altitude" ;
         sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this sample is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:altitude
+        sh:path sils:sampleAltitude
     ],
     [
         sh:name "Depth" ;
         sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this sample is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:depth
+        sh:path sils:sampleDepth
     ],
     [
         sh:name "Elevation" ;
         sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this sample is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:elevation
-    ],
-    [
-        sh:name "Assays" ;
-        sh:description "Linked assays" ;
-        sh:path [sh:inversePath sils:sample]
-    ],
-    [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutSample]
+        sh:path sils:sampleElevation
     ] .
 
 sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
@@ -774,9 +893,8 @@ sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
 sils:LCMSIdentifier a rdf:Property .
 sils:LCMSDescription a rdf:Property .
 sils:LCMSBrandModel a rdf:Property .
+sils:maximumLCMSResolution a rdf:Property .
 sils:isOfLCMSApparatusType a rdf:Property .
-sils:isMS1Capable a rdf:Property .
-sils:isMS2Capable a rdf:Property .
 
 sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
@@ -822,21 +940,13 @@ sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
         sh:path sils:isOfLCMSApparatusType
     ],
     [
-        sh:name "MS1_Capable" ;
-        sh:description "Is MS1 capable." ;
-        sh:datatype xsd:boolean;
+        sh:name "Maximum resolution" ;
+        sh:description "The maximum resolution the LCMS can measure at" ;
+        sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:isMS1Capable
-    ],
-    [
-        sh:name "MS2_Capable" ;
-        sh:description "Is MS2 capable." ;
-        sh:datatype xsd:boolean;
-        sh:maxCount 1 ;
-        sh:path sils:isMS2Capable
+        sh:path sils:maximumLCMSResolution
     ] .
 
-sils:isOfAssayType a rdf:Property .
 
 sils:AssayType a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
@@ -854,29 +964,15 @@ sils:AssayType a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
-sils:assayIdentifier a rdf:Property .
-sils:assayTitle a rdf:Property .
-sils:assayDescription a rdf:Property .
-
-sils:fileNameForward a rdf:Property .
-sils:fileNameReverse a rdf:Property .
-sils:isolationProtocol a rdf:Property .
-sils:sequencingCenter a rdf:Property .
-sils:sequencingPlatform a rdf:Property .
-sils:sequencingDate a rdf:Property .
-sils:reference a rdf:Property .
-
-sils:sample a rdf:Property .
-
-sils:LCMSAssayMode a rdfs:Class, sh:NodeShape ;
+sils:SequenceTechnology a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
-    sh:description "The LCMS assay mode." ;
-    sh:name "Mode" ;
+    sh:description "The sequence technology." ;
+    sh:name "Sequence technology" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     sh:property
     [
         sh:name "Label" ;
-        sh:description "Unique LCMS assay mode label." ;
+        sh:description "Unique sequence technology label." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         dash:singleLine true ;
@@ -884,14 +980,33 @@ sils:LCMSAssayMode a rdfs:Class, sh:NodeShape ;
         sh:path rdfs:label
     ] .
 
+sils:assayIdentifier a rdf:Property .
+sils:assayTitle a rdf:Property .
+sils:assayDescription a rdf:Property .
+sils:isOfAssayType a rdf:Property .
+sils:sequenceTechnology a rdf:Property .
+sils:sequencingMode a rdf:Property .
+sils:isolationProtocol a rdf:Property .
+sils:sequencingCenter a rdf:Property .
+sils:sequencingPlatform a rdf:Property .
+sils:analysisDate a rdf:Property .
+sils:assayReference a rdf:Property .
 sils:LCMSAssayMachine a rdf:Property .
-sils:hasLCMSAssayMode a rdf:Property .
+sils:LCMSProtocol a rdf:Property .
+sils:assayPositiveMode a rdf:Property .
+sils:assayNegativeMode a rdf:Property .
+sils:assayMS1 a rdf:Property .
+sils:assayMS2 a rdf:Property .
+sils:assayMSn a rdf:Property .
+sils:assayIonMobility a rdf:Property .
 
 sils:Assay a rdfs:Class, sh:NodeShape ;
     sh:closed false ;
     sh:description "An assay is an investigative (analytic) procedure in laboratory medicine, pharmacology, environmental biology and molecular biology for qualitatively assessing or quantitatively measuring the presence, amount, or functional activity of a target entity (the analyte)." ;
     sh:name "Assay" ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( sils:ExternalFile ) ;
     sh:property
     [
         sh:name "Label" ;
@@ -931,25 +1046,18 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:path sils:isOfAssayType
     ],
     [
-        sh:name "Sample" ;
-        sh:description "The sample of which this assay was generated." ;
+        sh:name "Sequence technology" ;
+        sh:description "The sequence technology." ;
         sh:maxCount 1 ;
-        sh:class sils:Sample ;
-        sh:path sils:sample
+        sh:class sils:SequenceTechnology ;
+        sh:path sils:sequenceTechnology
     ],
     [
-        sh:name "File name forward" ;
-        sh:description "The file name of the forward reads." ;
-        sh:datatype xsd:string ;
+        sh:name "Sequencing mode (PAIRED_END)" ;
+        sh:description "Whether or not measured in paired end. Required for sequencing assay type." ;
+        sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:fileNameForward
-    ],
-    [
-        sh:name "File name reverse" ;
-        sh:description "The file name of the reverse reads." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:fileNameReverse
+        sh:path sils:sequencingMode
     ],
     [
         sh:name "Isolation protocol" ;
@@ -973,23 +1081,11 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:path sils:sequencingPlatform
     ],
     [
-        sh:name "Sequencing date" ;
-        sh:description "The date when the sequencing took place." ;
+        sh:name "Analysis date" ;
+        sh:description "The date when the analysis took place." ;
         sh:datatype xsd:date ;
         sh:maxCount 1 ;
-        sh:path sils:sequencingDate
-    ],
-    [
-        sh:name "Reference" ;
-        sh:description "The reference genome to which reads can be mapped to (e.g. GCA_... ENA number)." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:reference
-    ],
-    [
-        sh:name "Files" ;
-        sh:description "Linked files" ;
-        sh:path [sh:inversePath sils:aboutAssay]
+        sh:path sils:analysisDate
     ],
     [
         sh:name "LCMS machine" ;
@@ -999,9 +1095,91 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:path sils:LCMSAssayMachine
     ],
     [
-        sh:name "LCMS assay mode" ;
-        sh:description "The LCMS assay mode." ;
+        sh:name "LCMS protocol" ;
+        sh:description "The protocol that was used to measure (name or url)." ;
         sh:maxCount 1 ;
-        sh:class sils:LCMSAssayMode ;
-        sh:path sils:hasLCMSAssayMode
+        sh:datatype xsd:string ;
+        sh:path sils:LCMSProtocol
+    ],
+    [
+        sh:name "Positive mode" ;
+        sh:description "If Positive mode spectra were measured." ;
+        sh:datatype xsd:boolean  ;
+        sh:maxCount 1 ;
+        sh:path sils:assayPositiveMode
+    ],
+    [
+        sh:name "Negative mode" ;
+        sh:description "If Negative mode spectra were measured." ;
+        sh:datatype xsd:boolean  ;
+        sh:maxCount 1 ;
+        sh:path sils:assayNegativeMode
+    ],
+    [
+        sh:name "MS1" ;
+        sh:description "If MS1 spectra were measured." ;
+        sh:datatype xsd:boolean  ;
+        sh:maxCount 1 ;
+        sh:path sils:assayMS1
+    ],
+    [
+        sh:name "MS2" ;
+        sh:description "If MS2 spectra were measured." ;
+        sh:datatype xsd:boolean  ;
+        sh:maxCount 1 ;
+        sh:path sils:assayMS2
+    ],
+    [
+        sh:name "MSn" ;
+        sh:description "If MSn spectra were measured." ;
+        sh:datatype xsd:boolean  ;
+        sh:maxCount 1 ;
+        sh:path sils:assayMSn
+    ],
+    [
+        sh:name "Ion Mobility" ;
+        sh:description "If Ion Mobility was measured." ;
+        sh:datatype xsd:boolean  ;
+        sh:maxCount 1 ;
+        sh:path sils:assayIonMobility
+    ] .
+
+sils:externalFileLink a rdf:Property .
+
+sils:ExternalFile a rdfs:Class, sh:NodeShape ;
+    sh:description "A file mock referencing an external file." ;
+    sh:name "External file" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo) ;
+    fs:partOfHierarchy true ;
+    fs:representsExternalFile true ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique file name." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        fs:machineOnly true ;
+        dash:singleLine true ; ;
+        fs:importantProperty true ;
+        sh:path rdfs:label;
+        sh:order 0
+    ],
+    [
+        sh:name "External path" ;
+        sh:description "File link, URL pointing to the external storage." ;
+        dash:singleLine true ;
+        sh:maxCount 1 ;
+        fs:importantProperty true ;
+        fs:externalLink true ;
+        sh:datatype xsd:string ;
+        sh:path sils:externalFileLink ;
+        sh:order 1 ;
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "" ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path rdfs:comment ;
+        sh:order 2 ;
     ] .

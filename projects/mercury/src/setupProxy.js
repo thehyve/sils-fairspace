@@ -1,4 +1,4 @@
-const proxy = require('http-proxy-middleware');
+const {createProxyMiddleware} = require('http-proxy-middleware');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Keycloak = require('keycloak-connect');
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -36,17 +36,17 @@ module.exports = (app) => {
 
     const addToken = (proxyReq, req) => req.kauth.grant && proxyReq.setHeader('Authorization', `Bearer ${req.kauth.grant.access_token.token}`);
 
-    app.use(proxy('/api', {
+    app.use('/api', createProxyMiddleware({
         target: 'http://localhost:8080/',
         onProxyReq: addToken
     }));
 
-    app.use(proxy('/zuul', {
+    app.use('/zuul', createProxyMiddleware({
         target: 'http://localhost:8080/',
         onProxyReq: addToken
     }));
 
-    app.use(proxy('/actuator/health', {
+    app.use('/actuator/health', createProxyMiddleware({
         target: 'http://localhost:8080/'
     }));
 };

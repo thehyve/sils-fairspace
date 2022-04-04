@@ -6,19 +6,26 @@ import io.fairspace.saturn.services.metadata.validation.MetadataRequestValidator
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.services.metadata.validation.Violation;
 import io.fairspace.saturn.vocabulary.FS;
+import io.fairspace.saturn.webdav.DavFactory;
+import io.milton.resource.CollectionResource;
+import io.milton.resource.MoveableResource;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.shacl.vocabulary.SHACLM;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 
+import javax.ws.rs.BadRequestException;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
 import static io.fairspace.saturn.audit.Audit.audit;
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
-import static io.fairspace.saturn.rdf.ModelUtils.*;
+import static io.fairspace.saturn.rdf.ModelUtils.EMPTY_MODEL;
+import static io.fairspace.saturn.rdf.ModelUtils.updatedView;
 import static io.fairspace.saturn.rdf.SparqlUtils.toXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.ShapeUtils.getPropertyShapesForResource;
 import static io.fairspace.saturn.vocabulary.Vocabularies.SYSTEM_VOCABULARY;
@@ -29,12 +36,14 @@ public class MetadataService {
     private final Model vocabulary;
     private final MetadataRequestValidator validator;
     private final MetadataPermissions permissions;
+    private final DavFactory davFactory;
 
-    public MetadataService(Transactions transactions, Model vocabulary, MetadataRequestValidator validator, MetadataPermissions permissions) {
+    public MetadataService(Transactions transactions, Model vocabulary, MetadataRequestValidator validator, MetadataPermissions permissions, DavFactory davFactory) {
         this.transactions = transactions;
         this.vocabulary = vocabulary;
         this.validator = validator;
         this.permissions = permissions;
+        this.davFactory = davFactory;
     }
 
     /**
@@ -116,14 +125,24 @@ public class MetadataService {
             if (!permissions.canWriteMetadata(resource)) {
                 throw new AccessDeniedException(resource.getURI());
             }
+
             var machineOnly = resource.listProperties(RDF.type)
                     .mapWith(Statement::getObject)
                     .filterKeep(SYSTEM_VOCABULARY::containsResource)
                     .hasNext();
-
             if (machineOnly) {
                 throw new IllegalArgumentException("Cannot mark as deleted machine-only entity " + resource);
             }
+
+            var isLinkedEntity = model.listStatements(null, FS.linkedEntity, resource)
+                    .filterKeep(statement -> statement.getSubject().hasProperty(RDF.type, FS.Directory))
+                    .hasNext();
+            if (isLinkedEntity) {
+                throw new IllegalArgumentException(
+                        "Cannot mark as deleted entity " + resource + ", because it is linked to existing directory."
+                );
+            }
+
             if (resource.getModel().containsResource(resource) && !resource.hasProperty(FS.dateDeleted)) {
                 resource.addLiteral(FS.dateDeleted, toXSDDateTimeLiteral(Instant.now()));
                 resource.addProperty(FS.deletedBy, model.wrapAsResource(getUserURI()));
@@ -180,15 +199,57 @@ public class MetadataService {
 
     private Set<Resource> update(Model modelToRemove, Model modelToAdd) {
         return transactions.calculateWrite(before -> {
-            trimLabels(modelToAdd);
+            Set<Resource> updatedResources = new HashSet<>();
+
+            updatedResources.addAll(updateLabelsAndLinkedDavResources(before, modelToAdd));
+
             var after = updatedView(before, modelToRemove, modelToAdd);
-
             validate(before, after, modelToRemove, modelToAdd);
-
             persist(modelToRemove, modelToAdd);
+            updatedResources.addAll(modelToRemove.listSubjects().andThen(modelToAdd.listSubjects()).toSet());
 
-            return modelToRemove.listSubjects().andThen(modelToAdd.listSubjects()).toSet();
+            return updatedResources;
         });
+    }
+
+    private Set<Resource> updateLabelsAndLinkedDavResources(Model before, Model toAdd) {
+        Set<Resource> updatedDavResources = new HashSet<>();
+        toAdd.listSubjectsWithProperty(RDFS.label)
+                .toSet() // convert to set, to prevent updating a model while iterating over its elements
+                .forEach(s -> {
+                    var label = toAdd.getProperty(s, RDFS.label).getString().trim();
+                    toAdd.removeAll(s, RDFS.label, null)
+                            .add(s, RDFS.label, label);
+                    updatedDavResources.addAll(updateLinkedDavResources(before, s, label));
+                });
+        return updatedDavResources;
+    }
+
+    private Set<Resource> updateLinkedDavResources(Model before, Resource resource, String label) throws BadRequestException {
+        Set<Resource> updatedDavResources = new HashSet<>();
+        var linkedDirectories = before.listStatements(null, FS.linkedEntity, resource)
+                .filterKeep(statement -> statement.getSubject().hasProperty(RDF.type, FS.Directory))
+                .mapWith(Statement::getSubject);
+        if (linkedDirectories.hasNext()) {
+            linkedDirectories
+                    .filterDrop(dirResource -> dirResource.hasProperty(RDFS.label, label))
+                    .forEachRemaining(dirResource -> {
+                        try {
+                            Resource parentResource = dirResource.getPropertyResourceValue(FS.belongsTo);
+                            io.milton.resource.Resource parentDavResource = davFactory.getResource(parentResource);
+                            ((MoveableResource) davFactory.getResource(dirResource)).moveTo((CollectionResource) parentDavResource, label);
+                            updatedDavResources.add(dirResource);
+                        } catch (Exception e) {
+                            var message = String.format(
+                                    "Cannot rename directory resource linked to the entity %s to %s. %s",
+                                    resource.getURI(),
+                                    label,
+                                    e.getMessage());
+                            throw new BadRequestException(message);
+                        }
+                    });
+        }
+        return updatedDavResources;
     }
 
     private void logDeleted(Set<Resource> updatedResources) {

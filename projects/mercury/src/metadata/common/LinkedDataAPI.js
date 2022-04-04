@@ -1,7 +1,6 @@
-import {expand} from 'jsonld';
 import axios from 'axios';
+import {expand} from 'jsonld';
 import {extractJsonData, handleHttpError} from '../../common/utils/httpUtils';
-
 import {normalizeTypes} from "./jsonLdConverter";
 import {flattenShallow} from "../../common/utils/genericUtils";
 

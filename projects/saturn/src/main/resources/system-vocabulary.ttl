@@ -11,8 +11,14 @@
 
 
 fs:fixedShape a rdf:Property .
+# if machineOnly, editing in GUI is disabled for this property
 fs:machineOnly a rdf:Property .
 fs:importantProperty a rdf:Property .
+
+fs:partOfHierarchy a rdf:Property .
+fs:hierarchyRoot a rdf:Property .
+fs:hierarchyDescendants a rdf:Property .
+fs:representsExternalFile a rdf:Property .
 
 fs:ownedBy a rdf:Property .
 fs:belongsTo a rdf:Property .
@@ -26,7 +32,10 @@ fs:movedTo a rdf:Property .
 fs:versions a rdf:Property .
 fs:currentVersion a rdf:Property .
 fs:contentType a rdf:Property .
+fs:linkedEntityType a rdf:Property .
+fs:linkedEntity a rdf:Property .
 fs:markdown rdfs:label "Markdown" .
+fs:namePlural a rdf:Property .
 
 ########################
 ###   Fixed shapes   ###
@@ -107,12 +116,11 @@ fs:File a rdfs:Class, sh:NodeShape ;
         sh:path fs:contentType
     ] .
 
-
 fs:Directory a rdfs:Class, sh:NodeShape ;
     sh:description "A directory containing multiple files." ;
     sh:name "Directory" ;
     fs:machineOnly true ;
-    sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo) ;
+    sh:ignoredProperties ( rdf:type owl:sameAs fs:belongsTo fs:movedTo ) ;
     sh:property
     [
         sh:name "Created by" ;
@@ -174,18 +182,18 @@ fs:Directory a rdfs:Class, sh:NodeShape ;
         sh:order 0
     ],
     [
-        sh:name "Description" ;
-        sh:description "" ;
-        sh:datatype xsd:string ;
+        sh:name "Linked entity type" ;
+        sh:description "Type of entity the directory is linked to." ;
         sh:maxCount 1 ;
-        sh:path rdfs:comment
+        sh:path fs:linkedEntityType ;
+        fs:machineOnly true ;
     ],
     [
-        sh:name "Keywords" ;
-        sh:datatype xsd:string ;
-        dash:singleLine true ;
-        sh:path dcat:keyword;
-        sh:order 2
+        sh:name "Linked entity" ;
+        sh:description "Entity the directory is linked to." ;
+        sh:maxCount 1;
+        sh:path fs:linkedEntity ;
+        fs:machineOnly true ;
     ] .
 
 fs:Collection a rdfs:Class, sh:NodeShape ;

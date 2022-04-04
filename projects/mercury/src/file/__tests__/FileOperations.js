@@ -16,6 +16,7 @@ describe('FileOperations', () => {
         method: COPY,
         filenames: ['a'],
         isEmpty: () => false,
+        linkedEntityType: "http://localhost#valid-type",
         length: () => 1
     };
 
@@ -37,7 +38,8 @@ describe('FileOperations', () => {
         refreshFiles={refreshFiles}
         clearSelection={clearSelection}
         fileActions={fileActions}
-        openedPath={openedPath}
+        openedDirectory={{path: openedPath}}
+        allowedTypes={["http://localhost#valid-type"]}
         isWritingEnabled
     />);
 
@@ -100,6 +102,7 @@ describe('FileOperations', () => {
                 method: COPY,
                 filenames: [],
                 isEmpty: () => true,
+                linkedEntityType: "http://localhost#valid-type",
                 length: () => 0
             };
 
@@ -111,6 +114,7 @@ describe('FileOperations', () => {
             const currentDirClipboard = {
                 method: CUT,
                 filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#valid-type",
                 isEmpty: () => false,
                 length: () => 1
             };
@@ -118,11 +122,12 @@ describe('FileOperations', () => {
             wrapper = renderFileOperations(currentDirClipboard, fileActionsMock, openedPath);
             expect(wrapper.find('[aria-label="Paste"]').prop("disabled")).toEqual(true);
         });
-        it('should be enabled if the clipboard contains files cut from the other directory', () => {
+        it('should be enabled if the clipboard contains files cut from the other directory with valid type', () => {
             const openedPath = '/other-directory';
             const currentDirClipboard = {
                 method: CUT,
                 filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#valid-type",
                 isEmpty: () => false,
                 length: () => 1
             };
@@ -130,11 +135,25 @@ describe('FileOperations', () => {
             wrapper = renderFileOperations(currentDirClipboard, fileActionsMock, openedPath);
             expect(wrapper.find('[aria-label="Paste"]').prop("disabled")).toEqual(false);
         });
+        it('should be disabled if the clipboard contains files cut from the other directory with invalid type', () => {
+            const openedPath = '/other-directory';
+            const currentDirClipboard = {
+                method: CUT,
+                filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#invalid-type",
+                isEmpty: () => false,
+                length: () => 1
+            };
+
+            wrapper = renderFileOperations(currentDirClipboard, fileActionsMock, openedPath);
+            expect(wrapper.find('[aria-label="Paste"]').prop("disabled")).toEqual(true);
+        });
         it('should be enabled if the clipboard contains files copied from the current directory', () => {
             const openedPath = '/subdirectory';
             const currentDirClipboard = {
                 method: COPY,
                 filenames: ['/subdirectory/test.txt'],
+                linkedEntityType: "http://localhost#valid-type",
                 isEmpty: () => false,
                 length: () => 1
             };
@@ -162,7 +181,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted={false}
@@ -182,7 +201,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
@@ -202,7 +221,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
@@ -222,7 +241,7 @@ describe('FileOperations', () => {
                 refreshFiles={refreshFiles}
                 clearSelection={clearSelection}
                 fileActions={fileActions}
-                openedPath={{}}
+                openedDirectory={{}}
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
@@ -230,53 +249,6 @@ describe('FileOperations', () => {
 
             wrapper = render(fileActionsMock);
             expect(wrapper.find('[aria-label="Undelete"]').prop("disabled")).toEqual(false);
-        });
-    });
-
-    describe('show history button', () => {
-        const emptyClipboard = {
-            method: COPY,
-            filenames: [],
-            isEmpty: () => true,
-            length: () => 0
-        };
-        it('should be disabled if no file selected', () => {
-            const render = (fileActions) => shallow(<FileOperations
-                classes={{}}
-                paste={() => Promise.resolve()}
-                files={[{filename: 'a', type: 'file'}]}
-                selectedPaths={[]}
-                fetchFilesIfNeeded={() => {}}
-                getDownloadLink={() => {}}
-                refreshFiles={refreshFiles}
-                clearSelection={clearSelection}
-                fileActions={fileActions}
-                openedPath={{}}
-                isWritingEnabled
-                clipboard={emptyClipboard}
-            />);
-
-            wrapper = render(fileActionsMock);
-            expect(wrapper.find('[aria-label="Show history"]').prop("disabled")).toEqual(true);
-        });
-        it('should be enabled if one file selected', () => {
-            const render = (fileActions) => shallow(<FileOperations
-                classes={{}}
-                paste={() => Promise.resolve()}
-                files={[{filename: 'a', type: 'file'}]}
-                selectedPaths={['a']}
-                fetchFilesIfNeeded={() => {}}
-                getDownloadLink={() => {}}
-                refreshFiles={refreshFiles}
-                clearSelection={clearSelection}
-                fileActions={fileActions}
-                openedPath={{}}
-                isWritingEnabled
-                clipboard={emptyClipboard}
-            />);
-
-            wrapper = render(fileActionsMock);
-            expect(wrapper.find('[aria-label="Show history"]').prop("disabled")).toEqual(false);
         });
     });
 });

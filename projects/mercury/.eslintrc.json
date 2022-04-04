@@ -9,10 +9,9 @@
     "jest"
   ],
   "extends": [
-    "airbnb",
     "plugin:jest/recommended"
   ],
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "rules": {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",

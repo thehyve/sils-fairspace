@@ -8,7 +8,6 @@ export const LEFT_MENU_EXPANSION_DELAY = 500;
 export const MAIN_CONTENT_WIDTH = '65%';
 export const SIDE_PANEL_WIDTH = '35%';
 export const MAIN_CONTENT_MAX_HEIGHT = 'calc(100vh - 156px)';
-export const COLLECTIONS_PATH = 'collections';
 export const METADATA_PATH = '/metadata';
 export const CROSS_WORKSPACES_SEARCH_PATH = '/workspaces/_all';
 export const TOOLTIP_ENTER_DELAY = 350;
@@ -72,6 +71,8 @@ export const LONG_URI = XMLSCHEMA_NS + 'long';
 export const DECIMAL_URI = XMLSCHEMA_NS + 'decimal';
 export const MARKDOWN_URI = FAIRSPACE_NS + 'markdown';
 
+export const LINKED_ENTITY_TYPE_URI = FAIRSPACE_NS + 'linkedEntityType';
+
 export const MACHINE_ONLY_URI = FAIRSPACE_NS + 'machineOnly';
 export const USER_URI = FAIRSPACE_NS + 'User';
 export const COLLECTION_URI = FAIRSPACE_NS + 'Collection';
@@ -80,6 +81,7 @@ export const DIRECTORY_URI = FAIRSPACE_NS + 'Directory';
 export const FILE_PATH_URI = FAIRSPACE_NS + 'filePath';
 export const FILE_SIZE_URI = FAIRSPACE_NS + 'fileSize';
 export const MD5_URI = FAIRSPACE_NS + 'md5';
+export const IS_EXTERNAL_FILE_REPRESENTATION = FAIRSPACE_NS + 'representsExternalFile';
 export const CONTENT_TYPE_URI = FAIRSPACE_NS + 'contentType';
 export const DATE_CREATED_URI = FAIRSPACE_NS + 'dateCreated';
 export const CREATED_BY_URI = FAIRSPACE_NS + 'createdBy';
@@ -107,5 +109,9 @@ export const IS_ADMIN = FAIRSPACE_NS + 'isAdmin';
 export const IS_SUPERADMIN = FAIRSPACE_NS + 'isSuperadmin';
 export const IS_MEMBER_OF_URI = FAIRSPACE_NS + 'isMemberOf';
 export const IS_MANAGER_OF_URI = FAIRSPACE_NS + 'isManagerOf';
+export const IS_HIERARCHY_ROOT = FAIRSPACE_NS + 'hierarchyRoot';
+export const IS_PART_OF_HIERARCHY = FAIRSPACE_NS + 'partOfHierarchy';
+export const HIERARCHY_DESCENDANTS = FAIRSPACE_NS + 'hierarchyDescendants';
+export const NAME_PLURAL = FAIRSPACE_NS + 'namePlural';
 
 export const NIL_URI = FAIRSPACE_NS + 'nil';

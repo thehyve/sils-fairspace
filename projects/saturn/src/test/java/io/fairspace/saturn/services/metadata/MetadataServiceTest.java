@@ -1,15 +1,25 @@
 package io.fairspace.saturn.services.metadata;
 
+import io.fairspace.saturn.config.ConfigLoader;
 import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
 import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.services.metadata.validation.ComposedValidator;
-import io.fairspace.saturn.services.metadata.validation.UniqueLabelValidator;
-import io.fairspace.saturn.services.metadata.validation.ValidationException;
+import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
+import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
+import io.fairspace.saturn.webdav.BlobStore;
+import io.fairspace.saturn.webdav.DavFactory;
+import io.milton.http.ResourceFactory;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.MakeCollectionableResource;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Before;
@@ -18,7 +28,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static io.fairspace.saturn.TestUtils.createTestUser;
 import static io.fairspace.saturn.TestUtils.setupRequestContext;
+import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.rdf.ModelUtils.modelOf;
 import static io.fairspace.saturn.vocabulary.FS.NS;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
@@ -27,10 +40,13 @@ import static org.apache.jena.rdf.model.ModelFactory.createDefaultModel;
 import static org.apache.jena.rdf.model.ResourceFactory.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MetadataServiceTest {
+    private static final String BASE_PATH = "/api/webdav";
+    private static final String baseUri = ConfigLoader.CONFIG.publicUrl + BASE_PATH;
     private static final Resource S1 = createResource("http://localhost/iri/S1");
     private static final Resource S2 = createResource("http://localhost/iri/S2");
     private static final Resource S3 = createResource("http://localhost/iri/S3");
@@ -44,15 +60,27 @@ public class MetadataServiceTest {
 
     private Transactions txn = new SimpleTransactions(ds);
     private MetadataService api;
+
+    private DavFactory davFactory;
     @Mock
     private MetadataPermissions permissions;
+    @Mock
+    BlobStore store;
+    @Mock
+    UserService userService;
+    private org.eclipse.jetty.server.Request request;
 
     @Before
     public void setUp() {
         setupRequestContext();
+        request = getCurrentRequest();
         when(permissions.canReadMetadata(any())).thenReturn(true);
         when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(txn, VOCABULARY, new ComposedValidator(new UniqueLabelValidator()), permissions);
+        var context = new Context();
+        Model model = ds.getDefaultModel();
+        davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
+        api = new MetadataService(txn, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
+        context.set(METADATA_SERVICE, api);
     }
 
     @Test
@@ -163,20 +191,8 @@ public class MetadataServiceTest {
         ));
     }
 
-    @Test(expected = ValidationException.class)
-    public void putDuplicateLabelFails() {
-        api.put(modelOf(
-                createStatement(S1, RDF.type, FS.Workspace),
-                createStatement(S1, RDFS.label, createStringLiteral("Test"))
-                ));
-        api.put(modelOf(
-                createStatement(S2, RDF.type, FS.Workspace),
-                createStatement(S2, RDFS.label, createStringLiteral("Test"))
-        ));
-    }
-
-    @Test(expected = ValidationException.class)
-    public void patchDuplicateLabelFails() {
+    @Test
+    public void patchDuplicateLabelDoesNotFail() {
         txn.executeWrite(m -> m
                 .add(S1, RDF.type, FS.Workspace)
                 .add(S1, RDFS.label, "Test 1")
@@ -185,18 +201,6 @@ public class MetadataServiceTest {
         );
 
         api.patch(modelOf(createStatement(S1, RDFS.label, createStringLiteral("Test 2 "))));
-    }
-
-    @Test(expected = ValidationException.class)
-    public void patchDuplicateLabelWithWhitespaceFails() {
-        txn.executeWrite(m -> m
-                .add(S1, RDF.type, FS.Workspace)
-                .add(S1, RDFS.label, "Test 1")
-                .add(S2, RDF.type, FS.Workspace)
-                .add(S2, RDFS.label, "Test 2")
-        );
-
-        api.patch(modelOf(createStatement(S1, RDFS.label, createStringLiteral(" Test 2  "))));
     }
 
     @Test
@@ -231,10 +235,57 @@ public class MetadataServiceTest {
     }
 
     @Test
+    public void patchLabelChangesLinkedDavResourceLabel()
+            throws BadRequestException, NotAuthorizedException, ConflictException {
+        var admin = createTestUser("admin", true);
+        lenient().when(userService.currentUser()).thenReturn(admin);
+        var departmentType = "https://sils.uva.nl/ontology#Department";
+        when(request.getHeader("Entity-Type")).thenReturn(departmentType);
+
+        var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
+        root.createCollection("Dep1");
+
+        var departmentDirectories = ds.getDefaultModel()
+                .listResourcesWithProperty(RDFS.label, "Dep1")
+                .filterKeep(resource -> resource.hasProperty(RDF.type, FS.Directory))
+                .toList();
+        assertEquals(1, departmentDirectories.size());
+        var departmentDirectory = departmentDirectories.get(0);
+        var departmentLinkedEntity = departmentDirectory.getPropertyResourceValue(FS.linkedEntity);
+        assertTrue(departmentLinkedEntity.hasProperty(RDFS.label, "Dep1"));
+
+        api.patch(createDefaultModel().add(departmentLinkedEntity, RDFS.label, "Label changed"));
+
+        assertEquals("Label changed", ds.getDefaultModel().getProperty(departmentLinkedEntity, RDFS.label).getString());
+        assertFalse(ds.getDefaultModel()
+                .listResourcesWithProperty(RDFS.label, "Dep1")
+                .filterKeep(resource -> resource.hasProperty(RDF.type, FS.Directory))
+                .hasNext()
+        );
+        assertTrue(ds.getDefaultModel()
+                .listResourcesWithProperty(RDFS.label, "Label changed")
+                .filterKeep(resource -> resource.hasProperty(RDF.type, FS.Directory))
+                .hasNext()
+        );
+    }
+
+    @Test
     public void testPatchHandlesLifecycleForEntities() {
         var delta = modelOf(STMT1);
         api.patch(delta);
         assertTrue(ds.getDefaultModel().contains(STMT1.getSubject(), FS.modifiedBy));
         assertTrue(ds.getDefaultModel().contains(STMT1.getSubject(), FS.dateModified));
+    }
+
+    @Test
+    public void deleteLinkedEntity() {
+        txn.executeWrite(m -> m
+                .add(STMT1)
+                .add(STMT2)
+                .add(createStatement(S2, RDF.type, FS.Directory))
+                .add(createStatement(S2, FS.linkedEntity, S1))
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> api.softDelete(S1));
     }
 }
