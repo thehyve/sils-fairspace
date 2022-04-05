@@ -4,7 +4,6 @@ import Button from "@material-ui/core/Button";
 import CollectionEditor from './CollectionEditor';
 import CollectionList from "./CollectionList";
 import CollectionsContext from "./CollectionsContext";
-import WorkspaceContext from "../workspaces/WorkspaceContext";
 import UserContext from "../users/UserContext";
 import UsersContext from "../users/UsersContext";
 import MessageDisplay from "../common/components/MessageDisplay";
@@ -13,7 +12,6 @@ import {getDisplayName} from "../users/userUtils";
 import type {User} from "../users/UsersAPI";
 import type {Collection} from "./CollectionAPI";
 import {getCollectionAbsolutePath} from "./collectionUtils";
-import type {Workspace} from '../workspaces/WorkspacesAPI';
 
 type ContextualCollectionBrowserProperties = {
     history: History;
@@ -28,7 +26,6 @@ type CollectionBrowserProperties = ContextualCollectionBrowserProperties & {
     error: Error;
     collections: Collection[];
     users: User[];
-    workspace: Workspace;
     showDeleted: boolean;
     canAddCollection: boolean;
 }
@@ -42,7 +39,7 @@ export const CollectionBrowser = (props: CollectionBrowserProperties) => {
         users = [],
         canAddCollection = true,
         setBusy = () => {},
-        showDeleted, history, error, workspace
+        showDeleted, history, error
     } = props;
 
     const [addingNewCollection, setAddingNewCollection] = useState(false);
@@ -111,28 +108,21 @@ const ContextualCollectionBrowser = (props: ContextualCollectionBrowserPropertie
     const {currentUserError, currentUserLoading} = useContext(UserContext);
     const {users, usersLoading, usersError} = useContext(UsersContext);
     const {collections, collectionsLoading, collectionsError, showDeleted, setShowDeleted} = useContext(CollectionsContext);
-    const {workspacesLoading, workspacesError, workspaces} = useContext(WorkspaceContext);
-    const workspace = props.workspaceIri ? workspaces.find(w => w.iri === props.workspaceIri) : {};
     const {showDeletedCollections} = props;
 
-    const canAdd = window.location.pathname === '/workspace' && workspace.canCollaborate;
-
-    const filteredCollections = props.workspaceIri
-        ? collections.filter(c => c.ownerWorkspace === props.workspaceIri)
-        : collections;
+    const canAdd = window.location.pathname === '/workspace';
 
     useEffect(() => setShowDeleted(showDeletedCollections), [setShowDeleted, showDeletedCollections]);
 
     return (
         <CollectionBrowser
             {...props}
-            workspace={workspace}
-            collections={filteredCollections}
+            collections={collections}
             users={users}
             canAddCollection={canAdd}
             showDeleted={showDeleted}
-            loading={collectionsLoading || currentUserLoading || usersLoading || workspacesLoading}
-            error={collectionsError || currentUserError || usersError || workspacesError}
+            loading={collectionsLoading || currentUserLoading || usersLoading}
+            error={collectionsError || currentUserError || usersError}
         />
     );
 };

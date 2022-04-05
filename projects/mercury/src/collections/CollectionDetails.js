@@ -21,17 +21,13 @@ import CollectionEditor from "./CollectionEditor";
 import type {Collection, Resource, Status} from './CollectionAPI';
 import CollectionsContext from './CollectionsContext';
 import type {History} from '../types';
-import WorkspaceContext from "../workspaces/WorkspaceContext";
-import type {Workspace} from "../workspaces/WorkspacesAPI";
 import ErrorDialog from "../common/components/ErrorDialog";
 import LoadingInlay from "../common/components/LoadingInlay";
 import ConfirmationDialog from "../common/components/ConfirmationDialog";
 import PermissionCard from "../permissions/PermissionCard";
 import MessageDisplay from "../common/components/MessageDisplay";
 import UsersContext from "../users/UsersContext";
-import WorkspaceUserRolesContext, {WorkspaceUserRolesProvider} from "../workspaces/WorkspaceUserRolesContext";
 import CollectionStatusChangeDialog from "./CollectionStatusChangeDialog";
-import CollectionOwnerChangeDialog from "./CollectionOwnerChangeDialog";
 import {descriptionForStatus, isCollectionPage} from "./collectionUtils";
 import {getDisplayName} from '../users/userUtils';
 import {camelCaseToWords, formatDateTime} from '../common/utils/genericUtils';
@@ -521,30 +517,19 @@ const ContextualCollectionDetails = (props) => {
     const {users} = useContext(UsersContext);
     const {currentUser} = useContext(UserContext);
     const {deleteCollection, undeleteCollection, setStatus, setOwnedBy, unpublish} = useContext(CollectionsContext);
-    const {workspaces, workspacesError, workspacesLoading} = useContext(WorkspaceContext);
 
     return (
-        <WorkspaceUserRolesProvider iri={props.collection.ownerWorkspace}>
-            <WorkspaceUserRolesContext.Consumer>
-                {({workspaceRoles, workspaceRolesError, workspaceRolesLoading}) => (
-                    <CollectionDetails
-                        {...props}
-                        error={props.error || workspacesError || workspaceRolesError}
-                        loading={props.loading || workspacesLoading || workspaceRolesLoading}
-                        users={users}
-                        currentUser={currentUser}
-                        workspaceRoles={workspaceRoles}
-                        workspaces={workspaces}
-                        history={history}
-                        deleteCollection={deleteCollection}
-                        undeleteCollection={undeleteCollection}
-                        unpublish={unpublish}
-                        setStatus={setStatus}
-                        setOwnedBy={setOwnedBy}
-                    />
-                )}
-            </WorkspaceUserRolesContext.Consumer>
-        </WorkspaceUserRolesProvider>
+        <CollectionDetails
+            {...props}
+            users={users}
+            currentUser={currentUser}
+            history={history}
+            deleteCollection={deleteCollection}
+            undeleteCollection={undeleteCollection}
+            unpublish={unpublish}
+            setStatus={setStatus}
+            setOwnedBy={setOwnedBy}
+        />
     );
 };
 

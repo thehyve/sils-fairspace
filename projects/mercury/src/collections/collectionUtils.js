@@ -115,8 +115,6 @@ const parseToArray = value => ((typeof value !== 'string') ? [] : value.split(',
 export const mapFilePropertiesToCollection: Collection = (properties) => ({
     iri: properties.iri,
     name: properties.basename,
-    ownerWorkspace: properties.ownedBy,
-    ownerWorkspaceCode: properties.ownedByCode,
     description: properties.comment,
     dateCreated: properties.creationdate,
     createdBy: properties.createdBy,

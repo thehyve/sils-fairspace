@@ -18,7 +18,6 @@ import {
     fileNameContainsInvalidCharacter, isUnsafeFileName,
     isValidFileName
 } from '../file/fileUtils';
-import type {Workspace} from '../workspaces/WorkspacesAPI';
 
 const fields = ['name', 'description', 'ownerWorkspace'];
 

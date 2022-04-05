@@ -18,7 +18,6 @@ import MessageDisplay from "../common/components/MessageDisplay";
 import {camelCaseToWords, formatDateTime} from "../common/utils/genericUtils";
 import useSorting from "../common/hooks/UseSorting";
 import usePagination from "../common/hooks/UsePagination";
-import {currentWorkspace} from '../workspaces/workspaces';
 import {accessLevelForCollection, collectionAccessIcon} from './collectionUtils';
 import ColumnFilterInput from "../common/components/ColumnFilterInput";
 import TablePaginationActions from "../common/components/TablePaginationActions";
@@ -27,10 +26,6 @@ const baseColumns = {
     name: {
         valueExtractor: 'name',
         label: 'Name'
-    },
-    workspace: {
-        valueExtractor: 'ownerWorkspaceCode',
-        label: 'Workspace'
     },
     status: {
         valueExtractor: 'status',
@@ -71,9 +66,6 @@ const CollectionList = ({
     classes
 }) => {
     const columns = {...baseColumns};
-    if (currentWorkspace()) {
-        delete columns.workspace;
-    }
 
     const [filterValue, setFilterValue] = useState("");
     const [filteredCollections, setFilteredCollections] = useState(collections);

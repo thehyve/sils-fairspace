@@ -69,54 +69,6 @@ class CollectionResource extends DirectoryResource {
     }
 
     @Property
-    public String getOwnedByCode() {
-        return Optional.ofNullable(subject.getPropertyResourceValue(FS.ownedBy))
-                .map(workspace -> getStringProperty(workspace, RDFS.label))
-                .orElse(null);
-    }
-
-    @Property
-    public String getOwnedBy() {
-        return Optional.ofNullable(subject.getPropertyResourceValue(FS.ownedBy)).map(Resource::getURI).orElse(null);
-    }
-
-    public void setOwnedBy(Resource owner) throws NotAuthorizedException, BadRequestException {
-        if (!canManage()) {
-            throw new NotAuthorizedException("Not authorized to set the resource owner.", this, SC_FORBIDDEN);
-        }
-        if (!owner.hasProperty(RDF.type, FS.Workspace)) {
-            throw new BadRequestException(this, "Invalid owner");
-        }
-
-        updateParents(subject);
-
-        var old = subject.getPropertyResourceValue(FS.ownedBy);
-
-        subject.removeAll(FS.ownedBy)
-                .addProperty(FS.ownedBy, owner)
-                .removeAll(FS.belongsTo)
-                .addProperty(FS.belongsTo, owner);
-
-        updateParents(subject);
-
-        if (old != null) {
-            subject.getModel().listResourcesWithProperty(FS.isMemberOf, old)
-                    .andThen(subject.getModel().listResourcesWithProperty(FS.isManagerOf, old))
-                    .filterDrop(user -> user.hasProperty(FS.isMemberOf, owner) || user.hasProperty(FS.isManagerOf, owner))
-                    .filterKeep(user -> user.hasProperty(FS.canManage, subject) || user.hasProperty(FS.canWrite, subject))
-                    .toList()
-                    .forEach(user -> user.getModel()
-                            .remove(user, FS.canManage, subject)
-                            .remove(user, FS.canWrite, subject)
-                            .add(user, FS.canRead, subject));
-            subject.getModel()
-                    .removeAll(old, FS.canManage, subject)
-                    .removeAll(old, FS.canWrite, subject)
-                    .removeAll(old, FS.canRead, subject);
-        }
-    }
-
-    @Property
     public String getAccess() {
         return access.name();
     }
@@ -184,11 +136,6 @@ class CollectionResource extends DirectoryResource {
     }
 
     @Property
-    public String getWorkspacePermissions() {
-        return getPermissions(FS.Workspace);
-    }
-
-    @Property
     public String getComment() {
         return getStringProperty(subject, RDFS.comment);
     }
@@ -228,8 +175,7 @@ class CollectionResource extends DirectoryResource {
      * Whether the current user has the permission to manage the collection, i.e.,
      * manage access and change status or view mode.
      * A deleted collection cannot be managed (but can only be undeleted or permanently deleted).
-     * In other statuses, manage access is granted to users that have Manage permission on the collection
-     * and to managers of the owner workspace.
+     * In other statuses, manage access is granted to users that have Manage permission on the collection.
      */
     private boolean canManage() {
         var currentUser = factory.currentUserResource();
@@ -278,7 +224,6 @@ class CollectionResource extends DirectoryResource {
             case "set_access_mode" -> setAccessMode(getEnumParameter(parameters, "mode", AccessMode.class));
             case "set_status" -> setStatus(getEnumParameter(parameters, "status", Status.class));
             case "set_permission" -> setPermission(getResourceParameter(parameters, "principal"), getEnumParameter(parameters, "access", Access.class));
-            case "set_owned_by" -> setOwnedBy(getResourceParameter(parameters, "owner"));
             case "unpublish" -> unpublish();
             default -> super.performAction(action, parameters, files);
         }
@@ -319,10 +264,6 @@ class CollectionResource extends DirectoryResource {
                 if (!principal.hasProperty(FS.isMemberOf, ownerWs) && !principal.hasProperty(FS.isManagerOf, ownerWs)) {
                     throw new BadRequestException(this);
                 }
-            }
-        } else if (principal.hasProperty(RDF.type, FS.Workspace)) {
-            if ((grantedAccess == Access.Write || grantedAccess == Access.Manage) && !subject.hasProperty(FS.ownedBy, principal)) {
-                throw new BadRequestException(this);
             }
         } else {
             throw new BadRequestException(this, "Invalid principal");

@@ -17,7 +17,6 @@ import {getMetadataViewsPath, ofRangeValueType, RESOURCES_VIEW} from "./metadata
 import MetadataViewActiveFacetFilters from "./MetadataViewActiveFacetFilters";
 import MetadataViewInformationDrawer from "./MetadataViewInformationDrawer";
 import {useSingleSelection} from "../../file/UseSelection";
-import {TabPanel} from "../../workspaces/WorkspaceOverview";
 import LoadingInlay from "../../common/components/LoadingInlay";
 import MessageDisplay from "../../common/components/MessageDisplay";
 import MetadataViewTableContainer from "./MetadataViewTableContainer";
@@ -27,6 +26,7 @@ import {getParentPath, getPathFromIri} from "../../file/fileUtils";
 import usePageTitleUpdater from "../../common/hooks/UsePageTitleUpdater";
 import MetadataViewFacetsContext from "./MetadataViewFacetsContext";
 import {accessLevelForCollection} from "../../collections/collectionUtils";
+import {TabPanel} from "../../layout/TabPanel";
 
 type MetadataViewProperties = {
     classes: any;

@@ -3,7 +3,6 @@ package io.fairspace.saturn.services.users;
 import io.fairspace.saturn.config.*;
 import io.fairspace.saturn.rdf.dao.*;
 import io.fairspace.saturn.rdf.transactions.*;
-import io.fairspace.saturn.services.workspaces.*;
 import org.eclipse.jetty.server.*;
 import org.junit.*;
 import org.junit.runner.*;
@@ -26,7 +25,7 @@ import static org.mockito.Mockito.when;
 public class UserServiceTest {
     private org.eclipse.jetty.server.Request request;
     private Transactions tx = new SimpleTransactions(createTxnMem());
-    private WorkspaceService workspaceService;
+
     @Mock
     private UsersResource usersResource;
     private UserService userService;
@@ -71,13 +70,8 @@ public class UserServiceTest {
         when(usersResource.list()).thenReturn(keycloakUsers);
 
         userService = new UserService(ConfigLoader.CONFIG.auth, tx, usersResource);
-        workspaceService = new WorkspaceService(tx, userService);
 
         selectAdmin();
-        // Create test workspace
-        workspaceService.createWorkspace(Workspace.builder()
-                .code("ws1")
-                .build());
     }
 
     private void triggerKeycloakUserUpdate() {
@@ -107,6 +101,7 @@ public class UserServiceTest {
      * This test ensures that such updates happen asynchronously, not interfering with the
      * ongoing read transaction.
      */
+    @Ignore("Important test! Replace fetching workspaces with other trigger after changing the permission model.")
     @Test
     public void testFetchUsersWhileFetchingWorkspaces() throws InterruptedException {
         var pristineUser = tx.calculateRead(model ->
@@ -119,7 +114,7 @@ public class UserServiceTest {
         selectRegularUser();
         // Fetching the list of workspaces triggers fetching the current user (for access checks).
         // This will trigger saving the updated user (in a write transactions) during a read transaction.
-        workspaceService.listWorkspaces();
+        // workspaceService.listWorkspaces(); #TODO
 
         Thread.sleep(500);
         var updatedUser = tx.calculateRead(model ->

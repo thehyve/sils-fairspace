@@ -10,6 +10,7 @@ import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -89,10 +90,11 @@ public class ShaclValidatorTest {
         verifyNoMoreInteractions(violationHandler);
     }
 
+    @Ignore("No data model class defined currently having property with 'sh:minCount 1'")
     @Test
     public void validateResourceMissingRequiredProperty() {
         var model = modelOf(
-                resource1, RDF.type, FS.Workspace
+                resource1, RDF.type, FS.User
         );
 
         validator.validate(EMPTY_MODEL, model, EMPTY_MODEL, model, violationHandler);

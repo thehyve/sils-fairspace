@@ -12,7 +12,6 @@ import io.fairspace.saturn.services.metadata.validation.*;
 import io.fairspace.saturn.services.search.SearchService;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.services.views.*;
-import io.fairspace.saturn.services.workspaces.WorkspaceService;
 import io.fairspace.saturn.webdav.BlobStore;
 import io.fairspace.saturn.webdav.DavFactory;
 import io.fairspace.saturn.webdav.LocalBlobStore;
@@ -42,7 +41,6 @@ public class Services {
     private final Config config;
     private final Transactions transactions;
 
-    private final WorkspaceService workspaceService;
     private final UserService userService;
     private final MetadataPermissions metadataPermissions;
     private final MetadataService metadataService;
@@ -68,9 +66,7 @@ public class Services {
         dataset.getContext().set(FS_ROOT, davFactory.root);
         davServlet = new WebDAVServlet(davFactory, transactions, blobStore);
 
-        workspaceService = new WorkspaceService(transactions, userService);
-
-        metadataPermissions = new MetadataPermissions(workspaceService, davFactory, userService);
+        metadataPermissions = new MetadataPermissions(davFactory, userService);
 
         var metadataValidator = new ComposedValidator(
                 new MachineOnlyClassesValidator(VOCABULARY),

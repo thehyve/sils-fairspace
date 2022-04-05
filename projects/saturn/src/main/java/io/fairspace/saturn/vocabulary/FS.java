@@ -140,18 +140,8 @@ public class FS {
     public static final String ERROR_STATUS_URI = NS + "errorStatus";
     public static final String ERROR_MESSAGE_URI = NS + "errorMessage";
     public static final String ERROR_DETAILS_URI = NS + "errorDetails";
-
-    public static final String WORKSPACE_URI = NS + "Workspace";
-    public static final Resource Workspace = createResource(WORKSPACE_URI);
-
-    public static final String WORKSPACE_DESCRIPTION_URI = NS + "workspaceDescription";
-    public static final Property workspaceDescription = createProperty(WORKSPACE_DESCRIPTION_URI);
-
     public static final String NODE_URL_URI = NS + "nodeUrl";
     public static final Property nodeUrl = createProperty(NODE_URL_URI);
-
-    public static final String WORKSPACE_EXTERNAL_LINK_URI = NS + "workspaceExternalLink";
-    public static final Property workspaceExternalLink = createProperty(WORKSPACE_EXTERNAL_LINK_URI);
 
     public static final String MARKDOWN_URI = NS + "markdown";
     public static final Property markdown = createProperty(MARKDOWN_URI);
