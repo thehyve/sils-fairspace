@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import {encodePath, joinPathsAvoidEmpty} from "../file/fileUtils";
 import * as consts from "../constants";
 import {PATH_SEPARATOR} from "../constants";
