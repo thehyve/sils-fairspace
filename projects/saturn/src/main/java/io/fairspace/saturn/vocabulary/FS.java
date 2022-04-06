@@ -9,9 +9,6 @@ import static org.apache.jena.rdf.model.ResourceFactory.createResource;
 public class FS {
     public static final String NS = "https://fairspace.nl/ontology#";
 
-    public static final String COLLECTION_URI = NS + "Collection";
-    public static final Resource Collection = createResource(COLLECTION_URI);
-
     public static final String DIRECTORY_URI = NS + "Directory";
     public static final Resource Directory = createResource(DIRECTORY_URI);
 
@@ -29,9 +26,6 @@ public class FS {
 
     public static final String USER_URI = NS + "User";
     public static final Resource User = createResource(USER_URI);
-
-    public static final String OWNED_BY_URI = NS + "ownedBy";
-    public static final Property ownedBy = createProperty(OWNED_BY_URI);
 
     public static final String BELONGS_TO_URI = NS + "belongsTo";
     public static final Property belongsTo = createProperty(BELONGS_TO_URI);
@@ -57,12 +51,6 @@ public class FS {
 
     public static final String STATUS_URI = NS + "status";
     public static final Property status = createProperty(STATUS_URI);
-
-    public static final String STATUS_DATE_MODIFIED_URI = NS + "statusDateModified";
-    public static final Property statusDateModified = createProperty(STATUS_DATE_MODIFIED_URI);
-
-    public static final String STATUS_MODIFIED_BY_URI = NS + "statusModifiedBy";
-    public static final Property statusModifiedBy = createProperty(STATUS_DATE_MODIFIED_URI);
 
     public static final String MOVED_TO_URI = NS + "movedTo";
     public static final Property movedTo = createProperty(MOVED_TO_URI);
@@ -97,12 +85,6 @@ public class FS {
 
     public static final String MACHINE_ONLY_URI = NS + "machineOnly";
     public static final Property machineOnly = createProperty(MACHINE_ONLY_URI);
-
-    public static final String IS_MEMBER_OF_URI = NS + "isMemberOf";
-    public static final Property isMemberOf = createProperty(IS_MEMBER_OF_URI);
-
-    public static final String IS_MANAGER_OF_URI = NS + "isManagerOf";
-    public static final Property isManagerOf = createProperty(IS_MANAGER_OF_URI);
 
     public static final String CAN_LIST_URI = NS + "canList";
     public static final Property canList = createProperty(CAN_LIST_URI);

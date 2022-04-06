@@ -9,7 +9,7 @@ import {UploadsProvider} from "../UploadsContext";
 
 afterEach(cleanup);
 
-const openedCollection = {
+const openedDirectory = {
     iri: "http://localhost/iri/86a2f097-adf9-4733-a7b4-53da7a01d9f0",
     dateCreated: "2019-09-12T10:34:53.585Z",
     createdBy: "http://localhost/iri/6e6cde34-45bc-42d8-8cdb-b6e9faf890d3",
@@ -19,10 +19,6 @@ const openedCollection = {
     deletedBy: null,
     name: "asd",
     description: "",
-    access: "Manage",
-    canRead: true,
-    canWrite: true,
-    canManage: true,
     creatorObj: {
         iri: "http://localhost/iri/6e6cde34-45bc-42d8-8cdb-b6e9faf890d3",
         name: "John Snow",
@@ -65,7 +61,7 @@ describe.skip('FileBrowser', () => {
     it('renders proper view', () => {
         const {queryByTestId} = renderWithProviders(
             <FileBrowser
-                openedCollection={openedCollection}
+                openedDirectory={openedDirectory}
                 fileActions={fileActionsMock}
                 {...initialProps}
             />

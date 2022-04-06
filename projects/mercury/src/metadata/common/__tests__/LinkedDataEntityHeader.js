@@ -5,7 +5,6 @@ import {mount} from "enzyme";
 import LinkedDataEntityHeader from "../LinkedDataEntityHeader";
 import DeleteEntityButton from "../DeleteEntityButton";
 import {
-    COLLECTION_URI,
     CREATED_BY_URI,
     DATE_DELETED_URI,
     DELETED_BY_URI,
@@ -61,7 +60,6 @@ describe('LinkedDataEntityHeader', () => {
         });
 
         it('should show a disabled delete button for collections, files and directories', () => {
-            testDeleteButtonDeletableState({'@type': [{id: COLLECTION_URI}]}, 'Disabled');
             testDeleteButtonDeletableState({'@type': [{id: DIRECTORY_URI}]}, 'Disabled');
             testDeleteButtonDeletableState({'@type': [{id: FILE_URI}]}, 'Disabled');
         });

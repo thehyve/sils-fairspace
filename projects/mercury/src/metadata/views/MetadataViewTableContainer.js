@@ -23,7 +23,6 @@ import type {MetadataViewEntityWithLinkedFiles} from "./metadataViewUtils";
 import useViewData from "./UseViewData";
 import MetadataViewTable from "./MetadataViewTable";
 import useStateWithLocalStorage from "../../common/hooks/UseLocalStorage";
-import {Collection} from "../../collections/CollectionAPI";
 import LoadingOverlayWrapper from '../../common/components/LoadingOverlayWrapper';
 import {isNonEmptyValue} from "../../common/utils/genericUtils";
 import MetadataViewActiveTextFilters from "./MetadataViewActiveTextFilters";
@@ -36,7 +35,6 @@ type MetadataViewTableContainerProperties = {
     setTextFiltersObject: () => {};
     toggleRow: () => {};
     view: string;
-    collections: Collection[];
     locationContext: string;
     selected: MetadataViewEntityWithLinkedFiles;
     hasInactiveFilters: boolean;

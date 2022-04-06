@@ -15,10 +15,6 @@ describe('jsonLdConverter', () => {
                 [constants.SHACL_PATH]: [{'@id': constants.COMMENT_URI}],
             },
             {
-                '@id': 'http://collectionShape',
-                [constants.SHACL_PATH]: [{'@id': constants.COLLECTION_URI}],
-            },
-            {
                 '@id': 'http://listShape',
                 [constants.SHACL_PATH]: [{'@id': 'http://list'}],
                 [constants.SHACL_NODE]: [{'@id': constants.DASH_LIST_SHAPE}],
@@ -29,9 +25,9 @@ describe('jsonLdConverter', () => {
         it('should return values for each predicate', () => {
             const metadata = {
                 '@id': subject,
-                '@type': ['https://fairspace.nl/ontology#Collection'],
+                '@type': ['https://fairspace.nl/ontology#Directory'],
                 [constants.COMMENT_URI]: [
-                    {'@value': 'My first collection'},
+                    {'@value': 'My first dir'},
                     {'@value': 'Some more info'}
                 ]
             };
@@ -39,43 +35,16 @@ describe('jsonLdConverter', () => {
             const valuesByPredicate = fromJsonLd(metadata, propertyShapes);
 
             expect(valuesByPredicate[constants.COMMENT_URI].map(v => v.value)).toEqual(
-                ['My first collection', 'Some more info']
+                ['My first dir', 'Some more info']
             );
         });
 
         describe('sorting', () => {
-            it('should return references sorted on the other label', () => {
-                const metadata = {
-                    '@id': subject,
-                    '@type': ['https://fairspace.nl/ontology#Collection'],
-                    [constants.COLLECTION_URI]: [
-                        {'@id': 'http://a'},
-                        {'@id': 'http://b'}
-                    ]
-                };
-
-                const allMetadata = [
-                    {
-                        '@id': 'http://a',
-                        [constants.LABEL_URI]: [{'@value': 'ZZZ'}]
-                    },
-                    {
-                        '@id': 'http://b',
-                        [constants.LABEL_URI]: [{'@value': 'AAA'}]
-                    }
-                ];
-
-                const valuesByPredicate = fromJsonLd(metadata, propertyShapes, allMetadata);
-
-                expect(valuesByPredicate[constants.COLLECTION_URI].map(v => v.id)).toEqual(
-                    ['http://b', 'http://a']
-                );
-            });
 
             it('should return values sorted', () => {
                 const metadata = {
                     '@id': subject,
-                    '@type': ['https://fairspace.nl/ontology#Collection'],
+                    '@type': ['https://fairspace.nl/ontology#Directory'],
                     [constants.COMMENT_URI]: [
                         {
                             '@value': 'ZZZZ'
@@ -96,7 +65,7 @@ describe('jsonLdConverter', () => {
             it('should not sort rdf lists', () => {
                 const metadata = {
                     '@id': subject,
-                    '@type': ['https://fairspace.nl/ontology#Collection'],
+                    '@type': ['https://fairspace.nl/ontology#Directory'],
                     'http://list': [{
                         '@list': [
                             {'@value': 'ZZZ'},
@@ -116,7 +85,7 @@ describe('jsonLdConverter', () => {
         it('should parse rdf lists correctly', () => {
             const metadata = {
                 '@id': subject,
-                '@type': ['https://fairspace.nl/ontology#Collection'],
+                '@type': ['https://fairspace.nl/ontology#Directory'],
                 'http://list': [{
                     '@list': [
                         {'@value': 'My first collection'},
@@ -134,7 +103,7 @@ describe('jsonLdConverter', () => {
         it('should not include properties for which no shape is given', () => {
             const metadata = {
                 '@id': subject,
-                '@type': ['https://fairspace.nl/ontology#Collection'],
+                '@type': ['https://fairspace.nl/ontology#Directory'],
                 'http://not-existing': [
                     {'@value': 'My first collection'},
                     {'@value': 'Some more info'}
@@ -143,34 +112,6 @@ describe('jsonLdConverter', () => {
 
             const valuesByPredicate = fromJsonLd(metadata, propertyShapes);
             expect(Object.prototype.hasOwnProperty.call(valuesByPredicate, 'http://not-existing')).toEqual(false);
-        });
-
-        it('should return information about the other entry for reference', () => {
-            const metadata = {
-                '@id': subject,
-                '@type': ['https://fairspace.nl/ontology#Collection'],
-                [constants.COLLECTION_URI]: [
-                    {'@id': 'http://a'},
-                    {'@id': 'http://b'}
-                ]
-            };
-
-            const allMetadata = [
-                {
-                    '@id': 'http://a',
-                    [constants.LABEL_URI]: [{'@value': 'AAA'}]
-                },
-                {
-                    '@id': 'http://b',
-                    [constants.LABEL_URI]: [{'@value': 'BBB'}]
-                }
-            ];
-
-            const valuesByPredicate = fromJsonLd(metadata, propertyShapes, allMetadata);
-
-            expect(valuesByPredicate[constants.COLLECTION_URI].map(v => v.label)).toEqual(
-                ['AAA', 'BBB']
-            );
         });
     });
 

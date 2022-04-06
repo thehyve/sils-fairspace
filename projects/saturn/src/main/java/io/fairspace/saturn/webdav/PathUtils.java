@@ -4,7 +4,7 @@ import static org.apache.commons.lang3.StringUtils.strip;
 import static org.apache.http.client.utils.URLEncodedUtils.formatSegments;
 
 public class PathUtils {
-    public static final int MAX_COLLECTION_NAME_LENGTH = 127;
+    public static final int MAX_ROOT_DIRECTORY_NAME_LENGTH = 127;
 
     public static String normalizePath(String path) {
         return strip(path, "/");

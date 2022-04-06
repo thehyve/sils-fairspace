@@ -3,12 +3,12 @@ import {IconButton} from "@material-ui/core";
 import FolderOpen from "@material-ui/icons/FolderOpen";
 import {Link} from "react-router-dom";
 
-import {COLLECTION_URI, DIRECTORY_URI, FILE_URI} from "../../constants";
+import {DIRECTORY_URI, FILE_URI} from "../../constants";
 import {hasValue} from "./metadataUtils";
 import {getParentPath} from "../../file/fileUtils";
 
 const DirectoryBrowserLink = ({type, filePath}) => {
-    if (![COLLECTION_URI, DIRECTORY_URI, FILE_URI].includes(type)) {
+    if (![DIRECTORY_URI, FILE_URI].includes(type)) {
         return '';
     }
 

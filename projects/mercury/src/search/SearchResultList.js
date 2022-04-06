@@ -14,14 +14,16 @@ import {
 } from '@material-ui/core';
 
 import {Link as RouterLink} from 'react-router-dom';
-import {Folder, FolderOpenOutlined, InsertDriveFileOutlined} from '@material-ui/icons';
-import {COLLECTION_URI, DIRECTORY_URI, FILE_URI} from "../constants";
+import {FolderOpenOutlined, InsertDriveFileOutlined} from '@material-ui/icons';
+import {DIRECTORY_URI, FILE_URI} from "../constants";
 import useAsync from "../common/hooks/UseAsync";
 import {
-    getLocationContextFromString, getSearchPathSegments,
+    getLocationContextFromString,
+    getSearchPathSegments,
     getSearchQueryFromString,
     getStorageFromString,
-    handleSearchError, handleTextSearchRedirect
+    handleSearchError,
+    handleTextSearchRedirect
 } from "./searchUtils";
 import SearchBar from "./SearchBar";
 import LoadingInlay from "../common/components/LoadingInlay";
@@ -29,7 +31,6 @@ import MessageDisplay from "../common/components/MessageDisplay";
 import BreadCrumbs from '../common/components/BreadCrumbs';
 import SearchAPI, {LocalSearchAPI} from "./SearchAPI";
 import ExternalStoragesContext from "../external-storage/ExternalStoragesContext";
-import CollectionBreadcrumbsContextProvider from "../collections/CollectionBreadcrumbsContextProvider";
 import ExternalStorageBreadcrumbsContextProvider from "../external-storage/ExternalStorageBreadcrumbsContextProvider";
 import {getPathFromIri, redirectLink} from "../file/fileUtils";
 import ShortText from './ShortText';
@@ -59,10 +60,6 @@ const SearchResultList = ({classes, items, total, storage = {}, loading, error, 
         let avatar;
         let typeLabel;
         switch (item.type) {
-            case COLLECTION_URI:
-                avatar = <Folder />;
-                typeLabel = "Collection";
-                break;
             case DIRECTORY_URI:
                 avatar = <FolderOpenOutlined />;
                 typeLabel = "Directory";
@@ -200,12 +197,7 @@ export const SearchResultListContainer = ({
         <ExternalStorageBreadcrumbsContextProvider storage={currentStorage}>
             {renderTextSearchResultList()}
         </ExternalStorageBreadcrumbsContextProvider>
-    ) : (
-        <CollectionBreadcrumbsContextProvider>
-            {renderTextSearchResultList()}
-        </CollectionBreadcrumbsContextProvider>
-
-    );
+    ) : renderTextSearchResultList();
 };
 
 export default withStyles(styles)(SearchResultListContainer);

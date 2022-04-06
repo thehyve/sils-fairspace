@@ -68,7 +68,7 @@ export const handleSearchError = (e) => {
  */
 export const renderSearchResultProperty = (item, property) => {
     // eslint-disable-next-line no-unused-vars
-    const highlights = item.highlights && item.highlights.find(([key, value]) => key === property);
+    const highlights = item.highlights && item.highlights.find(([key, v]) => key === property);
     if (!highlights) {
         const value = item[property] && item[property][0];
         if (property === 'label') {
@@ -77,7 +77,7 @@ export const renderSearchResultProperty = (item, property) => {
         return value;
     }
     // eslint-disable-next-line no-unused-vars
-    const [key, value] = highlights;
+    const [k, value] = highlights;
     // eslint-disable-next-line react/no-danger
     return <span dangerouslySetInnerHTML={{__html: value}} />;
 };

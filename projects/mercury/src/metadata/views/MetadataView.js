@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import _ from 'lodash';
 import {useHistory} from "react-router-dom";
-import {Button, Grid, withStyles, Typography} from '@material-ui/core';
+import {Button, Grid, Typography, withStyles} from '@material-ui/core';
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import {Assignment, Close} from "@material-ui/icons";
@@ -20,12 +20,9 @@ import {useSingleSelection} from "../../file/UseSelection";
 import LoadingInlay from "../../common/components/LoadingInlay";
 import MessageDisplay from "../../common/components/MessageDisplay";
 import MetadataViewTableContainer from "./MetadataViewTableContainer";
-
-import CollectionsContext from "../../collections/CollectionsContext";
 import {getParentPath, getPathFromIri} from "../../file/fileUtils";
 import usePageTitleUpdater from "../../common/hooks/UsePageTitleUpdater";
 import MetadataViewFacetsContext from "./MetadataViewFacetsContext";
-import {accessLevelForCollection} from "../../collections/collectionUtils";
 import {TabPanel} from "../../layout/TabPanel";
 
 type MetadataViewProperties = {
@@ -47,7 +44,6 @@ export const MetadataView = (props: MetadataViewProperties) => {
 
     usePageTitleUpdater("Metadata");
 
-    const {collections} = useContext(CollectionsContext);
     const {toggle, selected} = useSingleSelection();
 
     const {updateFilters, clearFilter, clearAllFilters} = useContext(MetadataViewContext);
@@ -120,13 +116,6 @@ export const MetadataView = (props: MetadataViewProperties) => {
         clearFilter(facetName);
     };
 
-    const collectionsFacet = !locationContext && collections && {
-        name: 'location',
-        title: "Collection",
-        type: 'Term',
-        values: collections.map(c => ({value: c.iri, label: c.name, access: accessLevelForCollection(c)}))
-    };
-
     const appendCustomColumns = (view: MetadataViewOptions) => {
         if (view.name === RESOURCES_VIEW) {
             const pathColumn = {title: "Path", name: "path", type: "Custom"};
@@ -194,10 +183,8 @@ export const MetadataView = (props: MetadataViewProperties) => {
         </Grid>
     );
 
-    const facetsEx = collectionsFacet ? [...facets, collectionsFacet] : facets;
-
     const renderFacets = (view: MetadataViewOptions) => {
-        const viewFacets = facetsEx.filter(facet => (facet.name.toLowerCase().startsWith(view.name.toLowerCase())));
+        const viewFacets = facets.filter(facet => (facet.name.toLowerCase().startsWith(view.name.toLowerCase())));
         return viewFacets.length > 0 && (
             <Grid key={view.name} container item direction="column" justifyContent="flex-start" spacing={1}>
                 <div className={classes.facetHeaders} style={{textTransform: 'uppercase'}}>{view.title}</div>
@@ -207,7 +194,7 @@ export const MetadataView = (props: MetadataViewProperties) => {
                 {
                     // location is the collection location, which we will group under resources
                     (view.name.toLowerCase() === 'resource') ? (
-                        facetsEx
+                        facets
                             .filter(facet => facet.name.toLowerCase().startsWith('location'))
                             .map(facet => (renderSingleFacet(facet)))
                     ) : ""
@@ -242,7 +229,6 @@ export const MetadataView = (props: MetadataViewProperties) => {
                         selected={selected}
                         toggleRow={toggleRow}
                         hasInactiveFilters={filterCandidates.length > 0}
-                        collections={collections}
                         textFiltersObject={textFiltersObject}
                         setTextFiltersObject={setTextFiltersObject}
                     />
@@ -267,7 +253,7 @@ export const MetadataView = (props: MetadataViewProperties) => {
         return result.reverse();
     };
 
-    const areFacetFiltersNonEmpty = () => filters && filters.some(filter => facetsEx.some(facet => facet.name === filter.field));
+    const areFacetFiltersNonEmpty = () => filters && filters.some(filter => facets.some(facet => facet.name === filter.field));
     const areTextFiltersNonEmpty = () => textFiltersObject && Object.keys(textFiltersObject).length > 0;
 
     return (
@@ -289,7 +275,7 @@ export const MetadataView = (props: MetadataViewProperties) => {
                                 <Typography variant="overline" component="span" color="textSecondary">Active filters:</Typography>
                             </Grid>
                             <Grid item>
-                                <MetadataViewActiveFacetFilters facets={facetsEx} filters={filters} setFilters={updateFilters} />
+                                <MetadataViewActiveFacetFilters facets={facets} filters={filters} setFilters={updateFilters} />
                             </Grid>
                         </Grid>
                     )}
