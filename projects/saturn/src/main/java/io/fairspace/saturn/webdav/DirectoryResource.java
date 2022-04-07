@@ -208,6 +208,8 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     private void uploadMetadata(FileItem file) throws BadRequestException {
+        var entityColumn = "Name";
+
         if (file == null) {
             setErrorMessage("Missing 'file' parameter");
             throw new BadRequestException(this);
@@ -222,13 +224,13 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                      .withIgnoreEmptyLines()
                      .parse(reader)) {
             var headers = new HashSet<>(csvParser.getHeaderNames());
-            if (!headers.contains("HierarchyItem")) {
-                setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". Invalid file format. 'HierarchyItem' column is missing.");
+            if (!headers.contains(entityColumn)) {
+                setErrorMessage("Line " + csvParser.getCurrentLineNumber() + ". Invalid file format. '" + entityColumn + "' column is missing.");
                 throw new BadRequestException(this);
             }
             try {
                 for (var record : csvParser) {
-                    var directory = getDirectory(record.get("HierarchyItem"), csvParser.getCurrentLineNumber());
+                    var directory = getDirectory(record.get(entityColumn), csvParser.getCurrentLineNumber());
 
                     var classShape = directory.getPropertyResourceValue(FS.linkedEntityType).inModel(VOCABULARY);
                     var entity = directory.getPropertyResourceValue(FS.linkedEntity).inModel(VOCABULARY);
@@ -249,7 +251,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                             });
 
                     for (var header : headers) {
-                        if (header.equals("HierarchyItem")) {
+                        if (header.equals(entityColumn)) {
                             continue;
                         }
 
@@ -351,9 +353,11 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                 .orElse(null);
 
         var path = parent == null ? factory.rootSubject.getURI() + "/" + encodePath(name) : parent + "/" + encodePath(name);
-        var dirResource = subject.getModel().createResource(path);
+        var dirResource = subject.getModel().getResource(path);
 
-        if (!subject.getModel().containsResource(dirResource)) {
+        if (!subject.getModel().containsResource(dirResource)
+            || dirResource.getPropertyResourceValue(FS.linkedEntityType) == null
+            || dirResource.getPropertyResourceValue(FS.linkedEntityType).inModel(VOCABULARY) == null) {
             setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" not found");
             throw new BadRequestException(this);
         }
