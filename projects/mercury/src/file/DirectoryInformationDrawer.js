@@ -145,7 +145,7 @@ const MetadataCard = (props) => {
             .catch(e => {
                 const errorContents = (
                     <DialogContentText>
-                        <Typography style={{fontFamily: 'Monospace', fontSize: 16}} component="pre">
+                        <Typography style={{fontFamily: 'Monospace', fontSize: 16}} component="p">
                             {e.message}
                         </Typography>
                     </DialogContentText>
