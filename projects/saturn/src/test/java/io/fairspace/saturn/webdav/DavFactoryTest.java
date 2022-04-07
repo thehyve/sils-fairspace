@@ -179,7 +179,6 @@ public class DavFactoryTest {
         assertEquals(1, root.getChildren().size());
         assertEquals(Access.Manage, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
 
-//        model.removeAll(model.getResource(admin.getIri().getURI()), FS.isManagerOf, model.getResource(workspace.getIri().getURI()));
         assertEquals(Access.List, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
     }
 

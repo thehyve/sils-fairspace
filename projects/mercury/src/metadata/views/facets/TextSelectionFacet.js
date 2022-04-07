@@ -19,7 +19,7 @@ import Grid from "@material-ui/core/Grid";
 import type {MetadataViewFacetProperties, Option} from "../MetadataViewFacetFactory";
 import Iri from "../../../common/components/Iri";
 import useStateWithSessionStorage from "../../../common/hooks/UseSessionStorage";
-import {collectionAccessIcon} from '../../../collections/collectionUtils';
+import {accessIcon} from "../../../users/userUtils";
 
 type SelectProperties = {
     options: Option[];
@@ -94,7 +94,7 @@ const SelectMultiple = (props: SelectProperties) => {
                         {renderCheckboxListElement(option)}
                     </Grid>
                     <Grid item xs={2} style={{textAlign: "right"}}>
-                        {collectionAccessIcon(option.access, 'small')}
+                        {accessIcon(option.access, 'small')}
                     </Grid>
                 </Grid>
             ));

@@ -106,6 +106,6 @@ describe('MetadataViewTable', () => {
         tableRows.first().prop("onDoubleClick")();
 
         expect(historyMock.push).toHaveBeenCalledTimes(1);
-        expect(historyMock.push).toHaveBeenCalledWith('/collections/c01');
+        expect(historyMock.push).toHaveBeenCalledWith('/browser/c01');
     });
 });

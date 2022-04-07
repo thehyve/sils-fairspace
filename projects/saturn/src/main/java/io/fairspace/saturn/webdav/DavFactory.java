@@ -67,14 +67,10 @@ public class DavFactory implements ResourceFactory {
         var coll = rootSubject.getModel().createResource(nextSeparatorPos < 0 ? uri : uri.substring(0, nextSeparatorPos));
 
         var user = currentUserResource();
-        var ownerWs = coll.getPropertyResourceValue(FS.ownedBy);
-        var deleted = coll.hasProperty(FS.dateDeleted) || (ownerWs != null && ownerWs.hasProperty(FS.dateDeleted));
+        var deleted = coll.hasProperty(FS.dateDeleted);
 
         var access = getGrantedPermission(coll, user);
 
-        if(user.hasProperty(FS.isManagerOf, ownerWs)) {
-            access = Access.Manage;
-        }
 
         if (coll.hasLiteral(FS.accessMode, DataPublished.name()) && (userService.currentUser().isCanViewPublicData() || access.canRead())) {
             return Access.Read;
@@ -82,14 +78,6 @@ public class DavFactory implements ResourceFactory {
         if (!access.canList() && userService.currentUser().isCanViewPublicMetadata()
                 && (coll.hasLiteral(FS.accessMode, MetadataPublished.name()) || coll.hasLiteral(FS.accessMode, DataPublished.name()))) {
             access = Access.List;
-        }
-
-        var userWorkspacesIterator = rootSubject.getModel()
-                .listSubjectsWithProperty(RDF.type, FS.Workspace)
-                .filterKeep(ws -> user.hasProperty(FS.isManagerOf, ws) || user.hasProperty(FS.isMemberOf, ws))
-                .filterDrop(ws -> ws.hasProperty(FS.dateDeleted));
-        while (userWorkspacesIterator.hasNext() && access != Access.Manage) {
-            access = max(access, getGrantedPermission(coll, userWorkspacesIterator.next()));
         }
 
         if (deleted) {

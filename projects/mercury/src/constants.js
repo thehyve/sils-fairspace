@@ -13,13 +13,6 @@ export const CROSS_WORKSPACES_SEARCH_PATH = '/workspaces/_all';
 export const TOOLTIP_ENTER_DELAY = 350;
 export const DATE_FORMAT = 'dd-MM-yyyy';
 
-// Search
-export const COLLECTION_SEARCH_TYPE = 'collections';
-export const FILES_SEARCH_TYPE = 'files';
-export const SEARCH_MAX_SIZE = 10000;
-export const SEARCH_DEFAULT_SIZE = 10;
-export const SEARCH_DROPDOWN_DEFAULT_SIZE = 100;
-
 // Metadata schemas
 export const SHACL_NS = 'http://www.w3.org/ns/shacl#';
 export const XMLSCHEMA_NS = 'http://www.w3.org/2001/XMLSchema#';
@@ -75,7 +68,6 @@ export const LINKED_ENTITY_TYPE_URI = FAIRSPACE_NS + 'linkedEntityType';
 
 export const MACHINE_ONLY_URI = FAIRSPACE_NS + 'machineOnly';
 export const USER_URI = FAIRSPACE_NS + 'User';
-export const COLLECTION_URI = FAIRSPACE_NS + 'Collection';
 export const FILE_URI = FAIRSPACE_NS + 'File';
 export const DIRECTORY_URI = FAIRSPACE_NS + 'Directory';
 export const FILE_PATH_URI = FAIRSPACE_NS + 'filePath';
@@ -93,10 +85,6 @@ export const EXTERNAL_LINK_URI = FAIRSPACE_NS + 'externalLink';
 export const IMPORTANT_PROPERTY_URI = FAIRSPACE_NS + 'importantProperty';
 export const DEFAULT_NAMESPACE_URI = FAIRSPACE_NS + 'defaultNamespace';
 export const USABLE_IN_METADATA_URI = FAIRSPACE_NS + 'usableInMetadata';
-export const DOMAIN_INCLUDES_URI = FAIRSPACE_NS + 'domainIncludes';
-export const WORKSPACE_URI = FAIRSPACE_NS + 'Workspace';
-export const WORKSPACE_STATUS_URI = FAIRSPACE_NS + 'status';
-export const OWNED_BY_URI = FAIRSPACE_NS + 'ownedBy';
 export const CAN_LIST_URI = FAIRSPACE_NS + 'canList';
 export const CAN_READ_URI = FAIRSPACE_NS + 'canRead';
 export const CAN_WRITE_URI = FAIRSPACE_NS + 'canWrite';

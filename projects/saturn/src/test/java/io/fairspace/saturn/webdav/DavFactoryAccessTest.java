@@ -5,9 +5,6 @@ import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
 import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
-import io.fairspace.saturn.services.workspaces.Workspace;
-import io.fairspace.saturn.services.workspaces.WorkspaceRole;
-import io.fairspace.saturn.services.workspaces.WorkspaceService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
@@ -40,7 +37,6 @@ public class DavFactoryAccessTest {
     private static final String baseUri = "http://example.com" + BASE_PATH;
     BlobStore store = mock(BlobStore.class);
     UserService userService = mock(UserService.class);
-    WorkspaceService workspaceService;
 
     User user;
     Authentication.User userAuthentication;
@@ -109,7 +105,6 @@ public class DavFactoryAccessTest {
 
     @Before
     public void before() {
-        workspaceService = new WorkspaceService(tx, userService);
         factory = new DavFactory(model.createResource(baseUri), store, userService, context);
 
         setupRequestContext();
@@ -122,13 +117,7 @@ public class DavFactoryAccessTest {
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);
-
-        selectAdmin();
-        var workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-        workspaceService.setUserRole(workspace.getIri(), user.getIri(), WorkspaceRole.Member);
-
         selectRegularUser();
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
     }
 
     @Test

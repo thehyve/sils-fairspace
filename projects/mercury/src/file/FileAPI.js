@@ -1,6 +1,7 @@
 import {createClient} from "webdav";
 import qs from 'qs';
 import {compareBy, comparing} from '../common/utils/genericUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     decodeHTMLEntities,
     encodePath,
@@ -416,7 +417,7 @@ class FileAPI {
         return Promise.all(versions.map(v => this.statForVersion(file.filename, v)));
     }
 
-    mapToFile = (fileObject) => {
+    mapToFile(fileObject) {
         const properties = {...fileObject, ...(fileObject.props || {})};
         delete properties.props;
         Object.keys(properties).forEach(key => {

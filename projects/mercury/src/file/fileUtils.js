@@ -1,8 +1,9 @@
+// eslint-disable-next-line import/no-cycle
 import {File} from "./FileAPI";
 import {FILE_URI, PATH_SEPARATOR} from "../constants";
-import {getCollectionAbsolutePath} from "../collections/collectionUtils";
-import {getExternalStorageAbsolutePath} from "../external-storage/externalStorageUtils";
 import type {ExternalStorage} from "../external-storage/externalStorageUtils";
+// eslint-disable-next-line import/no-cycle
+import {getExternalStorageAbsolutePath} from "../external-storage/externalStorageUtils";
 import {HierarchyLevel} from "../metadata/common/vocabularyUtils";
 
 const NON_SAFE_FILE_NAME_CHARACTERS = ['/', '\\'];
@@ -40,8 +41,7 @@ export const joinPathsAvoidEmpty = (...paths) => {
 };
 
 export const getParentPath = (path: string) => {
-    if(!path)
-        return '';
+    if (!path) return '';
 
     const pos = path.lastIndexOf(PATH_SEPARATOR, path.length - 2);
     return (pos > 1) ? path.substring(0, pos) : '';
@@ -85,11 +85,15 @@ const decodeIfPossible = segment => {
     }
 };
 
+export const getBrowserAbsolutePath = (path: string) => (
+    `/browser/${encodePath(path)}`
+);
+
 export const getAbsolutePath = (path: string, storageName: string = "") => {
     if (storageName) {
         return getExternalStorageAbsolutePath(path, storageName);
     }
-    return getCollectionAbsolutePath(path);
+    return getBrowserAbsolutePath(path);
 };
 
 export const redirectLink = (iri: string, type: string, storage: ExternalStorage = {}) => {

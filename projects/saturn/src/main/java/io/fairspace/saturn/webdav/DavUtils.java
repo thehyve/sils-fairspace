@@ -8,10 +8,8 @@ import io.milton.resource.CollectionResource;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 
-import java.util.ArrayList;
-
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
-import static io.fairspace.saturn.webdav.PathUtils.MAX_COLLECTION_NAME_LENGTH;
+import static io.fairspace.saturn.webdav.PathUtils.MAX_ROOT_DIRECTORY_NAME_LENGTH;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
 import static io.fairspace.saturn.webdav.WebDAVServlet.setErrorMessage;
 
@@ -83,8 +81,8 @@ public final class DavUtils {
 
     public static void validateRootDirectoryName(String name) throws BadRequestException {
         validateResourceName(name);
-        if (name.length() > MAX_COLLECTION_NAME_LENGTH) {
-            var message = "The directory name exceeds maximum length " + MAX_COLLECTION_NAME_LENGTH + ".";
+        if (name.length() > MAX_ROOT_DIRECTORY_NAME_LENGTH) {
+            var message = "The directory name exceeds maximum length " + MAX_ROOT_DIRECTORY_NAME_LENGTH + ".";
             setErrorMessage(message);
             throw new BadRequestException(message);
         }

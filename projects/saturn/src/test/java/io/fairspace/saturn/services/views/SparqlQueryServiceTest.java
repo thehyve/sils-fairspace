@@ -1,36 +1,48 @@
 package io.fairspace.saturn.services.views;
 
-import io.fairspace.saturn.config.*;
-import io.fairspace.saturn.rdf.dao.*;
+import io.fairspace.saturn.config.ConfigLoader;
+import io.fairspace.saturn.rdf.dao.DAO;
 import io.fairspace.saturn.rdf.search.FilteredDatasetGraph;
-import io.fairspace.saturn.rdf.transactions.*;
-import io.fairspace.saturn.services.metadata.*;
-import io.fairspace.saturn.services.metadata.validation.*;
+import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
+import io.fairspace.saturn.rdf.transactions.Transactions;
+import io.fairspace.saturn.services.metadata.MetadataPermissions;
+import io.fairspace.saturn.services.metadata.MetadataService;
+import io.fairspace.saturn.services.metadata.validation.ComposedValidator;
+import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
 import io.fairspace.saturn.services.search.FileSearchRequest;
-import io.fairspace.saturn.services.users.*;
-import io.fairspace.saturn.services.workspaces.*;
-import io.fairspace.saturn.webdav.*;
+import io.fairspace.saturn.services.users.User;
+import io.fairspace.saturn.services.users.UserService;
+import io.fairspace.saturn.webdav.BlobInfo;
+import io.fairspace.saturn.webdav.BlobStore;
+import io.fairspace.saturn.webdav.DavFactory;
 import io.milton.http.ResourceFactory;
-import io.milton.http.exceptions.*;
-import io.milton.resource.*;
-import org.apache.jena.query.*;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.sparql.core.*;
-import org.apache.jena.sparql.util.*;
-import org.eclipse.jetty.server.*;
-import org.junit.*;
-import org.junit.runner.*;
-import org.mockito.*;
-import org.mockito.junit.*;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.MakeCollectionableResource;
+import io.milton.resource.PutableResource;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.DatasetImpl;
+import org.apache.jena.sparql.util.Context;
+import org.eclipse.jetty.server.Authentication;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 import static io.fairspace.saturn.TestUtils.*;
-import static io.fairspace.saturn.auth.RequestContext.*;
-import static io.fairspace.saturn.config.Services.*;
-import static io.fairspace.saturn.vocabulary.Vocabularies.*;
-import static org.apache.jena.query.DatasetFactory.*;
+import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.config.Services.FS_ROOT;
+import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
+import static org.apache.jena.query.DatasetFactory.wrap;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -49,7 +61,6 @@ public class SparqlQueryServiceTest {
     UserService userService;
     @Mock
     private MetadataPermissions permissions;
-    WorkspaceService workspaceService;
     MetadataService api;
     QueryService queryService;
 
@@ -57,8 +68,6 @@ public class SparqlQueryServiceTest {
     Authentication.User userAuthentication;
     User user2;
     Authentication.User user2Authentication;
-    User workspaceManager;
-    Authentication.User workspaceManagerAuthentication;
     User admin;
     Authentication.User adminAuthentication;
     private org.eclipse.jetty.server.Request request;
@@ -87,9 +96,6 @@ public class SparqlQueryServiceTest {
         user2Authentication = mockAuthentication("user2");
         user2 = createTestUser("user2", false);
         new DAO(model).write(user2);
-        workspaceManager = createTestUser("workspace-admin", false);
-        new DAO(model).write(workspaceManager);
-        workspaceManagerAuthentication = mockAuthentication("workspace-admin");
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);
@@ -102,12 +108,10 @@ public class SparqlQueryServiceTest {
         Transactions tx = new SimpleTransactions(ds);
         Model model = ds.getDefaultModel();
 
-        workspaceService = new WorkspaceService(tx, userService);
-
         var context = new Context();
         var davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         ds.getContext().set(FS_ROOT, davFactory.root);
-        var metadataPermissions = new MetadataPermissions(workspaceService, davFactory, userService);
+        var metadataPermissions = new MetadataPermissions(davFactory, userService);
         var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), metadataPermissions);
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 
@@ -126,11 +130,6 @@ public class SparqlQueryServiceTest {
         var taxonomies = model.read("taxonomies.ttl");
         api.put(taxonomies);
 
-        var workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-        workspaceService.setUserRole(workspace.getIri(), workspaceManager.getIri(), WorkspaceRole.Manager);
-        workspaceService.setUserRole(workspace.getIri(), user.getIri(), WorkspaceRole.Member);
-
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
         when(request.getAttribute("BLOB")).thenReturn(new BlobInfo("id", 0, "md5"));
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);

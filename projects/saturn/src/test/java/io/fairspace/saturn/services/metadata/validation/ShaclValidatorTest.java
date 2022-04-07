@@ -10,6 +10,7 @@ import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -89,10 +90,11 @@ public class ShaclValidatorTest {
         verifyNoMoreInteractions(violationHandler);
     }
 
+    @Ignore("No data model class defined currently having property with 'sh:minCount 1'")
     @Test
     public void validateResourceMissingRequiredProperty() {
         var model = modelOf(
-                resource1, RDF.type, FS.Workspace
+                resource1, RDF.type, FS.User
         );
 
         validator.validate(EMPTY_MODEL, model, EMPTY_MODEL, model, violationHandler);
@@ -154,7 +156,7 @@ public class ShaclValidatorTest {
         // already that references this blank node
         var before = modelOf(
                 resource2, RDF.type, FS.User,
-                createResource(), RDF.type, FS.Collection);
+                createResource(), RDF.type, FS.Directory);
 
         var blankNode = createResource();
         var toAdd = modelOf(
@@ -171,7 +173,7 @@ public class ShaclValidatorTest {
         var blankNode = createResource();
         var before = createDefaultModel()
                 .add(blankNode, RDF.type, FS.User)
-                .add(resource1, RDF.type, FS.Collection)
+                .add(resource1, RDF.type, FS.Directory)
                 .add(resource1, RDFS.label, "collection")
                 .add(resource1, RDFS.comment, "bla")
                 .add(resource1, FS.connectionString, "a")
@@ -194,7 +196,7 @@ public class ShaclValidatorTest {
         var blankNode = createResource();
         var before = createDefaultModel()
                 .add(blankNode, RDF.type, FS.User)
-                .add(resource1, RDF.type, FS.Collection)
+                .add(resource1, RDF.type, FS.Directory)
                 .add(resource1, RDFS.label, "collection")
                 .add(resource1, RDFS.comment, "bla")
                 .add(resource1, FS.connectionString, "a")

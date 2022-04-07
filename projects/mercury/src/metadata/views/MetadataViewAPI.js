@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import axios, {CancelTokenSource} from "axios";
 import {extractJsonData, handleHttpError} from "../../common/utils/httpUtils";
-import type {AccessLevel} from "../../collections/CollectionAPI";
+import type {AccessLevel} from "../../users/userUtils";
 
 export type ValueType = 'Identifier' | 'Text' | 'Number' | 'Date' | 'Term' | 'Set' | 'TermSet';
 export const TextualValueTypes: ValueType[] = ['Identifier', 'Text', 'Set'];

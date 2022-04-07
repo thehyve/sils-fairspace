@@ -108,7 +108,7 @@
     }]
   },
   {
-    "@id": "https://fairspace.nl/ontology#Collection",
+    "@id": "https://fairspace.nl/ontology#Directory",
     "@type": [
       "http://www.w3.org/ns/shacl#NodeShape"
     ],
@@ -116,10 +116,10 @@
       "@value": true
     }],
     "http://www.w3.org/ns/shacl#description": [{
-      "@value": "Collection of files with associated metadata and access rules."
+      "@value": "Directory of files with associated metadata and access rules."
     }],
     "http://www.w3.org/ns/shacl#name": [{
-      "@value": "Collection"
+      "@value": "Directory"
     }],
     "http://www.w3.org/ns/shacl#property": [{
       "@id": "_:creator"

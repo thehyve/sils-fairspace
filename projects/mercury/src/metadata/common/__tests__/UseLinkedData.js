@@ -1,6 +1,6 @@
 import {renderHook} from "@testing-library/react-hooks";
 import {useLinkedDataNoContext} from '../UseLinkedData';
-import {COLLECTION_URI, COMMENT_URI, LABEL_URI, SHACL_PATH, SHACL_PROPERTY, SHACL_TARGET_CLASS} from '../../../constants';
+import {COMMENT_URI, LABEL_URI, SHACL_PATH, SHACL_PROPERTY, SHACL_TARGET_CLASS} from '../../../constants';
 
 describe('useLinkedData', () => {
     const defaultJsonLd = [{
@@ -80,10 +80,6 @@ describe('useLinkedData', () => {
                 {
                     '@id': 'http://commentShape',
                     [SHACL_PATH]: [{'@id': COMMENT_URI}]
-                },
-                {
-                    '@id': 'http://otherShape',
-                    [SHACL_PATH]: [{'@id': COLLECTION_URI}]
                 }
 
             ],

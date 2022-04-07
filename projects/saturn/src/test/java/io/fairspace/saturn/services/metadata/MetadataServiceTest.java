@@ -182,11 +182,11 @@ public class MetadataServiceTest {
     @Test
     public void putMultiple() {
         api.put(modelOf(
-                createStatement(S1, RDF.type, FS.Workspace),
+                createStatement(S1, RDF.type, FS.Directory),
                 createStatement(S1, RDFS.label, createStringLiteral("Test 1"))
         ));
         api.put(modelOf(
-                createStatement(S2, RDF.type, FS.Workspace),
+                createStatement(S2, RDF.type, FS.Directory),
                 createStatement(S2, RDFS.label, createStringLiteral("Test 2"))
         ));
     }
@@ -194,9 +194,9 @@ public class MetadataServiceTest {
     @Test
     public void patchDuplicateLabelDoesNotFail() {
         txn.executeWrite(m -> m
-                .add(S1, RDF.type, FS.Workspace)
+                .add(S1, RDF.type, FS.Directory)
                 .add(S1, RDFS.label, "Test 1")
-                .add(S2, RDF.type, FS.Workspace)
+                .add(S2, RDF.type, FS.Directory)
                 .add(S2, RDFS.label, "Test 2")
         );
 
@@ -206,7 +206,7 @@ public class MetadataServiceTest {
     @Test
     public void putSameLabelDifferentType() {
         api.put(modelOf(
-                createStatement(S1, RDF.type, FS.Workspace),
+                createStatement(S1, RDF.type, FS.Directory),
                 createStatement(S1, RDFS.label, createStringLiteral("Test"))
         ));
         api.put(modelOf(
@@ -218,7 +218,7 @@ public class MetadataServiceTest {
     @Test
     public void putLabelTrimmed() {
         api.put(modelOf(
-                createStatement(S1, RDF.type, FS.Workspace),
+                createStatement(S1, RDF.type, FS.Directory),
                 createStatement(S1, RDFS.label, createStringLiteral(" Label with whitespace  "))
         ));
         assertNotEquals(" Label with whitespace  ", ds.getDefaultModel().getProperty(S1, RDFS.label).getString());
