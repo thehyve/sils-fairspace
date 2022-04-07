@@ -18,6 +18,7 @@ import {LocalFileAPI} from './FileAPI';
 import MessageDisplay from '../common/components/MessageDisplay';
 import ErrorDialog from "../common/components/ErrorDialog";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
+import {getLabelForType} from "../metadata/common/vocabularyUtils";
 import {
     MACHINE_ONLY_URI,
     SHACL_CLASS,
@@ -235,9 +236,21 @@ const PathMetadata = React.forwardRef((
     ref
 ) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
-    const {hierarchy} = useContext(VocabularyContext);
+    const {hierarchy, vocabulary} = useContext(VocabularyContext);
     const [updateDate, setUpdateDate] = useState(Date.now());
 
+    const useStyles = makeStyles((theme) => ({
+        typeNameStyle: {
+            float: 'right',
+            fontSize: '0.8em',
+            marginTop: 2,
+            borderColor: 'none',
+            borderWidth: 0,
+            borderStyle: 'none',
+            opacity: 0.4
+        },
+    }));
+    const classes = useStyles();
     let body;
     let linkedEntityType;
     let linkedEntityIri;
@@ -252,7 +265,9 @@ const PathMetadata = React.forwardRef((
         body = <div>No metadata found</div>;
     } else {
         ({linkedEntityIri, linkedEntityType} = data);
-        cardTitle = `Metadata for ${data.basename}`;
+        const typeName = getLabelForType(vocabulary, linkedEntityType);
+
+        cardTitle = <span>{data.basename} <span className={classes.typeNameStyle}>{typeName}</span></span>;
         isCurrentPathDirectory = isDirectory(data, getHierarchyLevelByType(hierarchy, linkedEntityType));
         body = (
             <LinkedDataEntityFormWithLinkedData
