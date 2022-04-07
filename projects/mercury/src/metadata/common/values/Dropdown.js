@@ -70,7 +70,7 @@ const Dropdown = ({
                 />
             )}
             renderOption={(option) => (
-                <Tooltip title={option.comment}>
+                <Tooltip title={option.comment ? option.comment : 'no description available'}>
                     <ListItemText primary={option.label} secondary={option.description} />
                 </Tooltip>
             )}
