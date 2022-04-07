@@ -25,13 +25,14 @@ import {
     SHACL_DESCRIPTION,
     SHACL_MAX_COUNT,
     SHACL_MIN_COUNT,
-    SHACL_NAME,
+    SHACL_NAME, SHACL_ORDER,
     SHACL_PATH
 } from "../constants";
 import {determinePropertyShapesForTypes, determineShapeForTypes, getLabelForType} from "../metadata/common/vocabularyUtils";
 import {getFirstPredicateId, getFirstPredicateValue} from "../metadata/common/jsonLdUtils";
 import {getBrowserSubpath, getHierarchyLevelByType, getPathHierarchy, isDirectory} from "./fileUtils";
 import EmptyInformationDrawer from "../common/components/EmptyInformationDrawer";
+import {compareBy, comparing} from "../common/utils/genericUtils";
 
 const useStyles = makeStyles((theme) => ({
     expandOpen: {
@@ -82,7 +83,11 @@ const generateTemplate = (vocabulary, metadataType) => {
     const userProps = flatMap(
         [metadataType]
             .map(uri => determinePropertyShapesForTypes(vocabulary, [uri]))
-    ).filter(ps => !getFirstPredicateValue(ps, MACHINE_ONLY_URI));
+    ).sort(comparing(
+        compareBy(p => (
+            typeof getFirstPredicateValue(p, SHACL_ORDER) === 'number' ? getFirstPredicateValue(p, SHACL_ORDER) : Number.MAX_SAFE_INTEGER)),
+        compareBy(ps => getFirstPredicateValue(ps, SHACL_NAME))
+    )).filter(ps => !getFirstPredicateValue(ps, MACHINE_ONLY_URI));
 
     const uniqueProps = [...new Set(userProps.map(ps => getFirstPredicateId(ps, SHACL_PATH)))
         .values()]
