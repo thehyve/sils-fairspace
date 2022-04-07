@@ -18,7 +18,6 @@ import {LocalFileAPI} from './FileAPI';
 import MessageDisplay from '../common/components/MessageDisplay';
 import ErrorDialog from "../common/components/ErrorDialog";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
-import {getLabelForType} from "../metadata/common/vocabularyUtils";
 import {
     MACHINE_ONLY_URI,
     SHACL_CLASS,
@@ -29,7 +28,7 @@ import {
     SHACL_NAME,
     SHACL_PATH
 } from "../constants";
-import {determinePropertyShapesForTypes, determineShapeForTypes} from "../metadata/common/vocabularyUtils";
+import {determinePropertyShapesForTypes, determineShapeForTypes, getLabelForType} from "../metadata/common/vocabularyUtils";
 import {getFirstPredicateId, getFirstPredicateValue} from "../metadata/common/jsonLdUtils";
 import {getBrowserSubpath, getHierarchyLevelByType, getPathHierarchy, isDirectory} from "./fileUtils";
 import EmptyInformationDrawer from "../common/components/EmptyInformationDrawer";
@@ -59,6 +58,15 @@ const useStyles = makeStyles((theme) => ({
     },
     rejectStyle: {
         borderColor: theme.palette.error.main
+    },
+    typeNameStyle: {
+        float: 'right',
+        fontSize: '0.8em',
+        marginTop: 2,
+        borderColor: 'none',
+        borderWidth: 0,
+        borderStyle: 'none',
+        opacity: 0.4
     }
 }));
 
@@ -238,18 +246,6 @@ const PathMetadata = React.forwardRef((
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
     const {hierarchy, vocabulary} = useContext(VocabularyContext);
     const [updateDate, setUpdateDate] = useState(Date.now());
-
-    const useStyles = makeStyles((theme) => ({
-        typeNameStyle: {
-            float: 'right',
-            fontSize: '0.8em',
-            marginTop: 2,
-            borderColor: 'none',
-            borderWidth: 0,
-            borderStyle: 'none',
-            opacity: 0.4
-        },
-    }));
     const classes = useStyles();
     let body;
     let linkedEntityType;
