@@ -66,7 +66,7 @@ class AuditEventListener implements EventListener {
         }
     }
 
-    private final Set<String> actionParameters = Set.of("action", "mode", "status", "access", "principal", "owner");
+    private final Set<String> actionParameters = Set.of("action", "mode", "status", "access", "principal");
 
     private static String resourcePath(String path) {
         return path.substring("/api/webdav".length());

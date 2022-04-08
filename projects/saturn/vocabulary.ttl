@@ -58,7 +58,8 @@ sils:Department a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Description" ;
@@ -66,34 +67,39 @@ sils:Department a rdfs:Class, sh:NodeShape ;
         sh:datatype fs:markdown ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 1
     ],
     [
         sh:name "Location" ;
         sh:description "The location of the department." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:departmentLocation
+        sh:path sils:departmentLocation ;
+        sh:order 2
     ],
     [
         sh:name "Contact person name" ;
         sh:description "Name of the contact person." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:departmentContactPersonName
+        sh:path sils:departmentContactPersonName ;
+        sh:order 3
     ],
     [
         sh:name "Contact person telephone" ;
         sh:description "Contact person phone number." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:departmentContactPersonTelephone
+        sh:path sils:departmentContactPersonTelephone ;
+        sh:order 4
     ],
     [
         sh:name "Contact person email" ;
         sh:description "Contact person email address." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:departmentContactPersonEmail
+        sh:path sils:departmentContactPersonEmail ;
+        sh:order 5
     ] .
 
 
@@ -117,7 +123,8 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Description" ;
@@ -125,34 +132,39 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 1
     ],
     [
         sh:name "First name" ;
         sh:description "The first name of the investigator." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:piFirstName
+        sh:path sils:piFirstName ;
+        sh:order 2
     ],
     [
         sh:name "Last name" ;
         sh:description "The last name of the investigator." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:piLastName
+        sh:path sils:piLastName ;
+        sh:order 3
     ],
     [
         sh:name "Email" ;
         sh:description "The email address of the investigator." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:piEmail
+        sh:path sils:piEmail ;
+        sh:order 4
     ],
     [
         sh:name "ORCID" ;
         sh:description "The Open Researcher and Contributor ID (ORCID) of the investigator. It is a nonproprietary alphanumeric code to uniquely identify scientific and other academic authors and contributors." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:ORCID
+        sh:path sils:ORCID ;
+        sh:order 5
     ] .
 
 
@@ -174,21 +186,24 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Identifier" ;
         sh:description "The identifier of the project." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:projectIdentifier
+        sh:path sils:projectIdentifier ;
+        sh:order 1
     ],
     [
         sh:name "Title" ;
         sh:description "The title of the project." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:projectTitle
+        sh:path sils:projectTitle ;
+        sh:order 2
     ],
     [
         sh:name "Description" ;
@@ -196,6 +211,7 @@ sils:Project a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 3
     ] .
 
 sils:studyIdentifier a rdf:Property .
@@ -220,21 +236,24 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Identifier" ;
         sh:description "The identifier of the study." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:studyIdentifier
+        sh:path sils:studyIdentifier ;
+        sh:order 1
     ],
     [
         sh:name "Title" ;
         sh:description "The title of the study." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:studyTitle
+        sh:path sils:studyTitle ;
+        sh:order 2
     ],
     [
         sh:name "Description" ;
@@ -242,31 +261,36 @@ sils:Study a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 3
     ],
     [
         sh:name "Goal" ;
         sh:description "The goal of the study." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:studyGoal
+        sh:path sils:studyGoal ;
+        sh:order 4
     ],
     [
         sh:name "Organisms" ;
         sh:description "Organisms that are being studied." ;
         sh:datatype xsd:string ;
-        sh:path sils:studyOrganisms
+        sh:path sils:studyOrganisms ;
+        sh:order 5
     ],
     [
         sh:name "Time points" ;
         sh:description "List of time points that are being monitored." ;
         sh:datatype xsd:string ;
-        sh:path sils:studyTimePoints
+        sh:path sils:studyTimePoints ;
+        sh:order 6
     ],
     [
         sh:name "Treatments" ;
         sh:description "List of conditions that are being studied." ;
         sh:datatype xsd:string ;
-        sh:path sils:studyTreatments
+        sh:path sils:studyTreatments ;
+        sh:order 7
     ] .
 
 
@@ -334,21 +358,24 @@ sils:Object a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Identifier" ;
         sh:description "The identifier of the object." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectIdentifier
+        sh:path sils:objectIdentifier ;
+        sh:order 1
     ],
     [
         sh:name "Title" ;
         sh:description "The title of the object." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectTitle
+        sh:path sils:objectTitle ;
+        sh:order 2
     ],
     [
         sh:name "Description" ;
@@ -356,97 +383,111 @@ sils:Object a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 3
     ],
     [
         sh:name "Species" ;
         sh:description "The species of the organism." ;
         sh:class sils:Species ;
         sh:maxCount 1 ;
-        sh:path sils:objectSpecies
+        sh:path sils:objectSpecies ;
+        sh:order 4
     ],
     [
         sh:name "Common name" ;
         sh:description "The common name of the organism." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectCommonName
+        sh:path sils:objectCommonName ;
+        sh:order 5
     ],
     [
         sh:name "Country" ;
         sh:description "The country where this object resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectCountry
+        sh:path sils:objectCountry ;
+        sh:order 6
     ],
     [
         sh:name "Local region name" ;
         sh:description "The name of the local region where this object resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectLocalRegionName
+        sh:path sils:objectLocalRegionName ;
+        sh:order 7
     ],
     [
         sh:name "Continent" ;
         sh:description "The continent where this object resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectContinent
+        sh:path sils:objectContinent ;
+        sh:order 8
     ],
     [
         sh:name "Latitude" ;
         sh:description "The latitude coordinates of where this object is located." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectLatitude
+        sh:path sils:objectLatitude ;
+        sh:order 9
     ],
     [
         sh:name "Longitude" ;
         sh:description "The longitude coordinates of where this object is located." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectLongitude
+        sh:path sils:objectLongitude ;
+        sh:order 10
     ],
     [
         sh:name "Altitude" ;
         sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this object is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:objectAltitude
+        sh:path sils:objectAltitude ;
+        sh:order 11
     ],
     [
         sh:name "Depth" ;
         sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this object is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:objectDepth
+        sh:path sils:objectDepth ;
+        sh:order 12
     ],
     [
         sh:name "Elevation" ;
         sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this object is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:objectElevation
+        sh:path sils:objectElevation ;
+        sh:order 13
     ],
     [
         sh:name "Ploidy" ;
         sh:description "The number of complete sets of chromosomes in a cell." ;
         sh:class sils:Ploidy ;
         sh:maxCount 1 ;
-        sh:path sils:objectPloidy
+        sh:path sils:objectPloidy ;
+        sh:order 14
     ],
     [
         sh:name "Genotype" ;
         sh:description "Wild type, knock out etc." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectGenotype
+        sh:path sils:objectGenotype ;
+        sh:order 15
     ],
     [
         sh:name "Object treatment" ;
         sh:description "Information about the object treatment." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:objectTreatment
+        sh:path sils:objectTreatment ;
+        sh:order 16
     ] .
 
 
@@ -599,21 +640,24 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Identifier" ;
         sh:description "The identifier of the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleIdentifier
+        sh:path sils:sampleIdentifier ;
+        sh:order 1
     ],
     [
         sh:name "Name" ;
         sh:description "The readable name of the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleName
+        sh:path sils:sampleName ;
+        sh:order 2
     ],
     [
         sh:name "Description" ;
@@ -621,251 +665,287 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 3
     ],
     [
         sh:name "Local storage location" ;
         sh:description "The location of where this sample is stored locally." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleLocalStorageLocation
+        sh:path sils:sampleLocalStorageLocation ;
+        sh:order 4
     ],
     [
         sh:name "Host" ;
         sh:description "If applicable, the host name of which the sample was obtained." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleHost
+        sh:path sils:sampleHost ;
+        sh:order 5
     ],
     [
         sh:name "Biosafety level" ;
         sh:description "The biosafety level of the sample." ;
         sh:datatype xsd:string ;    # It can be BSL-1, BSL-2 or 1, 2, thus can't be an integer.
         sh:maxCount 1 ;
-        sh:path sils:sampleBioSafetyLevel
+        sh:path sils:sampleBioSafetyLevel ;
+        sh:order 6
     ],
     [
         sh:name "Sample size" ;
         sh:description "The size of the sample (ml, grams)." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleSize
+        sh:path sils:sampleSize ;
+        sh:order 7
     ],
     [
         sh:name "Sample condition" ;
         sh:description "The condition of the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCondition
+        sh:path sils:sampleCondition ;
+        sh:order 8
     ],
     [
         sh:name "Material" ;
         sh:description "The material of which the sample is composed of." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleMaterial
+        sh:path sils:sampleMaterial ;
+        sh:order 9
     ],
     [
         sh:name "Collected by" ;
         sh:description "The person who collected the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCollectedBy
+        sh:path sils:sampleCollectedBy ;
+        sh:order 10
     ],
     [
         sh:name "Collection date" ;
         sh:description "The date when this sample was collected (yyyy-mm-dd, ISO 8601)." ;
         sh:datatype xsd:date ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCollectionDate
+        sh:path sils:sampleCollectionDate ;
+        sh:order 11
     ],
     [
         sh:name "Collection time" ;
         sh:description "The time this sample was collected (24h notation)." ;
         sh:datatype xsd:integer ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCollectionTime
+        sh:path sils:sampleCollectionTime ;
+        sh:order 12
     ],
     [
         sh:name "Time point" ;
         sh:description "If applicable, the time series time point." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleTimePoint
+        sh:path sils:sampleTimePoint ;
+        sh:order 13
     ],
     [
         sh:name "Collection temperature" ;
         sh:description "The temperature (°C) when the sample was collected." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCollectionTemperature
+        sh:path sils:sampleCollectionTemperature ;
+        sh:order 14
     ],
     [
         sh:name "Collection pH" ;
         sh:description "The pH when this sample was collected." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCollectionPH
+        sh:path sils:sampleCollectionPH ;
+        sh:order 15
     ],
     [
         sh:name "Sample storage temperature" ;
         sh:description "The temperature (°C) at which the sample is stored." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleStorageTemperature
+        sh:path sils:sampleStorageTemperature ;
+        sh:order 16
     ],
     [
         sh:name "Sample collection device or method" ;
         sh:description "The device or method that was used to collect the sample." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCollectionDeviceOrMethod
+        sh:path sils:sampleCollectionDeviceOrMethod ;
+        sh:order 17
     ],
     [
         sh:name "Sample material processing" ;
         sh:description "How the sample was processed." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleMaterialProcessing
+        sh:path sils:sampleMaterialProcessing ;
+        sh:order 18
     ],
     [
         sh:name "Isolation and growth condition" ;
         sh:description "How the sample was grown." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleIsolationAndGrowthCondition
+        sh:path sils:sampleIsolationAndGrowthCondition ;
+        sh:order 19
     ],
     [
         sh:name "Plant structure" ;
         sh:description "Plant anatomy." ;
         sh:class sils:PlantStructure  ;
         sh:maxCount 1 ;
-        sh:path sils:samplePlantStructure
+        sh:path sils:samplePlantStructure ;
+        sh:order 20
     ],
     [
         sh:name "Plant development stage" ;
         sh:description "Developmental stage of the plant." ;
         sh:class sils:PlantDevelopmentalStage ;
         sh:maxCount 1 ;
-        sh:path sils:samplePlantDevelopmentalStage
+        sh:path sils:samplePlantDevelopmentalStage ;
+        sh:order 21
     ],
     [
         sh:name "Sample age" ;
         sh:description "Age of the object at sampling." ;
         sh:datatype xsd:integer ;
         sh:maxCount 1 ;
-        sh:path sils:sampleAge
+        sh:path sils:sampleAge ;
+        sh:order 22
     ],
     [
         sh:name "Sample health state" ;
         sh:description "Health state at sampling." ;
         sh:class sils:SampleHealthState ;
         sh:maxCount 1 ;
-        sh:path sils:sampleHealthState
+        sh:path sils:sampleHealthState ;
+        sh:order 23
     ],
     [
         sh:name "Sample disease status" ;
         sh:description "Disease status at sampling." ;
         sh:class sils:SampleDiseaseStatus ;
         sh:maxCount 1 ;
-        sh:path sils:sampleDiseaseStatus
+        sh:path sils:sampleDiseaseStatus ;
+        sh:order 24
     ],
     [
         sh:name "Growth facility" ;
         sh:description "Facility where the plant was grown (glasshouse etc.)." ;
         sh:class sils:GrowthFacility ;
         sh:maxCount 1 ;
-        sh:path sils:sampleGrowthFacility
+        sh:path sils:sampleGrowthFacility ;
+        sh:order 25
     ],
     [
         sh:name "Plant growth medium" ;
         sh:description "On what medium the plant was grown." ;
         sh:class sils:PlantGrowthMedium ;
         sh:maxCount 1 ;
-        sh:path sils:samplePlantGrowthMedium
+        sh:path sils:samplePlantGrowthMedium ;
+        sh:order 26
     ],
     [
         sh:name "Day air temperature regimen" ;
         sh:description "The temperature (°C) at daytime." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleDayAirTemperatureRegimen
+        sh:path sils:sampleDayAirTemperatureRegimen ;
+        sh:order 27
     ],
     [
         sh:name "Night air temperature regimen" ;
         sh:description "The temperature (°C) at nighttime." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleNightAirTemperatureRegimen
+        sh:path sils:sampleNightAirTemperatureRegimen ;
+        sh:order 28
     ],
     [
         sh:name "Radiation regimen" ;
         sh:description "The radiation intensity." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleRadiationRegimen
+        sh:path sils:sampleRadiationRegimen ;
+        sh:order 29
     ],
     [
         sh:name "Light duration per day" ;
         sh:description "The amount of light per day (24h notation)." ;
         sh:datatype xsd:integer ;
         sh:maxCount 1 ;
-        sh:path sils:sampleLightDurationPerDay
+        sh:path sils:sampleLightDurationPerDay ;
+        sh:order 30
     ],
     [
         sh:name "Country" ;
         sh:description "The country where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleCountry
+        sh:path sils:sampleCountry ;
+        sh:order 31
     ],
     [
         sh:name "Local region name" ;
         sh:description "The name of the local region where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleLocalRegionName
+        sh:path sils:sampleLocalRegionName ;
+        sh:order 32
     ],
     [
         sh:name "Continent" ;
         sh:description "The continent where this sample resides in." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleContinent
+        sh:path sils:sampleContinent ;
+        sh:order 33
     ],
     [
         sh:name "Latitude" ;
         sh:description "The latitude coordinates of where this sample is located." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleLatitude
+        sh:path sils:sampleLatitude ;
+        sh:order 34
     ],
     [
         sh:name "Longitude" ;
         sh:description "The longitude coordinates of where this sample is located." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sampleLongitude
+        sh:path sils:sampleLongitude ;
+        sh:order 35
     ],
     [
         sh:name "Altitude" ;
         sh:description "The altitude levels in meters (e.g. 1.5 or 100) of where this sample is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleAltitude
+        sh:path sils:sampleAltitude ;
+        sh:order 36
     ],
     [
         sh:name "Depth" ;
         sh:description "The depth in meters (e.g. 0.1 or 4.5) of where this sample is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleDepth
+        sh:path sils:sampleDepth ;
+        sh:order 37
     ],
     [
         sh:name "Elevation" ;
         sh:description "The elevation levels in meters (e.g. 0.1 or 4.5) of where this sample is located." ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:sampleElevation
+        sh:path sils:sampleElevation ;
+        sh:order 38
     ] .
 
 sils:LCMSApparatusType a rdfs:Class, sh:NodeShape ;
@@ -902,14 +982,8 @@ sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
-    ],
-    [
-        sh:name "Identifier" ;
-        sh:description "The identifier of the LCMS apparatus." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:LCMSIdentifier
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Description" ;
@@ -917,27 +991,39 @@ sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 1
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the LCMS apparatus." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:LCMSIdentifier ;
+        sh:order 2
     ],
     [
         sh:name "Brand model" ;
         sh:description "The brand model of the LCMS apparatus." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:LCMSBrandModel
+        sh:path sils:LCMSBrandModel ;
+        sh:order 3
     ],
     [
         sh:name "Type" ;
         sh:description "The LCMS apparatus type." ;
         sh:maxCount 1 ;
         sh:class sils:LCMSApparatusType  ;
-        sh:path sils:isOfLCMSApparatusType
+        sh:path sils:isOfLCMSApparatusType ;
+        sh:order 4
     ],
     [
         sh:name "Maximum resolution" ;
         sh:description "The maximum resolution the LCMS can measure at" ;
         sh:datatype xsd:decimal ;
         sh:maxCount 1 ;
-        sh:path sils:maximumLCMSResolution
+        sh:path sils:maximumLCMSResolution ;
+        sh:order 5
     ] .
 
 
@@ -1007,21 +1093,8 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:maxCount 1 ;
         dash:singleLine true ;
         fs:importantProperty true ;
-        sh:path rdfs:label
-    ],
-    [
-        sh:name "Identifier" ;
-        sh:description "The identifier of the assay." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:assayIdentifier
-    ],
-    [
-        sh:name "Title" ;
-        sh:description "The title of the assay." ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
-        sh:path sils:assayTitle
+        sh:path rdfs:label ;
+        sh:order 0
     ],
     [
         sh:name "Description" ;
@@ -1029,111 +1102,143 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
+        sh:order 1
+    ],
+    [
+        sh:name "Identifier" ;
+        sh:description "The identifier of the assay." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:assayIdentifier ;
+        sh:order 2
+    ],
+    [
+        sh:name "Title" ;
+        sh:description "The title of the assay." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path sils:assayTitle ;
+        sh:order 3
     ],
     [
         sh:name "Assay type" ;
         sh:description "The assay type." ;
         sh:maxCount 1 ;
         sh:class sils:AssayType ;
-        sh:path sils:isOfAssayType
+        sh:path sils:isOfAssayType ;
+        sh:order 4
     ],
     [
         sh:name "Sequence technology" ;
         sh:description "The sequence technology." ;
         sh:maxCount 1 ;
         sh:class sils:SequenceTechnology ;
-        sh:path sils:sequenceTechnology
+        sh:path sils:sequenceTechnology ;
+        sh:order 5
     ],
     [
         sh:name "Sequencing mode (PAIRED_END)" ;
         sh:description "Whether or not measured in paired end. Required for sequencing assay type." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:sequencingMode
+        sh:path sils:sequencingMode ;
+        sh:order 6
     ],
     [
         sh:name "Isolation protocol" ;
         sh:description "The protocol used for isolation (name or url)." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:isolationProtocol
+        sh:path sils:isolationProtocol ;
+        sh:order 7
     ],
     [
         sh:name "Sequencing center" ;
         sh:description "The center that was used for sequencing." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sequencingCenter
+        sh:path sils:sequencingCenter ;
+        sh:order 8
     ],
     [
         sh:name "Sequencing platform" ;
         sh:description "The method that was used for sequencing." ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
-        sh:path sils:sequencingPlatform
+        sh:path sils:sequencingPlatform ;
+        sh:order 9
     ],
     [
         sh:name "Analysis date" ;
         sh:description "The date when the analysis took place." ;
         sh:datatype xsd:date ;
         sh:maxCount 1 ;
-        sh:path sils:analysisDate
+        sh:path sils:analysisDate ;
+        sh:order 10
     ],
     [
         sh:name "LCMS machine" ;
         sh:description "The LCMS machine." ;
         sh:maxCount 1 ;
         sh:class sils:LCMSApparatus ;
-        sh:path sils:LCMSAssayMachine
+        sh:path sils:LCMSAssayMachine ;
+        sh:order 11
     ],
     [
         sh:name "LCMS protocol" ;
         sh:description "The protocol that was used to measure (name or url)." ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
-        sh:path sils:LCMSProtocol
+        sh:path sils:LCMSProtocol ;
+        sh:order 12
     ],
     [
         sh:name "Positive mode" ;
         sh:description "If Positive mode spectra were measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:assayPositiveMode
+        sh:path sils:assayPositiveMode ;
+        sh:order 13
     ],
     [
         sh:name "Negative mode" ;
         sh:description "If Negative mode spectra were measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:assayNegativeMode
+        sh:path sils:assayNegativeMode ;
+        sh:order 14
     ],
     [
         sh:name "MS1" ;
         sh:description "If MS1 spectra were measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:assayMS1
+        sh:path sils:assayMS1 ;
+        sh:order 15
     ],
     [
         sh:name "MS2" ;
         sh:description "If MS2 spectra were measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:assayMS2
+        sh:path sils:assayMS2 ;
+        sh:order 16
     ],
     [
         sh:name "MSn" ;
         sh:description "If MSn spectra were measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:assayMSn
+        sh:path sils:assayMSn ;
+        sh:order 17
     ],
     [
         sh:name "Ion Mobility" ;
         sh:description "If Ion Mobility was measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:assayIonMobility
+        sh:path sils:assayIonMobility ;
+        sh:order 18
     ] .
 
 sils:externalFileLink a rdf:Property .

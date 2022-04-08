@@ -103,10 +103,9 @@ export function isValidLinkedDataIdentifier(uri) {
  * @param {string} domain property domain
  */
 export const shouldPropertyBeHidden = (key, domain) => {
-    const isCollection = domain === consts.COLLECTION_URI;
     const isFile = domain === consts.FILE_URI;
     const isDirectory = domain === consts.DIRECTORY_URI;
-    const isManaged = isCollection || isFile || isDirectory;
+    const isManaged = isFile || isDirectory;
 
     switch (key) {
         case '@type':
@@ -128,10 +127,6 @@ export const shouldPropertyBeHidden = (key, domain) => {
             return true;
         case consts.LABEL_URI:
             return isManaged;
-        case consts.DATE_DELETED_URI:
-        case consts.DELETED_BY_URI:
-        case consts.COMMENT_URI:
-            return isCollection;
         default:
             return false;
     }

@@ -2,9 +2,9 @@ import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {ListItemText, TextField} from '@material-ui/core';
 import {Autocomplete} from '@material-ui/lab';
+import {Tooltip} from "@mui/material";
 import useIsMounted from 'react-is-mounted-hook';
 import {compareBy} from "../../../common/utils/genericUtils";
-import {Tooltip} from "@mui/material";
 
 const Dropdown = ({
     options = null, clearTextOnSelection, placeholder,
@@ -70,8 +70,8 @@ const Dropdown = ({
                 />
             )}
             renderOption={(option) => (
-                <Tooltip title={option.comment}>
-                    <ListItemText primary={option.label} secondary={option.description}  />
+                <Tooltip title={option.comment ? option.comment : 'no description available'}>
+                    <ListItemText primary={option.label} secondary={option.description} />
                 </Tooltip>
             )}
         />

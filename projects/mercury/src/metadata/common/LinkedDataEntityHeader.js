@@ -5,7 +5,7 @@ import {Chip, Divider, Grid, Tooltip, Typography, withStyles} from "@material-ui
 import IriTooltip from "../../common/components/IriTooltip";
 import DirectoryBrowserLink from "./DirectoryBrowserLink";
 import {
-    COLLECTION_URI, DATE_DELETED_URI,
+    DATE_DELETED_URI,
     DIRECTORY_URI,
     FILE_PATH_URI,
     FILE_URI,
@@ -32,7 +32,7 @@ const styles = {
     }
 };
 
-const PROTECTED_ENTITY_TYPES = [COLLECTION_URI, FILE_URI, DIRECTORY_URI];
+const PROTECTED_ENTITY_TYPES = [FILE_URI, DIRECTORY_URI];
 
 const LinkedDataEntityHeader = ({
     subject,

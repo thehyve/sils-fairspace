@@ -9,14 +9,12 @@ import io.fairspace.saturn.services.search.SearchApp;
 import io.fairspace.saturn.services.services.ServicesApp;
 import io.fairspace.saturn.services.users.*;
 import io.fairspace.saturn.services.views.ViewApp;
-import io.fairspace.saturn.services.workspaces.WorkspaceApp;
 
 import javax.servlet.Filter;
 
 public class SparkFilterFactory {
     public static Filter createSparkFilter(String apiPathPrefix, Services svc, Config config) {
         return new SaturnSparkFilter(
-                new WorkspaceApp(apiPathPrefix + "/workspaces", svc.getWorkspaceService()),
                 new MetadataApp(apiPathPrefix + "/metadata", svc.getMetadataService()),
                 new ViewApp(apiPathPrefix + "/views", svc.getViewService(), svc.getQueryService()),
                 new SearchApp(apiPathPrefix + "/search", svc.getSearchService(), svc.getQueryService()),

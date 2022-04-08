@@ -45,14 +45,6 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
                 .toList();
     }
 
-    public Optional<Resource> findRootDirectoryWithName(String name) {
-        return factory.rootSubject.getModel().listSubjectsWithProperty(RDF.type, FS.Directory)
-                .mapWith(child -> factory.getResourceByType(child, Access.List))
-                .filterDrop(Objects::isNull)
-                .filterKeep(collection -> collection.getName().equals(name))
-                .nextOptional();
-    }
-
     /**
      * Creates a new root directory.
      * Returns null if a root directory already exists with the same name (modulo case),

@@ -15,7 +15,6 @@ import org.apache.jena.shacl.vocabulary.SHACLM;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
-import javax.ws.rs.BadRequestException;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -225,7 +224,7 @@ public class MetadataService {
         return updatedDavResources;
     }
 
-    private Set<Resource> updateLinkedDavResources(Model before, Resource resource, String label) throws BadRequestException {
+    private Set<Resource> updateLinkedDavResources(Model before, Resource resource, String label) {
         Set<Resource> updatedDavResources = new HashSet<>();
         var linkedDirectories = before.listStatements(null, FS.linkedEntity, resource)
                 .filterKeep(statement -> statement.getSubject().hasProperty(RDF.type, FS.Directory))
@@ -245,7 +244,9 @@ public class MetadataService {
                                     resource.getURI(),
                                     label,
                                     e.getMessage());
-                            throw new BadRequestException(message);
+                            var violations = new LinkedHashSet<Violation>();
+                            violations.add(new Violation(message, resource.getURI(), "Label", label));
+                            throw new ValidationException(violations);
                         }
                     });
         }

@@ -8,7 +8,6 @@ import io.fairspace.saturn.services.metadata.*;
 import io.fairspace.saturn.services.metadata.validation.*;
 import io.fairspace.saturn.services.search.FileSearchRequest;
 import io.fairspace.saturn.services.users.*;
-import io.fairspace.saturn.services.workspaces.*;
 import io.fairspace.saturn.webdav.*;
 import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.*;
@@ -56,8 +55,7 @@ public class JdbcQueryServiceTest {
 
     User user;
     Authentication.User userAuthentication;
-    User workspaceManager;
-    Authentication.User workspaceManagerAuthentication;
+
     User admin;
     Authentication.User adminAuthentication;
     private org.eclipse.jetty.server.Request request;
@@ -102,9 +100,6 @@ public class JdbcQueryServiceTest {
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
         new DAO(model).write(user);
-        workspaceManager = createTestUser("workspace-admin", false);
-        new DAO(model).write(workspaceManager);
-        workspaceManagerAuthentication = mockAuthentication("workspace-admin");
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);

@@ -8,11 +8,18 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    Typography
+    Typography,
+    withStyles
 } from "@material-ui/core";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
-export default ({entityErrors, otherErrors}) => {
+const styles = {
+    errorColumn: {
+        width: 400
+    }
+};
+
+const ValidationErrorsDisplay = ({entityErrors, otherErrors, classes}) => {
     const hasOtherErrors = otherErrors && otherErrors.length > 0;
     const hasEntityErrors = entityErrors && entityErrors.length > 0;
     const entityErrorsTable = (
@@ -29,7 +36,7 @@ export default ({entityErrors, otherErrors}) => {
                         <TableCell>
                             {predicate}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className={classes.errorColumn}>
                             {message}
                         </TableCell>
                     </TableRow>
@@ -88,3 +95,5 @@ export default ({entityErrors, otherErrors}) => {
         </>
     );
 };
+
+export default withStyles(styles)(ValidationErrorsDisplay);

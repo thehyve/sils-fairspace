@@ -36,7 +36,6 @@ public class ViewStoreClientFactory {
     }
 
     public static final Set<String> protectedResources = Set.of(
-            FS.COLLECTION_URI,
             FS.DIRECTORY_URI,
             FS.FILE_URI);
 

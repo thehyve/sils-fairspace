@@ -44,7 +44,7 @@ LinkedDataInputFieldsTable.propTypes = {
     onDelete: PropTypes.func,
     addComponent: PropTypes.func,
     property: PropTypes.object,
-    subject: PropTypes.object,
+    subject: PropTypes.string,
     labelId: PropTypes.string,
     canEdit: PropTypes.bool
 };

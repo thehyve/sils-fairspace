@@ -9,8 +9,6 @@ import io.fairspace.saturn.services.metadata.validation.ComposedValidator;
 import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
-import io.fairspace.saturn.services.workspaces.Workspace;
-import io.fairspace.saturn.services.workspaces.WorkspaceService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.FileItem;
 import io.milton.http.ResourceFactory;
@@ -88,7 +86,6 @@ public class DirectoryResourceTest {
         Dataset ds = wrap(dsg);
         Transactions tx = new SimpleTransactions(ds);
         model = ds.getDefaultModel();
-        var workspaceService = new WorkspaceService(tx, userService);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
         Context context = new Context();
@@ -108,9 +105,6 @@ public class DirectoryResourceTest {
         var taxonomies = model.read("taxonomies.ttl");
         metadataService.put(taxonomies);
 
-        var workspace = workspaceService.createWorkspace(Workspace.builder().code("Test").build());
-
-        when(request.getHeader("Owner")).thenReturn(workspace.getIri().getURI());
         var blob = new BlobInfo("id", FILE_SIZE, "md5");
         when(request.getAttribute("BLOB")).thenReturn(blob);
         when(blobFileItem.getBlob()).thenReturn(blob);

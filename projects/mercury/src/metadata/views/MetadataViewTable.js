@@ -7,10 +7,9 @@ import {TextualValueTypes} from "./MetadataViewAPI";
 import type {MetadataViewEntity, MetadataViewEntityWithLinkedFiles} from "./metadataViewUtils";
 import {RESOURCES_VIEW} from "./metadataViewUtils";
 import {formatDate} from "../../common/utils/genericUtils";
-import type {Collection} from "../../collections/CollectionAPI";
-import {collectionAccessIcon} from "../../collections/collectionUtils";
 import {getPathFromIri, redirectLink} from "../../file/fileUtils";
 import ColumnFilterInput from "../../common/components/ColumnFilterInput";
+import {accessIcon} from "../../users/userUtils";
 
 type MetadataViewTableProperties = {
     data: MetadataViewData;
@@ -22,7 +21,6 @@ type MetadataViewTableProperties = {
     history: any;
     selected?: MetadataViewEntityWithLinkedFiles;
     view: string;
-    collections: Collection[];
     textFiltersObject: Object;
     setTextFiltersObject: () => {};
 };
@@ -88,7 +86,7 @@ export const MetadataViewTable = (props: MetadataViewTableProperties) => {
                 const access = getAccess(iri);
                 return (
                     <TableCell key={column.name}>
-                        {collectionAccessIcon(access)}
+                        {accessIcon(access)}
                     </TableCell>
                 );
             }

@@ -391,7 +391,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     protected static void updateParents(Resource subject) {
         var now = timestampLiteral();
         for (var s = subject.getPropertyResourceValue(FS.belongsTo);
-             s != null && !s.hasProperty(RDF.type, FS.Workspace);
+             s != null;
              s = s.getPropertyResourceValue(FS.belongsTo)) {
             s.removeAll(FS.dateModified)
                     .removeAll(FS.modifiedBy)

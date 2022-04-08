@@ -6,7 +6,7 @@ import ContentCut from "mdi-material-ui/ContentCut";
 import ContentPaste from "mdi-material-ui/ContentPaste";
 import ErrorDialog from "../common/components/ErrorDialog";
 
-import {getAllowedDirectoryTypes, getParentPath, joinPaths} from "./fileUtils";
+import {getAllowedDirectoryTypes, getParentPath, getStrippedPath, joinPaths} from "./fileUtils";
 import {COPY, CUT} from '../constants';
 import FileOperationsGroup from "./FileOperationsGroup";
 import ClipboardContext from '../common/contexts/ClipboardContext';
@@ -169,7 +169,7 @@ export const FileOperations = ({
                                 onCreate={(name, entityType, linkedEntityIri) => handleCreateDirectory(name, entityType, linkedEntityIri)}
                                 disabled={busy}
                                 allowedTypes={allowedTypes}
-                                locationIsRoot={getParentPath(openedDirectory.path) === ""}
+                                locationIsRoot={!!openedDirectory.path && getStrippedPath(openedDirectory.path) === ""}
                             >
                                 <IconButton
                                     aria-label="Create directory"

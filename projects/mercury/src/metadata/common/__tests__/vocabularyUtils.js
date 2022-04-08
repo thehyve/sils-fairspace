@@ -228,7 +228,7 @@ describe('getNamespaces', () => {
 
 describe('getProperties', () => {
     it('returns all properties specified in the vocabulary', () => {
-        const propertyShapes = determinePropertyShapesForTypes(vocabularyJsonLd, [constants.COLLECTION_URI]);
+        const propertyShapes = determinePropertyShapesForTypes(vocabularyJsonLd, [constants.DIRECTORY_URI]);
         const result = getProperties(vocabularyJsonLd, propertyShapes);
 
         expect(result.length).toBeGreaterThan(propertyShapes.length);
@@ -238,7 +238,7 @@ describe('getProperties', () => {
     });
 
     it('returns the type property', () => {
-        const propertyShapes = determinePropertyShapesForTypes(vocabularyJsonLd, [constants.COLLECTION_URI]);
+        const propertyShapes = determinePropertyShapesForTypes(vocabularyJsonLd, [constants.DIRECTORY_URI]);
         const result = getProperties(vocabularyJsonLd, propertyShapes);
         const typeProperty = result.filter(p => p.key === '@type');
 
