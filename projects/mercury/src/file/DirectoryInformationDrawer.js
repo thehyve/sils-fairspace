@@ -292,7 +292,7 @@ const PathMetadata = React.forwardRef((
             avatar={avatar}
             forceExpand={forceExpand}
             allowCsvUpload={allowCsvUpload}
-            metadataUploadPath={hasEditRight && forceExpand && isCurrentPathDirectory && path}
+            metadataUploadPath={hasEditRight && forceExpand && path}
             metadataUploadType={linkedEntityType}
             setUpdateDate={setUpdateDate}
         >
