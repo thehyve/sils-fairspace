@@ -105,7 +105,9 @@ class FileAPI {
     createDirectory(path, entityType, linkedEntityIri, options = defaultOptions) {
         // always send empty iri on new creation to overwrite cached value from previous creation, java reads iri of last added entity if nothing is send
         options.headers = {...options.headers, "Linked-Entity-IRI": linkedEntityIri ?? ""};
-        options.headers = {...options.headers, "Entity-Type": entityType};
+        if (!linkedEntityIri) {
+            options.headers = {...options.headers, "Entity-Type": entityType};
+        }
 
         return this.client().createDirectory(path, options)
             .catch(e => {
@@ -297,14 +299,15 @@ class FileAPI {
     }
 
     /**
-     * Move one or more files to a destinationdir
+     * Moves one or more files to a destinationdir
      * @param filePaths
      * @param destinationDir
      * @returns {*}
      */
     movePaths(filePaths, destinationDir) {
-        return this.uniqueDestinationPaths(filePaths, destinationDir)
-            .then(mapping => Promise.all(mapping.map(([src, dst]) => this.move(src, dst))));
+        return Promise.all(filePaths.map(sourcePath => (
+            this.move(sourcePath, joinPaths(destinationDir, getFileName(sourcePath)))
+        )));
     }
 
     /**
@@ -314,23 +317,9 @@ class FileAPI {
      * @returns {*}
      */
     copyPaths(filePaths, destinationDir) {
-        return this.uniqueDestinationPaths(filePaths, destinationDir)
-            .then(mapping => Promise.all(mapping.map(([src, dst]) => this.copy(src, dst))))
-            .catch(e => {
-                if (e && e.response) {
-                    // eslint-disable-next-line default-case
-                    switch (e.response.status) {
-                        case 403:
-                            throw new Error("Could not copy one or more files. \nDo you have write permission to the destination collection?");
-                        case 409:
-                            throw new Error("Could not copy one or more files. \nThe destination can not be copied to.");
-                        case 412:
-                            throw new Error("Could not copy one or more files. \nThe destination file already exists.");
-                    }
-                }
-
-                return Promise.reject(e);
-            });
+        return Promise.all(filePaths.map(sourcePath => (
+            this.copy(sourcePath, joinPaths(destinationDir, getFileName(sourcePath)))
+        )));
     }
 
     /**

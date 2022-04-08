@@ -22,6 +22,7 @@ const getUploadsProviderValue = props => {
     return () => contextValue;
 };
 
+// Skipped because no file upload is currently used
 describe.skip('UploadsProvider', () => {
     beforeEach(() => {
         LocalFileAPI.uploadMulti = jest.fn(() => Promise.resolve());
