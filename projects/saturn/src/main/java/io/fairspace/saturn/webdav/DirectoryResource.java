@@ -230,7 +230,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
             }
             try {
                 for (var record : csvParser) {
-                    var directory = getDirectory(record.get(entityColumn), csvParser.getCurrentLineNumber());
+                    var directory = getDirectory(record.get(entityColumn), csvParser.getCurrentLineNumber(), entityColumn);
 
                     var classShape = directory.getPropertyResourceValue(FS.linkedEntityType).inModel(VOCABULARY);
                     var entity = directory.getPropertyResourceValue(FS.linkedEntity).inModel(VOCABULARY);
@@ -341,9 +341,9 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         }
     }
 
-    private org.apache.jena.rdf.model.Resource getDirectory(String name, long lineNumber) throws BadRequestException {
+    private org.apache.jena.rdf.model.Resource getDirectory(String name, long lineNumber, String columnName) throws BadRequestException {
         if (name.equals(".") || name.contains("/") || name.contains("\\")) {
-            String error = "Line " + lineNumber + ". File \"" + name + "\" HierarchyItem contains invalid characters.";
+            String error = "Line " + lineNumber + ". File \"" + name + "\" " + columnName + " contains invalid characters.";
             setErrorMessage(error);
             throw new BadRequestException(error);
         }
