@@ -125,13 +125,13 @@ const generateTemplate = (vocabulary, metadataType) => {
     return '#   This section describes the CSV-based format used for bulk metadata uploads.\n'
         + `#   Entities (e.g. ${sampleEntityNames}) can be referenced by ID; multiple values must be separated by the pipe symbol |.\n`
         + '#   Boolean values should be \'true\' or \'false\'.\n'
-        + '#   The \'Name\' column is the name of the directory you are uploading metadata for. This name is the same as the label for the upload target.\n'
+        + '#   The \'DirectoryName\' column is the name of the directory you are uploading metadata for. This name is the same as the label for the upload target.\n'
         + '#\n'
         + table([
             ['#', 'COLUMN', 'DESCRIPTION', 'TYPE', 'CARDINALITY', 'PREDICATE'],
-            ['#', 'Name', 'Use the name of the target, e.g. \'Sample 2020-09-05\'', 'string', '1..1', ''],
+            ['#', 'DirectoryName', 'Use the name of the target, e.g. \'Sample 2020-09-05\'', 'string', '1..1', ''],
             ...doc]) + '\n#\n'
-        + '"Name",' + uniqueProps.map(ps => JSON.stringify(getFirstPredicateValue(ps, SHACL_NAME))).join(',') + '\n'
+        + '"DirectoryName",' + uniqueProps.map(ps => JSON.stringify(getFirstPredicateValue(ps, SHACL_NAME))).join(',') + '\n'
         + '# PUT YOUR DATA BELOW FOLLOWING SAMPLE ROWS. REMOVE THIS LINE AND THE SAMPLE ROWS AFTERWARDS.\n'
         + '# Name_01,' + sampleRow("_0").join(',') + '\n'
         + '# Name_02,' + sampleRow("_1").join(',') + '\n';

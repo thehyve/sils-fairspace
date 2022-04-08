@@ -208,7 +208,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     }
 
     private void uploadMetadata(FileItem file) throws BadRequestException {
-        var entityColumn = "Name";
+        var entityColumn = "DirectoryName";
 
         if (file == null) {
             setErrorMessage("Missing 'file' parameter");
