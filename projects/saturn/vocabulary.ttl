@@ -64,7 +64,7 @@ sils:Department a rdfs:Class, sh:NodeShape ;
     [
         sh:name "Description" ;
         sh:description "The description of the department." ;
-        sh:datatype fs:markdown ;
+        sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:path rdfs:comment ;
         sh:order 1
