@@ -6,7 +6,6 @@ import {Router} from 'react-router-dom';
 import {createMemoryHistory} from 'history';
 import LinkedDataLink from "../LinkedDataLink";
 import {METADATA_PATH} from "../../../constants";
-import UserContext from '../../../users/UserContext';
 
 describe('LinkedDataLink', () => {
     it('should render internal link for any uri', () => {
@@ -14,11 +13,9 @@ describe('LinkedDataLink', () => {
         history.push = jest.fn();
 
         const wrapper = mount(
-            <UserContext.Provider value={{currentUser: {canViewPublicMetadata: true}}}>
-                <Router history={history}>
-                    <LinkedDataLink uri="http://google.nl/some-path?search#hash">Go</LinkedDataLink>
-                </Router>
-            </UserContext.Provider>
+            <Router history={history}>
+                <LinkedDataLink uri="http://google.nl/some-path?search#hash">Go</LinkedDataLink>
+            </Router>
         );
 
         expect(wrapper.find('a').isEmpty()).toBeFalsy();
@@ -36,33 +33,15 @@ describe('LinkedDataLink', () => {
         });
     });
 
-    it('should display child elements for users without access to public metadata', () => {
-        const history: History = createMemoryHistory();
-        history.push = jest.fn();
-
-        const wrapper = mount(
-            <UserContext.Provider value={{currentUser: {canViewPublicMetadata: false}}}>
-                <Router history={history}>
-                    <LinkedDataLink uri="http://google.nl/some-path?search#hash">Go</LinkedDataLink>
-                </Router>
-            </UserContext.Provider>
-        );
-
-        expect(wrapper.find('a').isEmpty()).toBeTruthy();
-        expect(wrapper.text()).toEqual('Go');
-    });
-
     it('should not break on an invalid url (return children only)', () => {
         const uri = `some-invalid-url`;
         const history: History = createMemoryHistory();
         history.push = jest.fn();
 
         const wrapper = mount(
-            <UserContext.Provider value={{currentUser: {canViewPublicMetadata: true}}}>
-                <Router history={history}>
-                    <LinkedDataLink uri={uri}>something</LinkedDataLink>
-                </Router>
-            </UserContext.Provider>
+            <Router history={history}>
+                <LinkedDataLink uri={uri}>something</LinkedDataLink>
+            </Router>
         );
 
         expect(wrapper.find('a').isEmpty()).toBeFalsy();

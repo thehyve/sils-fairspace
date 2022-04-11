@@ -23,8 +23,7 @@ import java.util.Set;
 
 import static io.fairspace.saturn.audit.Audit.audit;
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
-import static io.fairspace.saturn.rdf.ModelUtils.EMPTY_MODEL;
-import static io.fairspace.saturn.rdf.ModelUtils.updatedView;
+import static io.fairspace.saturn.rdf.ModelUtils.*;
 import static io.fairspace.saturn.rdf.SparqlUtils.toXSDDateTimeLiteral;
 import static io.fairspace.saturn.vocabulary.ShapeUtils.getPropertyShapesForResource;
 import static io.fairspace.saturn.vocabulary.Vocabularies.SYSTEM_VOCABULARY;
@@ -61,7 +60,7 @@ public class MetadataService {
 
         transactions.executeRead(m -> {
             var resource = m.createResource(subject);
-            if (!permissions.canReadMetadata(resource)) {
+            if (!permissions.canReadMetadata()) {
                 throw new AccessDeniedException(subject);
             }
 
@@ -78,7 +77,7 @@ public class MetadataService {
                     .filter(Objects::nonNull)
                     .map(p -> p.as(Property.class))
                     .forEach(property -> m.listStatements(null, property, resource)
-                            .filterKeep(stmt -> permissions.canReadMetadata(stmt.getSubject()))
+                            .filterKeep(stmt -> permissions.canReadMetadata())
                             .filterDrop(stmt -> stmt.getSubject().hasProperty(FS.dateDeleted))
                             .forEachRemaining(stmt -> {
                                 model.add(stmt);
@@ -121,7 +120,7 @@ public class MetadataService {
     public boolean softDelete(Resource subject) {
         var success = transactions.calculateWrite(model -> {
             var resource = subject.inModel(model);
-            if (!permissions.canWriteMetadata(resource)) {
+            if (!permissions.canWriteMetadata(getType(resource))) {
                 throw new AccessDeniedException(resource.getURI());
             }
 
@@ -264,8 +263,11 @@ public class MetadataService {
     private void validate(Model before, Model after, Model modelToRemove, Model modelToAdd) {
         modelToAdd.listSubjects()
                 .andThen(modelToRemove.listSubjects())
-                .filterDrop(s -> permissions.canWriteMetadata(s.inModel(before)))
-                .forEachRemaining(s -> {
+                .filterDrop(s -> {
+                    var type = getType(s.inModel(before)) != null ? getType(s.inModel(before)) : getType(s.inModel(after));
+                    return permissions.canWriteMetadata(type);
+
+                }).forEachRemaining(s -> {
                     throw new AccessDeniedException(s.getURI());
                 });
 

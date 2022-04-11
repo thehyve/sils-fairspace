@@ -49,7 +49,7 @@ public class ReadableMetadataServiceTest {
 
     @Before
     public void setUp() {
-        when(permissions.canReadMetadata(any())).thenReturn(true);
+        when(permissions.canReadMetadata()).thenReturn(true);
         api = new MetadataService(txn, vocabulary, null, permissions, davFactory);
     }
 

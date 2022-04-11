@@ -1,5 +1,6 @@
 package io.fairspace.saturn.webdav;
 
+import io.fairspace.saturn.services.AccessDeniedException;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.vocabulary.FS;
@@ -336,7 +337,11 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
             }
             setErrorMessage(message.toString());
             throw new BadRequestException("Error applying metadata", e);
+        } catch (AccessDeniedException e) {
+            setErrorMessage("Access denied. " + e.getMessage());
+            throw new BadRequestException("Error applying metadata. Access denied.", e);
         } catch (Exception e) {
+            setErrorMessage(e.getMessage());
             throw new BadRequestException("Error applying metadata", e);
         }
     }

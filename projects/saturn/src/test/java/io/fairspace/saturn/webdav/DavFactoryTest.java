@@ -1,12 +1,9 @@
 package io.fairspace.saturn.webdav;
 
 import io.fairspace.saturn.rdf.dao.DAO;
-import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
-import io.fairspace.saturn.rdf.transactions.Transactions;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
-import io.milton.http.Request;
 import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.ConflictException;
@@ -32,8 +29,11 @@ import java.util.Map;
 
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
+import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static java.lang.String.format;
 import static org.apache.jena.query.DatasetFactory.createTxnMem;
+import static org.apache.jena.rdf.model.ResourceFactory.createTypedLiteral;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -63,7 +63,6 @@ public class DavFactoryTest {
 
     private ResourceFactory factory;
     private Dataset ds = createTxnMem();
-    private Transactions tx = new SimpleTransactions(ds);
     private Model model = ds.getDefaultModel();
 
     private void selectRegularUser() {
@@ -86,6 +85,7 @@ public class DavFactoryTest {
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);
+        VOCABULARY.getResource("https://sils.uva.nl/ontology#Department").addProperty(FS.adminEditOnly, createTypedLiteral(true));
 
         setupRequestContext();
         request = getCurrentRequest();
@@ -113,6 +113,10 @@ public class DavFactoryTest {
         assertNotNull(root.child(dirName));
         assertNotNull(factory.getResource(null, format("/api/webdav/%s/", dirName)));
         assertEquals(1, root.getChildren().size());
+
+        assertEquals(Access.Read, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + dirName)));
+        selectAdmin();
+        assertEquals(Access.Write, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + dirName)));
     }
 
     @Test
@@ -151,24 +155,6 @@ public class DavFactoryTest {
         assertNull(factory.getResource(null, BASE_PATH + "dir0/dir/file"));
     }
 
-    @Ignore("To be fixed after new permission model is implemented.")
-    @Test
-    public void testInaccessibleResource() throws NotAuthorizedException, BadRequestException, ConflictException {
-        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
-        root.createCollection("coll");
-
-        var collName = "coll";
-        model.removeAll(null, FS.canManage, model.createResource(baseUri + "/" + collName));
-
-        assertTrue(root.getChildren().isEmpty());
-
-        var coll = root.child(collName);
-        for (var method: Request.Method.values()) {
-            assertFalse("Shouldn't be able to " + method, coll.authorise(null, method, null));
-        }
-    }
-
-    @Ignore("To be fixed after new permission model is implemented.")
     @Test
     public void testAdminAccess() throws NotAuthorizedException, BadRequestException, ConflictException {
         var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
@@ -177,9 +163,9 @@ public class DavFactoryTest {
 
         selectAdmin();
         assertEquals(1, root.getChildren().size());
-        assertEquals(Access.Manage, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
-
-        assertEquals(Access.List, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
+        assertEquals(Access.Write, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
+        selectRegularUser();
+        assertEquals(Access.Read, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + collName)));
     }
 
     @Test(expected = ConflictException.class)
@@ -341,6 +327,12 @@ public class DavFactoryTest {
         var deleted = (MultiNamespaceCustomPropertyResource) dir.child("dir1");
 
         assertNotNull(deleted.getProperty(new QName(FS.NS, "dateDeleted")));
+
+        selectRegularUser();
+        assertEquals(((DirectoryResource) deleted).getAccess(), Access.Read.name());
+
+        selectAdmin();
+        assertEquals(((DirectoryResource) deleted).getAccess(), Access.Read.name());
     }
 
     @Test
@@ -379,15 +371,14 @@ public class DavFactoryTest {
 
         var deleted = (DeletableResource) dir.child("dir1");
 
-//        TODO restore the part below after implementing new permission model
-//        try {
-//            deleted.delete();
-//            fail("Only admin can purge a collection.");
-//        } catch (NotAuthorizedException e) {
-//            assertNotNull(e);
-//            assertEquals(SC_FORBIDDEN, e.getRequiredStatusCode());
-//            assertEquals("Not authorized to purge the resource.", e.getMessage());
-//        }
+        try {
+            deleted.delete();
+            fail("Only admin can purge a directory.");
+        } catch (NotAuthorizedException e) {
+            assertNotNull(e);
+            assertEquals(SC_FORBIDDEN, e.getRequiredStatusCode());
+            assertEquals("Not authorized to purge the resource.", e.getMessage());
+        }
 
         userService.currentUser().setAdmin(true);
         deleted.delete();

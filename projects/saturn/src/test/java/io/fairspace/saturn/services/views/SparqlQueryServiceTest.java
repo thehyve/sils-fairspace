@@ -91,7 +91,7 @@ public class SparqlQueryServiceTest {
     private void setupUsers(Model model) {
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
-        user.setCanViewPublicMetadata(true);
+//        user.setCanViewPublicMetadata(true);
         new DAO(model).write(user);
         user2Authentication = mockAuthentication("user2");
         user2 = createTestUser("user2", false);
@@ -111,7 +111,7 @@ public class SparqlQueryServiceTest {
         var context = new Context();
         var davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         ds.getContext().set(FS_ROOT, davFactory.root);
-        var metadataPermissions = new MetadataPermissions(davFactory, userService);
+        var metadataPermissions = new MetadataPermissions(userService, VOCABULARY);
         var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), metadataPermissions);
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 

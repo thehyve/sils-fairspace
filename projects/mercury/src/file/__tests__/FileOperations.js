@@ -163,6 +163,86 @@ describe('FileOperations', () => {
         });
     });
 
+    describe('delete button', () => {
+        const emptyClipboard = {
+            method: COPY,
+            filenames: [],
+            isEmpty: () => true,
+            length: () => 0
+        };
+        it('should be enabled if non-deleted file selected', () => {
+            const render = (fileActions) => shallow(<FileOperations
+                classes={{}}
+                paste={() => Promise.resolve()}
+                files={[{filename: 'a'}]}
+                selectedPaths={['a']}
+                fetchFilesIfNeeded={() => {
+                }}
+                getDownloadLink={() => {
+                }}
+                refreshFiles={refreshFiles}
+                clearSelection={clearSelection}
+                fileActions={fileActions}
+                openedDirectory={{}}
+                isWritingEnabled
+                clipboard={emptyClipboard}
+                showDeleted
+            />);
+
+            wrapper = render(fileActionsMock);
+            expect(wrapper.find('[aria-label="Delete"]').prop("disabled")).toEqual(false);
+        });
+
+        it('should be disabled if non-admin and deleted file selected', () => {
+            const render = (fileActions) => shallow(<FileOperations
+                classes={{}}
+                paste={() => Promise.resolve()}
+                files={[{filename: 'a', dateDeleted: '08-06-2020'}]}
+                selectedPaths={['a']}
+                fetchFilesIfNeeded={() => {
+                }}
+                getDownloadLink={() => {
+                }}
+                refreshFiles={refreshFiles}
+                clearSelection={clearSelection}
+                fileActions={fileActions}
+                openedDirectory={{}}
+                isWritingEnabled
+                clipboard={emptyClipboard}
+                showDeleted
+                currentUser={{isAdmin: false}}
+            />);
+
+            wrapper = render(fileActionsMock);
+            expect(wrapper.find('[aria-label="Delete"]').prop("disabled")).toEqual(true);
+        });
+
+        it('should be enabled if admin and deleted file selected', () => {
+            const render = (fileActions) => shallow(<FileOperations
+                classes={{}}
+                paste={() => Promise.resolve()}
+                files={[{filename: 'a', dateDeleted: '08-06-2020'}]}
+                selectedPaths={['a']}
+                fetchFilesIfNeeded={() => {
+                }}
+                getDownloadLink={() => {
+                }}
+                refreshFiles={refreshFiles}
+                clearSelection={clearSelection}
+                fileActions={fileActions}
+                openedDirectory={{}}
+                isWritingEnabled
+                clipboard={emptyClipboard}
+                showDeleted
+                currentUser={{isAdmin: true}}
+            />);
+
+            wrapper = render(fileActionsMock);
+            expect(wrapper.find('[aria-label="Delete"]').prop("disabled")).toEqual(false);
+        });
+
+    });
+
     describe('undelete button', () => {
         const emptyClipboard = {
             method: COPY,
@@ -185,6 +265,7 @@ describe('FileOperations', () => {
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted={false}
+                currentUser={{isAdmin: true}}
             />);
 
             wrapper = render(fileActionsMock);
@@ -205,6 +286,7 @@ describe('FileOperations', () => {
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
+                currentUser={{isAdmin: true}}
             />);
 
             wrapper = render(fileActionsMock);
@@ -225,6 +307,7 @@ describe('FileOperations', () => {
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
+                currentUser={{isAdmin: true}}
             />);
 
             wrapper = render(fileActionsMock);
@@ -245,6 +328,7 @@ describe('FileOperations', () => {
                 isWritingEnabled
                 clipboard={emptyClipboard}
                 showDeleted
+                currentUser={{isAdmin: true}}
             />);
 
             wrapper = render(fileActionsMock);

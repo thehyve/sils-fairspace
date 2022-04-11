@@ -33,6 +33,7 @@ import {getFirstPredicateId, getFirstPredicateValue} from "../metadata/common/js
 import {getBrowserSubpath, getHierarchyLevelByType, getPathHierarchy, isDirectory} from "./fileUtils";
 import EmptyInformationDrawer from "../common/components/EmptyInformationDrawer";
 import {compareBy, comparing} from "../common/utils/genericUtils";
+import {hasEditAccess} from "../users/userUtils";
 
 const useStyles = makeStyles((theme) => ({
     expandOpen: {
@@ -247,7 +248,7 @@ const MetadataCard = (props) => {
 };
 
 const PathMetadata = React.forwardRef((
-    {path, showDeleted, hasEditRight = false, forceExpand, allowCsvUpload, onRename},
+    {path, showDeleted, forceExpand, allowCsvUpload, onRename},
     ref
 ) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
@@ -257,6 +258,8 @@ const PathMetadata = React.forwardRef((
     let body;
     let linkedEntityType;
     let linkedEntityIri;
+    let access;
+    let hasEditRight = false;
     let isCurrentPathDirectory;
     let cardTitle = "Metadata";
     let avatar = <FolderOpenOutlined />;
@@ -267,8 +270,9 @@ const PathMetadata = React.forwardRef((
     } else if (!data) {
         body = <div>No metadata found</div>;
     } else {
-        ({linkedEntityIri, linkedEntityType} = data);
+        ({linkedEntityIri, linkedEntityType, access} = data);
         const typeName = getLabelForType(vocabulary, linkedEntityType);
+        hasEditRight = hasEditAccess(access);
 
         cardTitle = <span>{data.basename} <span className={classes.typeNameStyle}>{typeName}</span></span>;
         isCurrentPathDirectory = isDirectory(data, getHierarchyLevelByType(hierarchy, linkedEntityType));
@@ -339,7 +343,6 @@ export const DirectoryInformationDrawer = (props: DirectoryInformationDrawerProp
                 key={metadataPath}
                 path={metadataPath}
                 showDeleted={showDeleted}
-                hasEditRight // TODO: access rights
                 forceExpand={index === paths.length - 1}
                 allowCsvUpload={allowCsvUpload}
                 onRename={onRename}

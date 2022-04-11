@@ -228,20 +228,19 @@ public class DirectoryResourceTest {
         assertEquals(dir.subject.getProperty(sampleProp).getResource().getURI(), "http://example.com/samples#s2-b");
     }
 
-    @Ignore("Ignored until the basic data model is not defined")
     @Test
     public void testLinkedMetadataUploadByLabelSuccess() throws NotAuthorizedException, ConflictException, BadRequestException {
-        Property sampleProp = createProperty("https://institut-curie.org/ontology#sample");
+        Property departmentContactPersonName = createProperty("https://sils.uva.nl/ontology#departmentContactPersonName");
         dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
-        assert !dir.subject.hasProperty(sampleProp);
+        assert !dir.subject.hasProperty(departmentContactPersonName);
 
         String csv =
-                "Path,Is about biological sample\n" +
-                        ".,\"Sample A for subject 1\"\n";
+                "DirectoryName,Contact person name\n" +
+                        baseUri + "/coll1,\"John Smith\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file));
 
-        assertEquals(dir.subject.getProperty(sampleProp).getResource().getURI(), "http://example.com/samples#s1-a");
+        assertEquals(dir.subject.getProperty(departmentContactPersonName).getResource().getURI(), "http://example.com/samples#s1-a");
     }
 
     @Test(expected = BadRequestException.class)
