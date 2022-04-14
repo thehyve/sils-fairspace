@@ -79,12 +79,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
 
     const hierarchyRoot = getHierarchyRoot(hierarchy);
 
-    const getLocationContext = () => {
-        if (!openedDirectory.iri) {
-            return "";
-        }
-        return encodeURI(openedDirectory.iri);
-    };
+    const getLocationContext = () => openedDirectory.iri || "";
 
     const getBrowserPathPrefix = () => consts.PATH_SEPARATOR + "browser" + consts.PATH_SEPARATOR;
 
