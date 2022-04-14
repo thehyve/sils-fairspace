@@ -9,6 +9,7 @@ import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Literal;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static io.fairspace.saturn.config.ViewsConfig.ColumnType;
 import static io.fairspace.saturn.config.ViewsConfig.View;
@@ -87,14 +88,14 @@ public class ViewService {
         }
     }
 
-    private FacetDTO getFacetInfo(View view, View.Column column) {
+    private FacetDTO getFacetInfo(String facetNamePrefix, View.Column column, View view) {
         List<ValueDTO> values = null;
         Object min = null;
         Object max = null;
 
         switch (column.type) {
             case Term, TermSet -> {
-                var query = (view.name.equalsIgnoreCase("Resource") && column.name.equalsIgnoreCase("type"))
+                var query = (facetNamePrefix.equalsIgnoreCase("Resource") && column.name.equalsIgnoreCase("type"))
                         ? RESOURCE_TYPE_VALUES_QUERY
                         : VALUES_QUERY;
                 var binding = new QuerySolutionMap();
@@ -131,17 +132,18 @@ public class ViewService {
             }
         }
 
-        return new FacetDTO(view.name + "_" + column.name, column.title, column.type, values, min, max);
+        return new FacetDTO(facetNamePrefix + "_" + column.name, column.title, column.type, values, min, max);
     }
 
     public List<FacetDTO> getFacets() {
         return calculateRead(ds, () -> viewsConfig.views
                 .stream()
-                .flatMap(view ->
-                        view.columns.stream()
-                                .map(column -> getFacetInfo(view, column))
+                .flatMap(view -> Stream.concat(
+                        view.columns.stream().map(column -> getFacetInfo(view.name, column, view))
+                                .filter(f -> f.getMin() != null || f.getMax() != null || (f.getValues() != null && f.getValues().size() > 1)),
+                        view.joinColumns.stream().map(column -> getFacetInfo(column.sourceClassName, column, view))
                                 .filter(f -> f.getMin() != null || f.getMax() != null || (f.getValues() != null && f.getValues().size() > 1))
-                )
+                ))
                 .collect(toList()));
     }
 
@@ -152,6 +154,9 @@ public class ViewService {
                     columns.add(new ColumnDTO(v.name, v.itemName == null ? v.name : v.itemName, ColumnType.Identifier));
                     for (var c : v.columns) {
                         columns.add(new ColumnDTO(v.name + "_" + c.name, c.title, c.type));
+                    }
+                    for (var c : v.joinColumns) {
+                        columns.add(new ColumnDTO(c.sourceClassName + "_" + c.name, c.title, c.type));
                     }
                     for (var j : v.join) {
                         var joinView = viewsConfig.views.stream().filter(view -> view.name.equalsIgnoreCase(j.view)).findFirst().orElse(null);
@@ -168,6 +173,7 @@ public class ViewService {
                             columns.add(new ColumnDTO(joinView.name + "_" + c.name, c.title, c.type));
                         }
                     }
+
                     return new ViewDTO(v.name, v.title, columns);
                 })
                 .collect(toList());

@@ -20,6 +20,7 @@ import org.apache.jena.vocabulary.RDFS;
 
 import java.time.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static io.fairspace.saturn.rdf.ModelUtils.getResourceProperties;
 import static io.fairspace.saturn.util.ValidationUtils.validateIRI;
@@ -96,6 +97,9 @@ public class SparqlQueryService implements QueryService {
 
         for (var c : view.columns) {
             result.put(viewName + "_" + c.name, getValues(resource, c));
+        }
+        for (var c : view.joinColumns) {
+            result.put(c.sourceClassName + "_" + c.name, getValues(resource, c));
         }
         for (var j : view.join) {
             var joinView = getView(j.view);
@@ -209,7 +213,7 @@ public class SparqlQueryService implements QueryService {
 
             filters.stream()
                     .map(f -> f.field)
-                    .sorted(comparing(field -> field.contains("_") ? getColumn(field).priority : 0))
+                    .sorted(comparing(field -> field.contains("_") ? getColumn(field, view.name).priority : 0))
                     .map(field -> field.split("_")[0])
                     .distinct()
                     .forEach(entity -> {
@@ -234,7 +238,7 @@ public class SparqlQueryService implements QueryService {
                         request.getFilters()
                                 .stream()
                                 .filter(f -> f.getField().startsWith(entity))
-                                .sorted(comparing(f -> f.field.contains("_") ? getColumn(f.field).priority : 0))
+                                .sorted(comparing(f -> f.field.contains("_") ? getColumn(f.field, view.name).priority : 0))
                                 .forEach(f -> {
                                     String condition, property, field;
                                     if (f.getField().equals(entity)) {
@@ -243,8 +247,8 @@ public class SparqlQueryService implements QueryService {
                                         condition = toFilterString(f, ColumnType.Identifier, field);
                                     } else {
                                         field = f.field;
-                                        property = getColumn(f.field).source;
-                                        condition = toFilterString(f, getColumn(f.field).type, f.field);
+                                        property = getColumn(f.field, view.name).source;
+                                        condition = toFilterString(f, getColumn(f.field, view.name).type, f.field);
                                     }
                                     if (condition != null) {
                                         builder.append("?")
@@ -268,7 +272,7 @@ public class SparqlQueryService implements QueryService {
         builder.append("?")
                 .append(view.name)
                 .append(" a ?type .\nFILTER (?type IN (")
-                .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", ")))
+                .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", "))) //TODO view.types -> column.sourceClass
                 .append("))\nFILTER NOT EXISTS { ?")
                 .append(view.name)
                 .append(" fs:dateDeleted ?any }\n}");
@@ -300,20 +304,28 @@ public class SparqlQueryService implements QueryService {
         return new ElementFilter(expr).toString();
     }
 
-    private View.Column getColumn(String name) {
+    private View.Column getColumn(String name, String viewName) {
         var fieldNameParts = name.split("_");
         if (fieldNameParts.length != 2) {
             throw new IllegalArgumentException("Invalid field: " + name);
         }
-        var viewConfig = getView(fieldNameParts[0]);
-        return viewConfig.columns.stream()
-                .filter(column -> column.name.equalsIgnoreCase(fieldNameParts[1]))
-                .findFirst().orElseThrow(() -> {
-                    log.error("Unknown column for view {}: {}", fieldNameParts[0], fieldNameParts[1]);
-                    log.error("Expected one of {}", viewConfig.columns.stream().map(column -> column.name).collect(joining(", ")));
-                    throw new IllegalArgumentException(
-                            "Unknown column for view " + fieldNameParts[0] + ": " + fieldNameParts[1]);
-                });
+        var viewConfig = getView(viewName);
+        Optional<View.Column> column = Optional.empty();
+        if (viewName.equals(fieldNameParts[0])) {
+            column = viewConfig.columns.stream()
+                    .filter(c -> c.name.equalsIgnoreCase(fieldNameParts[1]))
+                    .findFirst();
+        } else if (!viewConfig.joinColumns.isEmpty()) {
+            column = viewConfig.joinColumns.stream()
+                    .filter(c -> c.sourceClassName.equalsIgnoreCase(fieldNameParts[0]) && c.name.equalsIgnoreCase(fieldNameParts[1]))
+                    .findFirst().map(c -> (View.Column) c);
+        }
+        return column.orElseThrow(() -> {
+            log.error("Unknown column for view {}: {}", viewName, fieldNameParts[1]);
+            log.error("Expected one of {}",
+                    Stream.concat(viewConfig.columns.stream(), viewConfig.joinColumns.stream()).map(c -> c.name).collect(joining(", ")));
+            throw new IllegalArgumentException("Unknown column for view " + viewName + ": " + fieldNameParts[1]);
+        });
     }
 
     private Query getSearchForFilesQuery(String parentIRI) {

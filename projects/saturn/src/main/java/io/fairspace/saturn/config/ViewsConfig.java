@@ -68,17 +68,25 @@ public class ViewsConfig {
          * The URLs of the types of entities that should be indexed in this view.
          */
         @JsonSetter(nulls = Nulls.AS_EMPTY)
-        public List<String> types;
+        public List<String> types = Collections.emptyList();
         /**
          * Specifies which other views (and which columns) to embed in this view.
          */
         @JsonSetter(nulls = Nulls.AS_EMPTY)
-        public List<JoinView> join;
+        public List<JoinView> join = Collections.emptyList();
         /**
          * The columns of the view, not including columns from joined views.
+         * TODO make sure either only one of 'join' or 'joinColumns' is specified
          */
         @JsonSetter(nulls = Nulls.AS_EMPTY)
-        public List<Column> columns;
+        public List<Column> columns = Collections.emptyList();
+
+        /**
+         * The columns from other sources that should be embedded in the view.
+         * Not supported in JDBC implementation alternative
+         */
+        @JsonSetter(nulls = Nulls.AS_EMPTY)
+        public List<JoinColumn> joinColumns = Collections.emptyList();
 
 
         public static class Column {
@@ -88,6 +96,11 @@ public class ViewsConfig {
             @NotBlank public String source;
             public String rdfType;
             public int priority;
+        }
+
+        public static class JoinColumn extends Column {
+            @NotBlank public String sourceClass;
+            @NotBlank public String sourceClassName;
         }
 
         public static class JoinView {
