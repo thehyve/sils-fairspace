@@ -22,6 +22,18 @@ views:
         sourceClass: https://sils.uva.nl/ontology#Project
         sourceClassName: Project
         type: text
+      - name: altitude
+        title: Altitude
+        source: https://sils.uva.nl/ontology#objectAltitude
+        sourceClass: https://sils.uva.nl/ontology#Object
+        sourceClassName: Object
+        type: number
+      - name: depth
+        title: Depth
+        source: https://sils.uva.nl/ontology#objectDepth
+        sourceClass: https://sils.uva.nl/ontology#Object
+        sourceClassName: Object
+        type: number
 #      - name: studyDescription
 #        title: Study description
 #        source: http://www.w3.org/2000/01/rdf-schema#label
