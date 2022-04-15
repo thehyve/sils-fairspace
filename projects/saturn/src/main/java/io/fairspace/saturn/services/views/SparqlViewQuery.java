@@ -149,19 +149,17 @@ public class SparqlViewQuery {
 
         for (var filter : filters) {
             if (isLinkedEntity) {
-                builder.append("?").append(entity).append(" ^fs:linkedEntity ?linkedDir").append(postfix).append(" .\n")
-                        .append("{\n")
+                builder.append("FILTER EXISTS {\n")
+                        .append("?").append(entity).append(" ^fs:linkedEntity ?linkedDir").append(postfix).append(" .\n")
                         .append("?linkedSubdir").append(postfix).append(" fs:linkedEntity ?facetEntity").append(postfix).append(" .\n")
                         .append("?linkedSubdir").append(postfix).append(" (^fs:belongsTo)+ ?linkedDir").append(postfix).append(" .\n")
-                        .append("?facetEntity").append(postfix).append(" rdfs:label ?facetEntityName .\n")
                         .append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(entity)).append(">")
                         .append(" .\n");
             } else {
-                builder.append("?").append(entity).append(" ^fs:linkedEntity ?linkedDir").append(postfix).append(" .\n")
-                        .append("{\n")
+                builder.append("FILTER EXISTS {\n")
+                        .append("?").append(entity).append(" ^fs:linkedEntity ?linkedDir").append(postfix).append(" .\n")
                         .append("?linkedDir").append(postfix).append(" fs:linkedEntity ?facetEntity").append(postfix).append(" .\n")
-                        .append("?facetEntity").append(postfix).append(" rdfs:label ?facetEntityName .\n")
-                        .append("?facetEntity").append(postfix).append(" rdf:type sils:").append(entity)
+                        .append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(entity)).append(">")
                         .append(" .\n");
             }
 
