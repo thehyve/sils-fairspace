@@ -2,36 +2,27 @@ package io.fairspace.saturn.services.views;
 
 import io.fairspace.saturn.config.Config;
 import io.fairspace.saturn.config.ViewsConfig;
-import io.fairspace.saturn.config.ViewsConfig.ColumnType;
 import io.fairspace.saturn.config.ViewsConfig.View;
 import io.fairspace.saturn.rdf.SparqlUtils;
 import io.fairspace.saturn.services.search.FileSearchRequest;
 import io.fairspace.saturn.services.search.SearchResultDTO;
 import io.fairspace.saturn.vocabulary.FS;
-import lombok.extern.log4j.*;
+import lombok.extern.log4j.Log4j2;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.sparql.expr.*;
-import org.apache.jena.sparql.syntax.ElementFilter;
 import org.apache.jena.vocabulary.RDFS;
 
-import java.time.*;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static io.fairspace.saturn.rdf.ModelUtils.getResourceProperties;
 import static io.fairspace.saturn.util.ValidationUtils.validateIRI;
 import static java.time.Instant.ofEpochMilli;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
-import static org.apache.jena.graph.NodeFactory.createURI;
 import static org.apache.jena.rdf.model.ResourceFactory.createProperty;
 import static org.apache.jena.rdf.model.ResourceFactory.createStringLiteral;
-import static org.apache.jena.sparql.expr.NodeValue.*;
-import static org.apache.jena.sparql.expr.NodeValue.makeString;
 import static org.apache.jena.system.Txn.calculateRead;
 
 @Log4j2
@@ -48,7 +39,8 @@ public class SparqlQueryService implements QueryService {
     }
 
     public ViewPageDTO retrieveViewPage(ViewRequest request) {
-        var query = getQuery(request);
+        var query = new SparqlViewQuery(this::getView, RESOURCES_VIEW)
+                .getQuery(getView(request.getView()), request.getFilters());
 
         log.debug("Executing query:\n{}", query);
 
@@ -170,164 +162,6 @@ public class SparqlQueryService implements QueryService {
         return new ValueDTO(label, resource.getURI());
     }
 
-    private Query getQuery(CountRequest request) {
-        var view = getView(request.getView());
-
-        var builder = new StringBuilder("PREFIX fs: <")
-                .append(FS.NS)
-                .append(">\n\nSELECT ?")
-                .append(view.name)
-                .append("\nWHERE {\n");
-
-        if (request.getFilters() != null) {
-            var filters = new ArrayList<>(request.getFilters());
-
-            filters.stream()
-                    .filter(f -> f.field.equals("location"))
-                    .findFirst()
-                    .ifPresent(locationFilter -> {
-                filters.remove(locationFilter);
-
-                if (locationFilter.values != null && !locationFilter.values.isEmpty()) {
-                    locationFilter.values.forEach(v -> validateIRI(v.toString()));
-                    var fileLink = view.join.stream().filter(v -> v.view.equals(RESOURCES_VIEW))
-                            .findFirst().orElse(null);
-                    if (fileLink != null) {
-                        builder.append("FILTER EXISTS {\n")
-                                .append("?file fs:belongsTo* ?location .\n FILTER (?location IN (")
-                                .append(locationFilter.values.stream().map(v -> "<" + v + ">").collect(joining(", ")))
-                                .append("))\n ?file <")
-                                .append(fileLink.on)
-                                .append("> ?")
-                                .append(view.name)
-                                .append(" . \n")
-                                .append("}\n");
-                    } else {
-                        builder.append("?").append(view.name)
-                                .append(" fs:belongsTo* ?location .\n FILTER (?location IN (")
-                                .append(locationFilter.values.stream().map(v -> "<" + v + ">").collect(joining(", ")))
-                                .append("))\n");
-                    }
-                }
-            });
-
-            filters.stream()
-                    .map(f -> f.field)
-                    .sorted(comparing(field -> field.contains("_") ? getColumn(field, view.name).priority : 0))
-                    .map(field -> field.split("_")[0])
-                    .distinct()
-                    .forEach(entity -> {
-                        if (!entity.equals(view.name)) {
-                            builder.append("FILTER EXISTS {\n");
-
-                            var join = view.join
-                                    .stream()
-                                    .filter(j -> j.view.equals(entity))
-                                    .findFirst()
-                                    .orElseThrow(() -> new RuntimeException("Unknown view: " + entity));
-
-                            builder.append("?")
-                                    .append(view.name)
-                                    .append(join.reverse ? " ^<" : " <")
-                                    .append(join.on)
-                                    .append("> ?")
-                                    .append(join.view)
-                                    .append(" .\n");
-                        }
-
-                        request.getFilters()
-                                .stream()
-                                .filter(f -> f.getField().startsWith(entity))
-                                .sorted(comparing(f -> f.field.contains("_") ? getColumn(f.field, view.name).priority : 0))
-                                .forEach(f -> {
-                                    String condition, property, field;
-                                    if (f.getField().equals(entity)) {
-                                        field = f.field + "_id";
-                                        property = RDFS.label.toString();
-                                        condition = toFilterString(f, ColumnType.Identifier, field);
-                                    } else {
-                                        field = f.field;
-                                        property = getColumn(f.field, view.name).source;
-                                        condition = toFilterString(f, getColumn(f.field, view.name).type, f.field);
-                                    }
-                                    if (condition != null) {
-                                        builder.append("?")
-                                                .append(entity)
-                                                .append(" <")
-                                                .append(property)
-                                                .append("> ?")
-                                                .append(field)
-                                                .append(" .\n")
-                                                .append(condition)
-                                                .append(" \n");
-                                    }
-                                });
-                        if (!entity.equals(view.name)) {
-                            builder.append("}");
-                        }
-                        builder.append("\n");
-                    });
-        }
-
-        builder.append("?")
-                .append(view.name)
-                .append(" a ?type .\nFILTER (?type IN (")
-                .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", "))) //TODO view.types -> column.sourceClass
-                .append("))\nFILTER NOT EXISTS { ?")
-                .append(view.name)
-                .append(" fs:dateDeleted ?any }\n}");
-
-        return QueryFactory.create(builder.toString());
-    }
-
-    private String toFilterString(ViewFilter filter, ColumnType type, String field) {
-        var variable = new ExprVar(field);
-
-        Expr expr;
-        if (filter.min != null && filter.max != null) {
-            expr = new E_LogicalAnd(new E_GreaterThanOrEqual(variable, toNodeValue(filter.min, type)), new E_LessThanOrEqual(variable, toNodeValue(filter.max, type)));
-        } else if (filter.min != null) {
-            expr = new E_GreaterThanOrEqual(variable, toNodeValue(filter.min, type));
-        } else if (filter.max != null) {
-            expr = new E_LessThanOrEqual(variable, toNodeValue(filter.max, type));
-        } else if (filter.values != null && !filter.values.isEmpty()) {
-            List<Expr> values = filter.values.stream()
-                    .map(o -> toNodeValue(o, type))
-                    .collect(toList());
-            expr = new E_OneOf(variable, new ExprList(values));
-        } else if (filter.prefix != null && !filter.prefix.isBlank()) {
-            expr = new E_StrStartsWith(new E_StrLowerCase(variable), makeString(filter.prefix.trim().toLowerCase()));
-        } else {
-            return null;
-        }
-
-        return new ElementFilter(expr).toString();
-    }
-
-    private View.Column getColumn(String name, String viewName) {
-        var fieldNameParts = name.split("_");
-        if (fieldNameParts.length != 2) {
-            throw new IllegalArgumentException("Invalid field: " + name);
-        }
-        var viewConfig = getView(viewName);
-        Optional<View.Column> column = Optional.empty();
-        if (viewName.equals(fieldNameParts[0])) {
-            column = viewConfig.columns.stream()
-                    .filter(c -> c.name.equalsIgnoreCase(fieldNameParts[1]))
-                    .findFirst();
-        } else if (!viewConfig.joinColumns.isEmpty()) {
-            column = viewConfig.joinColumns.stream()
-                    .filter(c -> c.sourceClassName.equalsIgnoreCase(fieldNameParts[0]) && c.name.equalsIgnoreCase(fieldNameParts[1]))
-                    .findFirst().map(c -> (View.Column) c);
-        }
-        return column.orElseThrow(() -> {
-            log.error("Unknown column for view {}: {}", viewName, fieldNameParts[1]);
-            log.error("Expected one of {}",
-                    Stream.concat(viewConfig.columns.stream(), viewConfig.joinColumns.stream()).map(c -> c.name).collect(joining(", ")));
-            throw new IllegalArgumentException("Unknown column for view " + viewName + ": " + fieldNameParts[1]);
-        });
-    }
-
     private Query getSearchForFilesQuery(String parentIRI) {
         var builder = new StringBuilder("PREFIX fs: <")
                 .append(FS.NS)
@@ -350,23 +184,9 @@ public class SparqlQueryService implements QueryService {
         return QueryFactory.create(builder.toString());
     }
 
-    private static Calendar convertDateValue(String value) {
-        var calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(Instant.parse(value).toEpochMilli());
-        return calendar;
-    }
-
-    private static NodeValue toNodeValue(Object o, ColumnType type) {
-        return switch (type) {
-            case Identifier, Term, TermSet -> makeNode(createURI(o.toString()));
-            case Text, Set -> makeString(o.toString());
-            case Number -> makeDecimal(o.toString());
-            case Date -> makeDateTime(convertDateValue(o.toString()));
-        };
-    }
-
     public CountDTO count(CountRequest request) {
-        var query = getQuery(request);
+        var query = new SparqlViewQuery(this::getView, RESOURCES_VIEW)
+                .getQuery(getView(request.getView()), request.getFilters());
 
         log.debug("Querying the total number of matches: \n{}", query);
 
