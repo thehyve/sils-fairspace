@@ -8,6 +8,8 @@ import io.milton.resource.CollectionResource;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 
+import java.util.HashMap;
+
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.PathUtils.MAX_ROOT_DIRECTORY_NAME_LENGTH;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
@@ -64,6 +66,26 @@ public final class DavUtils {
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
+    }
+
+    public static HashMap<String, String> getHierarchyItemParents() {
+        HashMap<String, String> parents = new HashMap<>();
+
+        var hierarchyItems = VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy).toList();
+
+        for (var parent : hierarchyItems) {
+            var descendents = parent.getProperty(FS.hierarchyDescendants);
+
+            if (descendents == null || descendents.getList().size() == 0) {
+                continue;
+            }
+
+            for(var descendent : descendents.getList().iterator().toList()) {
+                parents.put(descendent.asResource().getURI(), parent.getURI());
+            }
+        }
+
+        return parents;
     }
 
     public static void validateResourceName(String name) throws BadRequestException {

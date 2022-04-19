@@ -4,11 +4,14 @@ import io.fairspace.saturn.config.ViewsConfig;
 import io.fairspace.saturn.config.ViewsConfig.ColumnType;
 import io.fairspace.saturn.config.ViewsConfig.View;
 import io.fairspace.saturn.vocabulary.FS;
+import io.fairspace.saturn.webdav.DavUtils;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.shacl.vocabulary.SHACL;
 import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.syntax.ElementFilter;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.time.Instant;
@@ -25,25 +28,25 @@ import static org.apache.jena.sparql.expr.NodeValue.*;
 import static org.apache.jena.sparql.expr.NodeValue.makeDateTime;
 
 @Log4j2
-public class SparqlViewQuery {
+public class SparqlViewQueryBuilder {
     private final StringBuilder builder = new StringBuilder();
     private final Function<String, View> getView;
     private final String RESOURCES_VIEW;
-    private final Hashtable<String, String> entityTypes = new Hashtable<>();
+    private final HashMap<String, List<String>> entityTypes = new HashMap<>();
+    private static final HashMap<String, String> parents = DavUtils.getHierarchyItemParents();
 
-    public SparqlViewQuery(Function<String, View> getView, String resourcesView) {
+    public SparqlViewQueryBuilder(Function<String, View> getView, String resourcesView) {
         this.getView = getView;
         RESOURCES_VIEW = resourcesView;
     }
 
     public Query getQuery(View view, List<ViewFilter> viewFilters) {
-        FetchTypes(view);
+        fetchTypes(view);
 
-        AppNamespace("fs", FS.NS);
-        AppNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-        AppNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
-        AppNamespace("sils", "https://sils.uva.nl/ontology#");
-        AppNamespace("sh", "http://www.w3.org/ns/shacl#");
+        appNamespace("fs", FS.NS);
+        appNamespace("rdf", RDF.getURI());
+        appNamespace("rdfs", RDFS.getURI());
+        appNamespace("sh", SHACL.NS);
 
         builder.append("\n");
 
@@ -53,15 +56,14 @@ public class SparqlViewQuery {
 
         builder.append("?dir fs:linkedEntity ?entity .\n")
                 .append("?subdir (fs:belongsTo)+ ?dir .\n")
-                .append("?subdir fs:linkedEntity ?").append(view.name).append(" .\n");
-        if (viewFilters != null) {
-            var filters = new ArrayList<>(viewFilters);
+                .append("?subdir fs:linkedEntity ?")
+                .append(view.name)
+                .append(" .\n");
 
-//          TODO: add location filters
-//          AddLocationFilter(view, builder, filters);
+//      TODO: add location filters
+//      AddLocationFilter(view, builder, viewFilters);
 
-            AddFacetFilters(view, filters);
-        }
+        addFacetFilters(view, viewFilters);
 
         builder.append("?")
                 .append(view.name)
@@ -74,14 +76,7 @@ public class SparqlViewQuery {
         return QueryFactory.create(builder.toString());
     }
 
-    private void FetchTypes(View view) {
-        // TODO: discuss how to handle multiple types with same name
-        entityTypes.put(view.name, view.types.get(0));
-
-        view.joinColumns.forEach(column -> entityTypes.put(column.sourceClassName, column.sourceClass));
-    }
-
-    private void AppNamespace(String alias, String namespace) {
+    private void appNamespace(String alias, String namespace) {
         builder.append("PREFIX ")
                 .append(alias)
                 .append(": <")
@@ -89,15 +84,13 @@ public class SparqlViewQuery {
                 .append(">\n");
     }
 
-    private void AddFacetFilters(ViewsConfig.View view, ArrayList<ViewFilter> filters) {
+    private void addFacetFilters(ViewsConfig.View view, List<ViewFilter> filters) {
         var entitiesWithFilter = filters.stream()
                 .map(f -> f.field)
                 .sorted(comparing(field -> field.contains("_") ? getColumn(field, view.name).priority : 0))
                 .map(field -> field.split("_")[0])
                 .distinct()
                 .toList();
-
-        int entityNumber = 1;
 
         for (String entity : entitiesWithFilter) {
             var entityFilters = filters.stream()
@@ -106,14 +99,13 @@ public class SparqlViewQuery {
                     .toList();
 
             var isLinkedEntity = !entity.equals(view.name);
-            AddFacetFilter(entityFilters, entity, isLinkedEntity, entityNumber);
-            entityNumber++;
+            addSingleFacetFilter(entityFilters, entity, isLinkedEntity, view.types);
         }
 
         builder.append("\n");
     }
 
-    private void AddLocationFilter(ViewsConfig.View view, ArrayList<ViewFilter> filters) {
+    private void addLocationFilter(ViewsConfig.View view, ArrayList<ViewFilter> filters) {
         filters.stream()
                 .filter(f -> f.field.equals("location"))
                 .findFirst()
@@ -144,23 +136,49 @@ public class SparqlViewQuery {
                 });
     }
 
-    private void AddFacetFilter(List<ViewFilter> filters, String entity, boolean isLinkedEntity, int entityNumber) {
-        String postfix = String.format("%3s", entityNumber).replace(' ', '0');
+    private void addSingleFacetFilter(List<ViewFilter> filters, String entity, boolean isLinkedEntity, List<String> types) {
+        String postfix = "_" + entity;
 
         for (var filter : filters) {
+            builder.append("FILTER EXISTS {\n")
+                    .append("?")
+                    .append(entity)
+                    .append(" ^fs:linkedEntity ?linkedDir")
+                    .append(postfix)
+                    .append(" .\n");
+
             if (isLinkedEntity) {
-                builder.append("FILTER EXISTS {\n")
-                        .append("?").append(entity).append(" ^fs:linkedEntity ?linkedDir").append(postfix).append(" .\n")
-                        .append("?linkedSubdir").append(postfix).append(" fs:linkedEntity ?facetEntity").append(postfix).append(" .\n")
-                        .append("?linkedSubdir").append(postfix).append(" (^fs:belongsTo)+ ?linkedDir").append(postfix).append(" .\n")
-                        .append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(entity)).append(">")
+                var entityLocatedTowardRoot = types.stream()
+                        .anyMatch((viewType) -> entityLocatedTowardRoot(entityTypes.get(entity).get(0), viewType));
+
+                var searchDirection = entityLocatedTowardRoot ? "^" : "";
+
+                builder.append("?linkedSubdir")
+                        .append(postfix)
+                        .append(" fs:linkedEntity ?facetEntity")
+                        .append(postfix)
+                        .append(" .\n")
+                        .append("?linkedSubdir")
+                        .append(postfix)
+                        .append(" (")
+                        .append(searchDirection)
+                        .append("fs:belongsTo)+ ?linkedDir")
+                        .append(postfix)
                         .append(" .\n");
             } else {
-                builder.append("FILTER EXISTS {\n")
-                        .append("?").append(entity).append(" ^fs:linkedEntity ?linkedDir").append(postfix).append(" .\n")
-                        .append("?linkedDir").append(postfix).append(" fs:linkedEntity ?facetEntity").append(postfix).append(" .\n")
-                        .append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(entity)).append(">")
+                builder.append("?linkedDir")
+                        .append(postfix)
+                        .append(" fs:linkedEntity ?facetEntity")
+                        .append(postfix)
                         .append(" .\n");
+            }
+
+            if (entityTypes.get(entity).size() == 1) {
+                builder.append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(entity).get(0)).append("> .\n");
+            } else {
+                builder.append("?facetEntity").append(postfix).append(" a ?type .\\nFILTER (?type IN (\")\n")
+                        .append(entityTypes.get(entity).stream().map(t -> "<\" + t + \">").collect(joining(", ")))
+                        .append("\n");
             }
 
             String condition, property, field;
@@ -244,5 +262,46 @@ public class SparqlViewQuery {
                     Stream.concat(viewConfig.columns.stream(), viewConfig.joinColumns.stream()).map(c -> c.name).collect(joining(", ")));
             throw new IllegalArgumentException("Unknown column for view " + viewName + ": " + fieldNameParts[1]);
         });
+    }
+
+    /**
+     * The view contains join columns and view columns.
+     * <p>
+     * Both have type information, extract here for later usage, because client doesn't send it.
+     */
+    private void fetchTypes(View view) {
+        if (view.types == null || view.types.isEmpty()) {
+            throw new RuntimeException("View " + view.name + " has empty 'types' list");
+        }
+
+        entityTypes.put(view.name, view.types);
+
+        view.joinColumns.forEach(column -> {
+            if (column.sourceClass.isBlank()) {
+                throw new RuntimeException("joinColumn " + column.name + " has no 'sourceClass'");
+            }
+
+            entityTypes.put(column.sourceClassName, List.of(column.sourceClass));
+        });
+    }
+
+    /**
+     * We have a tree structure of directories. The sparql queries we use need to now in which direction to
+     * traverse the 'belongsTo' properties. Either toward the root or in opposite direction (and use a '^' in sparql)
+     * <p>
+     * Here we determine the position of the target directory, is it between current node and root, or between current
+     * node and endnodes.
+     */
+    private Boolean entityLocatedTowardRoot(String treeLocation, String targetEntity) {
+        var parent = parents.get(treeLocation);
+
+        if (parent.isEmpty()) {
+            return false;
+        }
+        if (parent.equals(targetEntity)) {
+            return true;
+        }
+
+        return entityLocatedTowardRoot(parent, targetEntity);
     }
 }

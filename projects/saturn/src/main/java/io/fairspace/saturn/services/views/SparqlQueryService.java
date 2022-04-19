@@ -39,7 +39,7 @@ public class SparqlQueryService implements QueryService {
     }
 
     public ViewPageDTO retrieveViewPage(ViewRequest request) {
-        var query = new SparqlViewQuery(this::getView, RESOURCES_VIEW)
+        var query = new SparqlViewQueryBuilder(this::getView, RESOURCES_VIEW)
                 .getQuery(getView(request.getView()), request.getFilters());
 
         log.debug("Executing query:\n{}", query);
@@ -113,7 +113,7 @@ public class SparqlQueryService implements QueryService {
                     var values = refs.stream()
                             .flatMap(ref -> getValues(ref, col)
                                     .stream()).
-                                    collect(toCollection(TreeSet::new));
+                            collect(toCollection(TreeSet::new));
 
                     result.put(joinView.name + "_" + colName, values);
                 }
@@ -185,7 +185,7 @@ public class SparqlQueryService implements QueryService {
     }
 
     public CountDTO count(CountRequest request) {
-        var query = new SparqlViewQuery(this::getView, RESOURCES_VIEW)
+        var query = new SparqlViewQueryBuilder(this::getView, RESOURCES_VIEW)
                 .getQuery(getView(request.getView()), request.getFilters());
 
         log.debug("Querying the total number of matches: \n{}", query);
