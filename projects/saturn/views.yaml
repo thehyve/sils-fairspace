@@ -1,5 +1,5 @@
 views:
-  - name: File
+  - name: Resource
     title: Files
     itemName: Name
     types:
@@ -22,14 +22,21 @@ views:
         sourceClass: https://sils.uva.nl/ontology#Project
         sourceClassName: Project
         type: text
-      - name: altitude
-        title: Altitude
+      - name: objectSpecies
+        title: Object species
+        source: https://sils.uva.nl/ontology#objectSpecies
+        rdfType: https://sils.uva.nl/ontology#Species
+        sourceClass: https://sils.uva.nl/ontology#Object
+        sourceClassName: Object
+        type: term
+      - name: objectAltitude
+        title: Object altitude
         source: https://sils.uva.nl/ontology#objectAltitude
         sourceClass: https://sils.uva.nl/ontology#Object
         sourceClassName: Object
         type: number
-      - name: depth
-        title: Depth
+      - name: objectDepth
+        title: Object depth
         source: https://sils.uva.nl/ontology#objectDepth
         sourceClass: https://sils.uva.nl/ontology#Object
         sourceClassName: Object

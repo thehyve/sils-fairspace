@@ -76,7 +76,6 @@ public class ViewsConfig {
         public List<JoinView> join = Collections.emptyList();
         /**
          * The columns of the view, not including columns from joined views.
-         * TODO make sure either only one of 'join' or 'joinColumns' is specified
          */
         @JsonSetter(nulls = Nulls.AS_EMPTY)
         public List<Column> columns = Collections.emptyList();
