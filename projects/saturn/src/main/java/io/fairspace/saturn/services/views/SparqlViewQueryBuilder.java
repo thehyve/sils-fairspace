@@ -16,7 +16,6 @@ import org.apache.jena.vocabulary.RDFS;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static io.fairspace.saturn.util.ValidationUtils.validateIRI;
@@ -29,18 +28,19 @@ import static org.apache.jena.sparql.expr.NodeValue.makeDateTime;
 
 @Log4j2
 public class SparqlViewQueryBuilder {
-    private final StringBuilder builder = new StringBuilder();
-    private final Function<String, View> getView;
+    private StringBuilder builder;
+    private View view;
     private final String RESOURCES_VIEW;
     private final HashMap<String, List<String>> entityTypes = new HashMap<>();
     private static final HashMap<String, String> parents = DavUtils.getHierarchyItemParents();
 
-    public SparqlViewQueryBuilder(Function<String, View> getView, String resourcesView) {
-        this.getView = getView;
+    public SparqlViewQueryBuilder(String resourcesView) {
         RESOURCES_VIEW = resourcesView;
     }
 
     public Query getQuery(View view, List<ViewFilter> viewFilters) {
+        builder = new StringBuilder();
+        this.view = view;
         fetchTypes(view);
 
         appNamespace("fs", FS.NS);
@@ -92,15 +92,15 @@ public class SparqlViewQueryBuilder {
                 .distinct()
                 .toList();
 
-        for (String entity : entitiesWithFilter) {
+        entitiesWithFilter.forEach(entity -> {
             var entityFilters = filters.stream()
                     .filter(f -> f.getField().startsWith(entity))
                     .sorted(comparing(f -> f.field.contains("_") ? getColumn(f.field, view.name).priority : 0))
                     .toList();
 
             var isLinkedEntity = !entity.equals(view.name);
-            addSingleFacetFilter(entityFilters, entity, isLinkedEntity, view.types);
-        }
+            addSingleFacetFilter(entityFilters, view.name, entity, isLinkedEntity, view.types);
+        });
 
         builder.append("\n");
     }
@@ -136,20 +136,20 @@ public class SparqlViewQueryBuilder {
                 });
     }
 
-    private void addSingleFacetFilter(List<ViewFilter> filters, String entity, boolean isLinkedEntity, List<String> types) {
-        String postfix = "_" + entity;
+    private void addSingleFacetFilter(List<ViewFilter> filters, String viewEntity, String facetEntity, boolean isLinkedEntity, List<String> types) {
+        String postfix = "_" + facetEntity;
 
         for (var filter : filters) {
             builder.append("FILTER EXISTS {\n")
                     .append("?")
-                    .append(entity)
+                    .append(viewEntity)
                     .append(" ^fs:linkedEntity ?linkedDir")
                     .append(postfix)
                     .append(" .\n");
 
             if (isLinkedEntity) {
                 var entityLocatedTowardRoot = types.stream()
-                        .anyMatch((viewType) -> entityLocatedTowardRoot(entityTypes.get(entity).get(0), viewType));
+                        .anyMatch((viewType) -> entityLocatedTowardRoot(viewType, entityTypes.get(facetEntity).get(0)));
 
                 var searchDirection = entityLocatedTowardRoot ? "^" : "";
 
@@ -173,26 +173,32 @@ public class SparqlViewQueryBuilder {
                         .append(" .\n");
             }
 
-            if (entityTypes.get(entity).size() == 1) {
-                builder.append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(entity).get(0)).append("> .\n");
+            if (entityTypes.get(facetEntity).size() == 1) {
+                builder.append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(facetEntity).get(0)).append("> .\n");
             } else {
                 builder.append("?facetEntity").append(postfix).append(" a ?type .\\nFILTER (?type IN (\")\n")
-                        .append(entityTypes.get(entity).stream().map(t -> "<\" + t + \">").collect(joining(", ")))
+                        .append(entityTypes.get(facetEntity).stream().map(t -> "<\" + t + \">").collect(joining(", ")))
                         .append("\n");
             }
 
             String condition, property, field;
 
-            if (filter.getField().equals(entity)) {
+            if (filter.getField().equals(facetEntity)) {
                 field = filter.field + "_id";
                 property = RDFS.label.toString();
                 condition = toFilterString(filter, ViewsConfig.ColumnType.Identifier, field);
             } else {
                 field = filter.field;
-                property = getColumn(field, entity).source;
-                condition = toFilterString(filter, getColumn(field, entity).type, filter.field);
+                property = getColumn(field, facetEntity).source;
+                condition = toFilterString(filter, getColumn(field, facetEntity).type, filter.field);
             }
-            builder.append("?facetEntity").append(postfix).append(" <").append(property).append("> ?").append(field).append(postfix).append(" .\n");
+            builder.append("?facetEntity")
+                    .append(postfix)
+                    .append(" <")
+                    .append(property)
+                    .append("> ?")
+                    .append(field)
+                    .append(" .\n");
             builder.append(condition);
             builder.append("\n");
             builder.append("}");
@@ -233,7 +239,6 @@ public class SparqlViewQueryBuilder {
         };
     }
 
-
     private Calendar convertDateValue(String value) {
         var calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Instant.parse(value).toEpochMilli());
@@ -245,21 +250,21 @@ public class SparqlViewQueryBuilder {
         if (fieldNameParts.length != 2) {
             throw new IllegalArgumentException("Invalid field: " + name);
         }
-        var viewConfig = getView.apply(viewName);
         Optional<View.Column> column = Optional.empty();
-        if (viewName.equals(fieldNameParts[0])) {
-            column = viewConfig.columns.stream()
+        if (viewName.equals(view.name)) {
+            column = view.columns.stream()
                     .filter(c -> c.name.equalsIgnoreCase(fieldNameParts[1]))
                     .findFirst();
-        } else if (!viewConfig.joinColumns.isEmpty()) {
-            column = viewConfig.joinColumns.stream()
+        } else if (!view.joinColumns.isEmpty()) {
+            column = view.joinColumns.stream()
                     .filter(c -> c.sourceClassName.equalsIgnoreCase(fieldNameParts[0]) && c.name.equalsIgnoreCase(fieldNameParts[1]))
                     .findFirst().map(c -> (View.Column) c);
         }
+
         return column.orElseThrow(() -> {
             log.error("Unknown column for view {}: {}", viewName, fieldNameParts[1]);
             log.error("Expected one of {}",
-                    Stream.concat(viewConfig.columns.stream(), viewConfig.joinColumns.stream()).map(c -> c.name).collect(joining(", ")));
+                    Stream.concat(view.columns.stream(), view.joinColumns.stream()).map(c -> c.name).collect(joining(", ")));
             throw new IllegalArgumentException("Unknown column for view " + viewName + ": " + fieldNameParts[1]);
         });
     }
@@ -295,7 +300,7 @@ public class SparqlViewQueryBuilder {
     private Boolean entityLocatedTowardRoot(String treeLocation, String targetEntity) {
         var parent = parents.get(treeLocation);
 
-        if (parent.isEmpty()) {
+        if (parent == null || parent.isEmpty()) {
             return false;
         }
         if (parent.equals(targetEntity)) {

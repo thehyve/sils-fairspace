@@ -39,7 +39,7 @@ public class SparqlQueryService implements QueryService {
     }
 
     public ViewPageDTO retrieveViewPage(ViewRequest request) {
-        var query = new SparqlViewQueryBuilder(this::getView, RESOURCES_VIEW)
+        var query = new SparqlViewQueryBuilder(RESOURCES_VIEW)
                 .getQuery(getView(request.getView()), request.getFilters());
 
         log.debug("Executing query:\n{}", query);
@@ -185,7 +185,7 @@ public class SparqlQueryService implements QueryService {
     }
 
     public CountDTO count(CountRequest request) {
-        var query = new SparqlViewQueryBuilder(this::getView, RESOURCES_VIEW)
+        var query = new SparqlViewQueryBuilder(RESOURCES_VIEW)
                 .getQuery(getView(request.getView()), request.getFilters());
 
         log.debug("Querying the total number of matches: \n{}", query);
