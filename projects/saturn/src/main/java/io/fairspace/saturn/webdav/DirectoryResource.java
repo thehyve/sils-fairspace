@@ -336,13 +336,13 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
                 }
             }
             setErrorMessage(message.toString());
-            throw new BadRequestException("Error applying metadata", e);
+            throw new BadRequestException("Error applying metadata. " + message);
         } catch (AccessDeniedException e) {
             setErrorMessage("Access denied. " + e.getMessage());
-            throw new BadRequestException("Error applying metadata. Access denied.", e);
+            throw new BadRequestException("Error applying metadata. Access denied.");
         } catch (Exception e) {
             setErrorMessage(e.getMessage());
-            throw new BadRequestException("Error applying metadata", e);
+            throw new BadRequestException("Error applying metadata. " + e.getMessage());
         }
     }
 
@@ -363,13 +363,15 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         if (!subject.getModel().containsResource(dirResource)
             || dirResource.getPropertyResourceValue(FS.linkedEntityType) == null
             || dirResource.getPropertyResourceValue(FS.linkedEntityType).inModel(VOCABULARY) == null) {
-            setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" not found");
-            throw new BadRequestException(this);
+            String error = "Line " + lineNumber + ". File \"" + name + "\" not found";
+            setErrorMessage(error);
+            throw new BadRequestException(error);
         }
 
         if (subject.hasProperty(FS.dateDeleted)) {
-            setErrorMessage("Line " + lineNumber + ". File \"" + name + "\" was deleted");
-            throw new BadRequestException(this);
+            String error = "Line " + lineNumber + ". File \"" + name + "\" was deleted";
+            setErrorMessage(error);
+            throw new BadRequestException(error);
         }
 
         return dirResource;

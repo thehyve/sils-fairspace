@@ -42,13 +42,10 @@ import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static org.apache.jena.query.DatasetFactory.wrap;
 import static org.apache.jena.rdf.model.ResourceFactory.createProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-@Ignore("Fix after updating metadata upload functionality")
 @RunWith(MockitoJUnitRunner.class)
 public class DirectoryResourceTest {
     static final String BASE_PATH = "/api/webdav";
@@ -66,18 +63,23 @@ public class DirectoryResourceTest {
     FileItem file;
     @Mock
     BlobFileItem blobFileItem;
-    @Mock
-    private MetadataPermissions permissions;
 
     private DavFactory davFactory;
     DirectoryResource dir;
     User admin;
     Authentication.User adminAuthentication;
+    User user;
+    Authentication.User userAuthentication;
     private org.eclipse.jetty.server.Request request;
 
     private void selectAdmin() {
         lenient().when(request.getAuthentication()).thenReturn(adminAuthentication);
         lenient().when(userService.currentUser()).thenReturn(admin);
+    }
+
+    private void selectRegularUser() {
+        lenient().when(request.getAuthentication()).thenReturn(userAuthentication);
+        lenient().when(userService.currentUser()).thenReturn(user);
     }
 
     @Before
@@ -86,8 +88,7 @@ public class DirectoryResourceTest {
         Dataset ds = wrap(dsg);
         Transactions tx = new SimpleTransactions(ds);
         model = ds.getDefaultModel();
-
-        when(permissions.canWriteMetadata(any())).thenReturn(true);
+        MetadataPermissions permissions = new MetadataPermissions(userService, VOCABULARY);
         Context context = new Context();
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
@@ -96,9 +97,13 @@ public class DirectoryResourceTest {
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);
+        userAuthentication = mockAuthentication("user");
+        user = createTestUser("user", false);
+        new DAO(model).write(user);
 
         setupRequestContext();
         request = getCurrentRequest();
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
 
         selectAdmin();
 
@@ -107,17 +112,19 @@ public class DirectoryResourceTest {
 
         var blob = new BlobInfo("id", FILE_SIZE, "md5");
         when(request.getAttribute("BLOB")).thenReturn(blob);
-        when(blobFileItem.getBlob()).thenReturn(blob);
+//        when(blobFileItem.getBlob()).thenReturn(blob);
         when(file.getInputStream()).thenAnswer(invocation -> new ByteArrayInputStream(new byte[FILE_SIZE]));
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
         var coll1 = (PutableResource) root.createCollection("coll1");
+        var coll2 = (PutableResource) root.createCollection("coll2");
         coll1.createNew("coffee.jpg", null, 0L, "image/jpeg");
 
         var testdata = model.read("testdata.ttl");
         metadataService.put(testdata);
     }
 
+    @Ignore("File upload functionality currently not supported.")
     @Test
     public void testFileUploadSuccess() throws NotAuthorizedException, ConflictException, BadRequestException {
         dir = new DirectoryResource(davFactory, model.getResource(baseUri + "/dir"), Access.Manage);
@@ -136,6 +143,7 @@ public class DirectoryResourceTest {
         assertEquals(FILE_SIZE, (long) file.getContentLength());
     }
 
+    @Ignore("File upload functionality currently not supported.")
     @Test
     public void testFileUploadExistingDir() throws NotAuthorizedException, ConflictException, BadRequestException {
         dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
@@ -153,23 +161,22 @@ public class DirectoryResourceTest {
     @Test
     public void testTypedLiteralMetadataUploadSuccess() throws NotAuthorizedException, ConflictException, BadRequestException {
         String csv =
-                "Path,Description\n" +
-                        ".,\"Blah\"\n" +
-                        "./coffee.jpg,\"Blah blah\"\n";
+                "DirectoryName,Description\n" +
+                        "coll1,\"Blah\"\n" +
+                        "coll2,\"Blah blah\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         DirectoryResource dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
+        DirectoryResource dir2 = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll2");
         dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file));
 
-        assertTrue(dir.subject.hasProperty(RDFS.comment, model.createTypedLiteral("Blah")));
-
-        FileResource file = (FileResource) davFactory.getResource(null, BASE_PATH + "/coll1/coffee.jpg");
-        assertTrue(file.subject.hasProperty(RDFS.comment, model.createTypedLiteral("Blah blah")));
+        assertTrue(model.getResource(dir.getLinkedEntityIri()).hasProperty(RDFS.comment, model.createTypedLiteral("Blah")));
+        assertTrue(model.getResource(dir2.getLinkedEntityIri()).hasProperty(RDFS.comment, model.createTypedLiteral("Blah blah")));
     }
 
     @Test(expected = BadRequestException.class)
     public void testMetadataUploadUnknownProperty() throws NotAuthorizedException, ConflictException, BadRequestException {
         String csv =
-                "Path,Unknown\n" +
+                "DirectoryName,Unknown\n" +
                         "./coll1,\"Blah blah\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
@@ -191,7 +198,7 @@ public class DirectoryResourceTest {
     @Test(expected = BadRequestException.class)
     public void testMetadataUploadUnknownFile() throws NotAuthorizedException, ConflictException, BadRequestException {
         String csv =
-                "Path,Description\n" +
+                "DirectoryName,Description\n" +
                         "./subdir,\"Blah blah\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
@@ -202,12 +209,11 @@ public class DirectoryResourceTest {
     @Test(expected = BadRequestException.class)
     public void testMetadataUploadDeletedFile() throws NotAuthorizedException, ConflictException, BadRequestException {
         String csv =
-                "Path,Description\n" +
-                        "./subdir,\"Blah blah\"\n";
+                "DirectoryName,Label,Description\n" +
+                        "coll1,\"subdir label\",\"Blah blah\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
-        var subdir = (DirectoryResource) dir.createCollection("subdir");
-        subdir.delete();
+        dir.delete();
 
         dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file));
     }
@@ -220,7 +226,7 @@ public class DirectoryResourceTest {
         assert !dir.subject.hasProperty(sampleProp);
 
         String csv =
-                "Path,Is about biological sample\n" +
+                "DirectoryName,Is about biological sample\n" +
                         ".,\"http://example.com/samples#s2-b\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file));
@@ -228,9 +234,10 @@ public class DirectoryResourceTest {
         assertEquals(dir.subject.getProperty(sampleProp).getResource().getURI(), "http://example.com/samples#s2-b");
     }
 
+    @Ignore("No entity linked to the root level entity.")
     @Test
     public void testLinkedMetadataUploadByLabelSuccess() throws NotAuthorizedException, ConflictException, BadRequestException {
-        Property departmentContactPersonName = createProperty("https://sils.uva.nl/ontology#departmentContactPersonName");
+        Property departmentContactPersonName = createProperty("http://example.com/samples#s1-a");
         dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
         assert !dir.subject.hasProperty(departmentContactPersonName);
 
@@ -240,7 +247,7 @@ public class DirectoryResourceTest {
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file));
 
-        assertEquals(dir.subject.getProperty(departmentContactPersonName).getResource().getURI(), "http://example.com/samples#s1-a");
+        assertEquals(model.getResource(dir.getLinkedEntityIri()).getProperty(departmentContactPersonName).getResource().getURI(), "http://example.com/samples#s1-a");
     }
 
     @Test(expected = BadRequestException.class)
@@ -250,9 +257,25 @@ public class DirectoryResourceTest {
         assert !dir.subject.hasProperty(sampleProp);
 
         String csv =
-                "Path,Is about biological sample\n" +
+                "DirectoryName,Is about biological sample\n" +
                         ".,\"http://example.com/samples#unknown-sample\"\n";
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
         dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file));
+    }
+
+    @Test
+    public void testMetadataUploadAccessDenied() throws NotAuthorizedException, ConflictException, BadRequestException {
+        selectRegularUser();
+        String csv =
+                "DirectoryName,Description\n" +
+                        "coll1,\"Blah\"\n";
+        when(file.getInputStream()).thenReturn(new ByteArrayInputStream(csv.getBytes()));
+        DirectoryResource dir = (DirectoryResource) davFactory.getResource(null, BASE_PATH + "/coll1");
+
+        Exception exception = assertThrows(BadRequestException.class, () -> dir.processForm(Map.of("action", "upload_metadata"), Map.of("file", file)));
+        String expectedMessage = "Error applying metadata. Access denied.";
+        String actualMessage = ((BadRequestException) exception).getReason();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 }
