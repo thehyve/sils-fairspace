@@ -30,8 +30,10 @@ import static org.apache.jena.sparql.expr.NodeValue.makeDateTime;
 public class SparqlViewQueryBuilder {
     private StringBuilder builder;
     private View view;
+    private HashSet<String> entityColumnsWithSubquery;
     private final String RESOURCES_VIEW;
-    private final HashMap<String, List<String>> entityTypes = new HashMap<>();
+    private final String PLACEHOLDER = " [subquery_column_placeholder] ";
+    private HashMap<String, List<String>> entityTypes;
     private static final HashMap<String, String> parents = DavUtils.getHierarchyItemParents();
 
     public SparqlViewQueryBuilder(String resourcesView) {
@@ -40,6 +42,8 @@ public class SparqlViewQueryBuilder {
 
     public Query getQuery(View view, List<ViewFilter> viewFilters) {
         builder = new StringBuilder();
+        entityColumnsWithSubquery = new HashSet<>();
+        entityTypes = new HashMap<>();
         this.view = view;
         fetchTypes(view);
 
@@ -52,9 +56,9 @@ public class SparqlViewQueryBuilder {
 
         builder.append("SELECT DISTINCT ?")
                 .append(view.name)
-                .append("\nWHERE {\n");
-
-        builder.append("?dir fs:linkedEntity ?entity .\n")
+                .append(PLACEHOLDER)
+                .append("\nWHERE {\n")
+                .append("?dir fs:linkedEntity ?entity .\n")
                 .append("?subdir (fs:belongsTo)+ ?dir .\n")
                 .append("?subdir fs:linkedEntity ?")
                 .append(view.name)
@@ -63,17 +67,36 @@ public class SparqlViewQueryBuilder {
 //      TODO: add location filters
 //      AddLocationFilter(view, builder, viewFilters);
 
-        addFacetFilters(view, viewFilters);
+        // Facets filter non-relevant entities
+        if(viewFilters.size() > 0) {
+            builder.append("{\n");
+            createSubqueriesForFacetFilters(viewFilters);
+            builder.append("}\n");
+        }
 
-        builder.append("?")
-                .append(view.name)
-                .append(" a ?type .\nFILTER (?type IN (")
-                .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", ")))
-                .append("))\nFILTER NOT EXISTS { ?")
+        // Columns without filters should be completely fetched, we do this by using a UNION of all available values
+        addSubqueriesForJoinColumnsWithoutFilter(viewFilters);
+
+        if (view.types.size() == 1) {
+            builder.append("?")
+                    .append(view.name)
+                    .append(" rdf:type <").append(view.types.get(0)).append("> .\n");
+        } else {
+            builder.append("?")
+                    .append(view.name)
+                    .append(" a ?type .\nFILTER (?type IN (")
+                    .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", ")))
+                    .append("))\n");
+        }
+
+        builder.append("FILTER NOT EXISTS { ?")
                 .append(view.name)
                 .append(" fs:dateDeleted ?any }\n}");
 
-        return QueryFactory.create(builder.toString());
+        String query = builder.toString();
+        query = AddSubqueryColumns(query);
+
+        return QueryFactory.create(query);
     }
 
     private void appNamespace(String alias, String namespace) {
@@ -84,7 +107,7 @@ public class SparqlViewQueryBuilder {
                 .append(">\n");
     }
 
-    private void addFacetFilters(ViewsConfig.View view, List<ViewFilter> filters) {
+    private void createSubqueriesForFacetFilters(List<ViewFilter> filters) {
         var entitiesWithFilter = filters.stream()
                 .map(f -> f.field)
                 .sorted(comparing(field -> field.contains("_") ? getColumn(field, view.name).priority : 0))
@@ -99,7 +122,10 @@ public class SparqlViewQueryBuilder {
                     .toList();
 
             var isLinkedEntity = !entity.equals(view.name);
-            addSingleFacetFilter(entityFilters, view.name, entity, isLinkedEntity, view.types);
+
+            for (var filter : entityFilters) {
+                addSingleFacetFilter(filter, view.name, entity, filter.getField(), isLinkedEntity, view.types);
+            }
         });
 
         builder.append("\n");
@@ -136,77 +162,120 @@ public class SparqlViewQueryBuilder {
                 });
     }
 
-    private void addSingleFacetFilter(List<ViewFilter> filters, String viewEntity, String facetEntity, boolean isLinkedEntity, List<String> types) {
+    private void addSingleFacetFilter(ViewFilter filter,
+                                      String viewEntity,
+                                      String facetEntity,
+                                      String facetField,
+                                      boolean isLinkedEntity,
+                                      List<String> types) {
         String postfix = "_" + facetEntity;
 
-        for (var filter : filters) {
-            builder.append("FILTER EXISTS {\n")
-                    .append("?")
-                    .append(viewEntity)
-                    .append(" ^fs:linkedEntity ?linkedDir")
+        builder.append("{\n")
+                .append("?")
+                .append(viewEntity)
+                .append(" ^fs:linkedEntity ?linkedDir")
+                .append(postfix)
+                .append(" .\n");
+
+        if (isLinkedEntity) {
+            var entityLocatedTowardRoot = types.stream()
+                    .anyMatch((viewType) -> entityLocatedTowardRoot(viewType, entityTypes.get(facetEntity).get(0)));
+
+            var searchDirection = entityLocatedTowardRoot ? "^" : "";
+
+            builder.append("?linkedSubdir")
+                    .append(postfix)
+                    .append(" fs:linkedEntity ?facetEntity")
+                    .append(postfix)
+                    .append(" .\n")
+                    .append("?linkedSubdir")
+                    .append(postfix)
+                    .append(" (")
+                    .append(searchDirection)
+                    .append("fs:belongsTo)+ ?linkedDir")
                     .append(postfix)
                     .append(" .\n");
+        } else {
+            builder.append("?linkedDir")
+                    .append(postfix)
+                    .append(" fs:linkedEntity ?facetEntity")
+                    .append(postfix)
+                    .append(" .\n");
+        }
 
-            if (isLinkedEntity) {
-                var entityLocatedTowardRoot = types.stream()
-                        .anyMatch((viewType) -> entityLocatedTowardRoot(viewType, entityTypes.get(facetEntity).get(0)));
-
-                var searchDirection = entityLocatedTowardRoot ? "^" : "";
-
-                builder.append("?linkedSubdir")
-                        .append(postfix)
-                        .append(" fs:linkedEntity ?facetEntity")
-                        .append(postfix)
-                        .append(" .\n")
-                        .append("?linkedSubdir")
-                        .append(postfix)
-                        .append(" (")
-                        .append(searchDirection)
-                        .append("fs:belongsTo)+ ?linkedDir")
-                        .append(postfix)
-                        .append(" .\n");
-            } else {
-                builder.append("?linkedDir")
-                        .append(postfix)
-                        .append(" fs:linkedEntity ?facetEntity")
-                        .append(postfix)
-                        .append(" .\n");
-            }
-
-            if (entityTypes.get(facetEntity).size() == 1) {
-                builder.append("?facetEntity").append(postfix).append(" rdf:type <").append(entityTypes.get(facetEntity).get(0)).append("> .\n");
-            } else {
-                builder.append("?facetEntity").append(postfix).append(" a ?type .\\nFILTER (?type IN (\")\n")
-                        .append(entityTypes.get(facetEntity).stream().map(t -> "<\" + t + \">").collect(joining(", ")))
-                        .append("\n");
-            }
-
-            String condition, property, field;
-
-            if (filter.getField().equals(facetEntity)) {
-                field = filter.field + "_id";
-                property = RDFS.label.toString();
-                condition = toFilterString(filter, ViewsConfig.ColumnType.Identifier, field);
-            } else {
-                field = filter.field;
-                property = getColumn(field, facetEntity).source;
-                condition = toFilterString(filter, getColumn(field, facetEntity).type, filter.field);
-            }
+        if (entityTypes.get(facetEntity).size() == 1) {
             builder.append("?facetEntity")
                     .append(postfix)
-                    .append(" <")
-                    .append(property)
-                    .append("> ?")
-                    .append(field)
-                    .append(" .\n");
-            builder.append(condition);
-            builder.append("\n");
-            builder.append("}");
-            builder.append("\n");
+                    .append(" rdf:type <")
+                    .append(entityTypes.get(facetEntity).get(0))
+                    .append("> .\n");
+        } else {
+            builder.append("?facetEntity")
+                    .append(postfix)
+                    .append(" a ?type .\\nFILTER (?type IN (\")\n")
+                    .append(entityTypes.get(facetEntity).stream().map(t -> "<\" + t + \">").collect(joining(", ")))
+                    .append("\n");
+        }
+
+        String condition, property, field;
+
+        if (facetField.equals(facetEntity)) {
+            field = facetField + "_id";
+            property = RDFS.label.toString();
+            condition = toFilterString(filter, ViewsConfig.ColumnType.Identifier, field);
+        } else {
+            field = facetField;
+            property = getColumn(field, facetEntity).source;
+            condition = toFilterString(filter, getColumn(field, facetEntity).type, facetField);
+        }
+
+        entityColumnsWithSubquery.add(field);
+
+        builder.append("?facetEntity")
+                .append(postfix)
+                .append(" <")
+                .append(property)
+                .append("> ?")
+                .append(field)
+                .append(" .\n")
+                .append(condition);
+
+        builder.append("\n");
+        builder.append("}");
+        builder.append("\n");
+    }
+
+    /**
+     * To show al joinColumn values in the View table on screen we need to fetch all values which are relevant
+     * for the current view.
+     * <p>
+     * For columns with an active filter/facet this is allready done, now fetch values for all columns not yet processed.
+     */
+    private void addSubqueriesForJoinColumnsWithoutFilter(List<ViewFilter> viewFilters) {
+        Boolean firstDone = false;
+
+        for (var jc : view.joinColumns) {
+            var name = jc.sourceClassName + "_" + jc.name;
+
+            if (entityColumnsWithSubquery.contains(name)) {
+                continue;
+            }
+
+            builder.append(firstDone ? "UNION\n" : "");
+
+            addSingleFacetFilter(null, view.name, jc.sourceClassName, name, true, view.types);
+
+            firstDone = true;
         }
     }
 
     private String toFilterString(ViewFilter filter, ColumnType type, String field) {
+        // we can ignore the filter if we want to retrieve all column values for displaying in the View screen
+        // see method 'addSubqueriesForJoinColumnsWithoutFilter'
+        if(filter == null) {
+            return "";
+        }
+
         var variable = new ExprVar(field);
 
         Expr expr;
@@ -228,6 +297,13 @@ public class SparqlViewQueryBuilder {
         }
 
         return new ElementFilter(expr).toString();
+    }
+
+    private String AddSubqueryColumns(String query) {
+        String subQueryColumns = entityColumnsWithSubquery.stream()
+                .reduce("", (partialString, element) -> partialString + " ?" + element);
+
+        return query.replace(PLACEHOLDER, subQueryColumns);
     }
 
     private NodeValue toNodeValue(Object o, ColumnType type) {

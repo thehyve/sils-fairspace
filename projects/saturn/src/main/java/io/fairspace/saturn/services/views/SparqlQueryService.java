@@ -54,23 +54,46 @@ public class SparqlQueryService implements QueryService {
         var selectExecution = QueryExecutionFactory.create(query, ds);
         selectExecution.setTimeout(config.pageRequestTimeout);
 
+        // get sparql results
         return calculateRead(ds, () -> {
-            var iris = new ArrayList<Resource>();
+            var results = new ArrayList<QuerySolution>();
             var timeout = false;
-            var hasNext = false;
+
             try (selectExecution) {
                 var rs = selectExecution.execSelect();
-                rs.forEachRemaining(row -> iris.add(row.getResource(request.getView())));
+                while (rs.hasNext()) {
+                    results.add(rs.next());
+                }
             } catch (QueryCancelledException e) {
                 timeout = true;
             }
-            while (iris.size() > size) {
-                iris.remove(iris.size() - 1);
-                hasNext = true;
+
+            var uniqueIris = new HashSet<Resource>();
+            var columnData = new JoinColumnData();
+            var hasNext = false;
+
+            // extract iri's and column values
+            for (var row : results) {
+                var resourceUri = row.getResource(request.getView());
+
+                if(uniqueIris.size() <= size) {
+                    uniqueIris.add(resourceUri);
+                } else {
+                    hasNext = true;
+                }
+
+                var vars = row.varNames();
+                while (vars.hasNext()) {
+                    var column = vars.next();
+                    if (row.get(column) == null) {
+                        continue;
+                    }
+                    columnData.addValue(resourceUri.getURI(), column, row.get(column));
+                }
             }
 
-            var rows = iris.stream()
-                    .map(resource -> fetch(resource, request.getView()))
+            var rows = uniqueIris.stream()
+                    .map(resource -> fetch(resource, request.getView(), columnData))
                     .collect(toList());
 
             return ViewPageDTO.builder()
@@ -81,7 +104,7 @@ public class SparqlQueryService implements QueryService {
         });
     }
 
-    private Map<String, Set<ValueDTO>> fetch(Resource resource, String viewName) {
+    private Map<String, Set<ValueDTO>> fetch(Resource resource, String viewName, JoinColumnData columnData) {
         var view = getView(viewName);
 
         var result = new HashMap<String, Set<ValueDTO>>();
@@ -91,7 +114,7 @@ public class SparqlQueryService implements QueryService {
             result.put(viewName + "_" + c.name, getValues(resource, c));
         }
         for (var c : view.joinColumns) {
-            result.put(c.sourceClassName + "_" + c.name, getValues(resource, c));
+            result.put(c.sourceClassName + "_" + c.name, getValuesJoinColumn(resource, c, columnData));
         }
         for (var j : view.join) {
             var joinView = getView(j.view);
@@ -135,6 +158,12 @@ public class SparqlQueryService implements QueryService {
                 .mapWith(Statement::getObject)
                 .mapWith(this::toValueDTO)
                 .toSet());
+    }
+
+    private Set<ValueDTO> getValuesJoinColumn(Resource resource, View.JoinColumn jc, JoinColumnData columnData) {
+        return columnData.find(resource.getURI(), jc.sourceClassName + "_" + jc.name)
+                .stream().map(this::toValueDTO)
+                .collect(toCollection(TreeSet::new));
     }
 
     private View getView(String viewName) {

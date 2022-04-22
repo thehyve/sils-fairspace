@@ -49,7 +49,7 @@ public class ViewStoreClientFactory {
         databaseConfig.setUsername(viewDatabase.username);
         databaseConfig.setPassword(viewDatabase.password);
         databaseConfig.setAutoCommit(false);
-        databaseConfig.setConnectionTimeout(1000);
+        databaseConfig.setConnectionTimeout(10000);
         databaseConfig.setMaximumPoolSize(50);
 
         dataSource = new HikariDataSource(databaseConfig);
