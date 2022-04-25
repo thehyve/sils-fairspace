@@ -5,7 +5,6 @@
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix schema: <http://www.schema.org/> .
-@prefix schema: <http://www.schema.org/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix dash: <http://datashapes.org/dash#> .
 @prefix sils: <https://sils.uva.nl/ontology#> .
