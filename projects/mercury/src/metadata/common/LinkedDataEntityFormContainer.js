@@ -14,7 +14,7 @@ import ConfirmationDialog from "../../common/components/ConfirmationDialog";
 import {UpdatePageTitleEditingMark} from '../../common/hooks/UsePageTitleUpdater';
 
 const LinkedDataEntityFormContainer = ({
-    subject, typeInfo, hasEditRight = true, showEditButtons = false, fullpage = false,
+    subject, typeInfo, hasEditRight = false, showEditButtons = false, fullpage = false,
     contextMenu = null, onRename = () => {}, setHasUpdates = () => {},
     properties, values, linkedDataLoading, linkedDataError, updateLinkedData, ...otherProps
 }) => {

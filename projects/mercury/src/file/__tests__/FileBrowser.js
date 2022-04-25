@@ -1,4 +1,3 @@
-// TODO: fix
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {cleanup, render} from '@testing-library/react';
@@ -6,6 +5,7 @@ import '@testing-library/jest-dom/extend-expect';
 
 import {FileBrowser} from '../FileBrowser';
 import {UploadsProvider} from "../UploadsContext";
+import {VocabularyProvider} from "../../metadata/vocabulary/VocabularyContext";
 
 afterEach(cleanup);
 
@@ -51,11 +51,11 @@ const initialProps = {
     classes: {}
 };
 
-describe.skip('FileBrowser', () => {
+describe('FileBrowser', () => {
     const renderWithProviders = children => render(
-        <UploadsProvider>
+        <VocabularyProvider>
             {children}
-        </UploadsProvider>
+        </VocabularyProvider>
     );
 
     it('renders proper view', () => {
@@ -68,28 +68,6 @@ describe.skip('FileBrowser', () => {
         );
 
         expect(queryByTestId('files-view')).toBeInTheDocument();
-    });
-
-    it('show error when no open collection is provided', () => {
-        const {getByText} = renderWithProviders(
-            <FileBrowser
-                {...initialProps}
-            />
-        );
-
-        // finds substring ignoring case
-        expect(getByText(/collection does not exist/i)).toBeInTheDocument();
-    });
-
-    it('show no open collection error when no collection is provided even when another error is given', () => {
-        const {getByText} = renderWithProviders(
-            <FileBrowser
-                {...initialProps}
-                error="some error"
-            />
-        );
-
-        expect(getByText(/collection does not exist/i)).toBeInTheDocument();
     });
 
     it('cleans up listener after unmount', () => {

@@ -5,6 +5,8 @@ import type {ExternalStorage} from "../external-storage/externalStorageUtils";
 // eslint-disable-next-line import/no-cycle
 import {getExternalStorageAbsolutePath} from "../external-storage/externalStorageUtils";
 import {HierarchyLevel} from "../metadata/common/vocabularyUtils";
+import {isAdmin} from "../users/userUtils";
+import type {User} from "../users/UsersAPI";
 
 const NON_SAFE_FILE_NAME_CHARACTERS = ['/', '\\'];
 const NON_SAFE_FILE_NAMES = ['.', '..'];
@@ -189,6 +191,10 @@ export const getAllowedDirectoryTypes = (hierarchy: HierarchyLevel[], parentDire
 
 export const getHierarchyLevelByType = (hierarchy: HierarchyLevel[], type: string): HierarchyLevel => (
     hierarchy.find(hl => hl.type === type) || {}
+);
+
+export const canEditHierarchyLevel = (currentUser: User, hierarchy: HierarchyLevel[], level: string): boolean => (
+    isAdmin(currentUser) || !getHierarchyLevelByType(hierarchy, level).isAdminEditOnly
 );
 
 export const getBrowserSubpath = (browserPath: string): string => browserPath.replace(/^\/browser/, "");

@@ -86,20 +86,8 @@ public class FS {
     public static final String MACHINE_ONLY_URI = NS + "machineOnly";
     public static final Property machineOnly = createProperty(MACHINE_ONLY_URI);
 
-    public static final String CAN_LIST_URI = NS + "canList";
-    public static final Property canList = createProperty(CAN_LIST_URI);
-
-    public static final String CAN_READ_URI = NS + "canRead";
-    public static final Property canRead = createProperty(CAN_READ_URI);
-
-    public static final String CAN_WRITE_URI = NS + "canWrite";
-    public static final Property canWrite = createProperty(CAN_WRITE_URI);
-
-    public static final String CAN_MANAGE_URI = NS + "canManage";
-    public static final Property canManage = createProperty(CAN_MANAGE_URI);
-
-    public static final String ACCESS_MODE_URI = NS + "accessMode";
-    public static final Property accessMode = createProperty(ACCESS_MODE_URI);
+    public static final String ADMIN_EDIT_ONLY_URI = NS + "adminEditOnly";
+    public static final Property adminEditOnly = createProperty(ADMIN_EDIT_ONLY_URI);
 
     public static final String LINKED_ENTITY_TYPE_URI = NS + "linkedEntityType";
     public static final Property linkedEntityType = createProperty(LINKED_ENTITY_TYPE_URI);
@@ -132,10 +120,6 @@ public class FS {
     public static final Property nil = createProperty(NIL_URI);
 
     public static final String IS_ADMIN_URI = NS + "isAdmin";
-    public static final String CAN_VIEW_PUBLIC_METADATA_URI = NS + "canViewPublicMetadata";
-    public static final String CAN_VIEW_PUBLIC_DATA_URI = NS + "canViewPublicData";
-    public static final String CAN_ADD_SHARED_METADATA_URI = NS + "canAddSharedMetadata";
-    public static final String CAN_QUERY_METADATA_URI = NS + "canQueryMetadata";
     public static final String IS_SUPERADMIN_URI = NS + "isSuperadmin";
 }
 

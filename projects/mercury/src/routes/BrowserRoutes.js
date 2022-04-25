@@ -65,10 +65,6 @@ const BrowserRoutes = () => {
                 path="/metadata"
                 exact
                 render={() => {
-                    if (!currentUser.canViewPublicMetadata) {
-                        return null;
-                    }
-
                     const subject = getSubject();
                     if (subject) {
                         return (

@@ -97,8 +97,6 @@ public class UserService {
                             if (config.superAdminUser.equalsIgnoreCase(ku.getUsername())) {
                                 user.setSuperadmin(true);
                                 user.setAdmin(true);
-                                user.setCanViewPublicMetadata(true);
-                                user.setCanViewPublicData(true);
                             }
 
                             updated.add(user);
@@ -165,34 +163,6 @@ public class UserService {
             username[0] = user.getUsername();
             if (roles.getAdmin() != null) {
                 user.setAdmin(roles.getAdmin());
-                if (user.isAdmin()) {
-                    user.setCanViewPublicData(true);
-                    user.setCanViewPublicMetadata(true);
-                }
-            }
-            if (roles.getCanViewPublicData() != null) {
-                user.setCanViewPublicData(roles.getCanViewPublicData());
-                if (user.isCanViewPublicData()) {
-                    user.setCanViewPublicMetadata(true);
-                }
-            }
-            if (roles.getCanQueryMetadata() != null) {
-                user.setCanQueryMetadata(roles.getCanQueryMetadata());
-                if (user.isCanQueryMetadata()) {
-                    user.setCanViewPublicMetadata(true);
-                }
-            }
-            if (roles.getCanViewPublicMetadata() != null) {
-                user.setCanViewPublicMetadata(roles.getCanViewPublicMetadata());
-            }
-            if (roles.getCanAddSharedMetadata() != null) {
-                user.setCanAddSharedMetadata(roles.getCanAddSharedMetadata());
-            }
-
-            if (user.isAdmin() && !user.isCanViewPublicData()
-            || user.isCanViewPublicData() && !user.isCanViewPublicMetadata()
-            || user.isCanQueryMetadata() && !user.isCanViewPublicMetadata()) {
-                throw new IllegalArgumentException("Inconsistent organisation-level roles");
             }
 
             dao.write(user);

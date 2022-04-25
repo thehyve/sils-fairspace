@@ -12,10 +12,6 @@ export type User = {
     access: string;
     isSuperadmin: boolean;
     isAdmin: boolean;
-    canViewPublicMetadata: boolean;
-    canViewPublicData: boolean;
-    canAddSharedMetadata: boolean;
-    canQueryMetadata: boolean;
 }
 
 const requestOptions = {

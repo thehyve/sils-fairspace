@@ -2,14 +2,9 @@ package io.fairspace.saturn.webdav;
 
 public enum Access {
     None,
-    List,
     Read,
     Write,
     Manage;
-
-    public boolean canList() {
-        return compareTo(List) >= 0;
-    }
 
     public boolean canRead() {
         return compareTo(Read) >= 0;

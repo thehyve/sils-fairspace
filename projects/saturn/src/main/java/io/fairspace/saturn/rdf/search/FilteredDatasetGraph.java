@@ -18,7 +18,7 @@ public class FilteredDatasetGraph extends DatasetGraphFilteredView {
     public FilteredDatasetGraph(Dataset ds, MetadataPermissions permissions) {
         super(ds.asDatasetGraph(),
                 q -> q.isDefaultGraph()
-                        && permissions.canReadMetadata(ds.getDefaultModel().wrapAsResource(q.getSubject())),
+                        && permissions.canReadMetadata(),
                 Set.of(defaultGraphIRI));
     }
 }

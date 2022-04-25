@@ -66,7 +66,7 @@ public class Services {
         dataset.getContext().set(FS_ROOT, davFactory.root);
         davServlet = new WebDAVServlet(davFactory, transactions, blobStore);
 
-        metadataPermissions = new MetadataPermissions(davFactory, userService);
+        metadataPermissions = new MetadataPermissions(userService, VOCABULARY);
 
         var metadataValidator = new ComposedValidator(
                 new MachineOnlyClassesValidator(VOCABULARY),

@@ -1,35 +1,31 @@
 package io.fairspace.saturn.services.metadata;
 
 import io.fairspace.saturn.services.users.UserService;
-import io.fairspace.saturn.webdav.DavFactory;
+import io.fairspace.saturn.vocabulary.FS;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 
+import static io.fairspace.saturn.rdf.ModelUtils.getBooleanProperty;
+
 public class MetadataPermissions {
-    private final DavFactory davFactory;
     private final UserService userService;
+    private final Model vocabulary;
 
-    public MetadataPermissions(DavFactory davFactory, UserService userService) {
-        this.davFactory = davFactory;
+    public MetadataPermissions(UserService userService, Model vocabulary) {
         this.userService = userService;
+        this.vocabulary = vocabulary;
     }
 
-    public boolean canReadMetadata(Resource resource) {
-        if (userService.currentUser().isAdmin()) {
-            return true;
-        }
-        if (davFactory.isFileSystemResource(resource)) {
-            return davFactory.getAccess(resource).canList();
-        }
-        return userService.currentUser().isCanViewPublicMetadata();
+    private boolean isAdminEditOnlyResource(org.apache.jena.rdf.model.Resource type) {
+        var resourceClass = vocabulary.getResource(type.getURI());
+        return getBooleanProperty(resourceClass, FS.adminEditOnly);
     }
 
-    public boolean canWriteMetadata(Resource resource) {
-        if (userService.currentUser().isAdmin()) {
-            return true;
-        }
-        if (davFactory.isFileSystemResource(resource)) {
-            return davFactory.getAccess(resource).canWrite();
-        }
-        return userService.currentUser().isCanAddSharedMetadata();
+    public boolean canReadMetadata() {
+        return true;
+    }
+
+    public boolean canWriteMetadata(Resource resourceType) {
+        return userService.currentUser().isAdmin() || (resourceType != null && !isAdminEditOnlyResource(resourceType));
     }
 }

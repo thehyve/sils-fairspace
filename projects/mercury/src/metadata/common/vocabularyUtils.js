@@ -15,6 +15,7 @@ export type HierarchyLevel = {
     allowedDescendantTypes: string[];
     isRoot: boolean;
     representsExternalFile: boolean;
+    isAdminEditOnly: boolean;
 };
 
 /**
@@ -257,7 +258,8 @@ export const determineHierarchy = (vocabulary): HierarchyLevel[] => {
         label: getFirstPredicateValue(c, constants.SHACL_NAME),
         labelPlural: getFirstPredicateValue(c, constants.NAME_PLURAL),
         representsExternalFile: getFirstPredicateValue(c, constants.IS_EXTERNAL_FILE_REPRESENTATION) === true,
-        allowedDescendantTypes: getAllowedDescendantTypes(c)
+        allowedDescendantTypes: getAllowedDescendantTypes(c),
+        isAdminEditOnly: getFirstPredicateValue(c, constants.IS_ADMIN_EDIT_ONLY) === true
     }));
 };
 
