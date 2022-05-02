@@ -108,41 +108,53 @@ public class SparqlViewQueryBuilder {
 
     private void applyHierarchy() {
         ArrayList<List<Resource>> hierarchy = getHierarchyTree();
-//        var entityLocatedTowardRoot = types.stream() // TODO
-//                .anyMatch((viewType) -> entityLocatedTowardRoot(viewType, entityTypes.get(facetEntity).get(0)));
-//        var searchDirection = entityLocatedTowardRoot ? "^" : "";
 
-        int hierarchyIndex = 0;
+        int hierarchyIndexDesc = 0;
         for (int i = 0; i < hierarchy.size(); i++) {
             if (hierarchy.get(i).stream().anyMatch(r -> r.getURI().equals(view.types.get(0)))) {
-                hierarchyIndex = i;
+                hierarchyIndexDesc = i;
             }
         }
-        ListIterator<List<Resource>> hierarchyIterator = hierarchy.listIterator(hierarchyIndex);
-        String lowerDirAlias = "dir";
-        while (hierarchyIterator.hasPrevious()) {
-            List<Resource> resources = hierarchyIterator.previous();
+        ListIterator<List<Resource>> hierarchyIteratorDesc = hierarchy.listIterator(hierarchyIndexDesc);
+        String descDirAlias = "dir";
+        while (hierarchyIteratorDesc.hasPrevious()) {
+            List<Resource> resources = hierarchyIteratorDesc.previous();
             String currentDirAlias = resources.stream()
                     .map(r -> getEntityDirAlias(Objects.requireNonNull(getStringProperty(r, SHACLM.name))))
                     .collect(joining("_"));
+            applyHierarchyLevelCriteria(resources, descDirAlias, currentDirAlias, true);
+            descDirAlias = currentDirAlias;
+        }
 
-            builder.append("?").append(lowerDirAlias).append(" fs:belongsTo ")
-                    .append("?").append(currentDirAlias).append(" .\n");
+        int hierarchyIndexAsc = hierarchyIndexDesc < (hierarchy.size() - 1) ? (hierarchyIndexDesc + 1) : hierarchy.size();
+        ListIterator<List<Resource>> hierarchyIteratorAsc = hierarchy.listIterator(hierarchyIndexAsc);
+        String ascDirAlias = "dir";
+        while (hierarchyIteratorAsc.hasNext()) {
+            List<Resource> resources = hierarchyIteratorAsc.next();
+            String currentDirAlias = resources.stream()
+                    .map(r -> getEntityDirAlias(Objects.requireNonNull(getStringProperty(r, SHACLM.name))))
+                    .collect(joining("_"));
+            applyHierarchyLevelCriteria(resources, ascDirAlias, currentDirAlias, false);
+            ascDirAlias = currentDirAlias;
+        }
+    }
 
-            if (resources.size() == 1) {
-                builder.append("?")
-                        .append(currentDirAlias)
-                        .append(" fs:linkedEntityType <")
-                        .append(resources.get(0).getURI())
-                        .append("> .\n");
-            } else {
-                builder.append("?")
-                        .append(currentDirAlias)
-                        .append(" fs:linkedEntityType ?linkedEntityType .\nFILTER (?linkedEntityType IN (")
-                        .append(resources.stream().map(r -> "<" + r.getURI() + ">").collect(joining(", ")))
-                        .append("))\n");
-            }
-            lowerDirAlias = currentDirAlias;
+    private void applyHierarchyLevelCriteria(List<Resource> resources, String nextDirAlias, String currentDirAlias, boolean descOrder) {
+        builder.append("?").append(nextDirAlias).append(descOrder ? " " : " ^").append("fs:belongsTo ")
+                .append("?").append(currentDirAlias).append(" .\n");
+
+        if (resources.size() == 1) {
+            builder.append("?")
+                    .append(currentDirAlias)
+                    .append(" fs:linkedEntityType <")
+                    .append(resources.get(0).getURI())
+                    .append("> .\n");
+        } else {
+            builder.append("?")
+                    .append(currentDirAlias)
+                    .append(" fs:linkedEntityType ?linkedEntityType .\nFILTER (?linkedEntityType IN (")
+                    .append(resources.stream().map(r -> "<" + r.getURI() + ">").collect(joining(", ")))
+                    .append("))\n");
         }
     }
 
