@@ -304,7 +304,7 @@ public class SparqlViewQueryBuilder {
     private NodeValue toNodeValue(Object o, ColumnType type) {
         return switch (type) {
             case Identifier, Term, TermSet -> makeNode(createURI(o.toString()));
-            case Text, Set -> makeString(o.toString());
+            case Text, Set, Link -> makeString(o.toString());
             case Number -> makeDecimal(o.toString());
             case Date -> makeDateTime(convertDateValue(o.toString()));
         };

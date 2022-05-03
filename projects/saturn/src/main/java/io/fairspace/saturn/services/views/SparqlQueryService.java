@@ -69,7 +69,7 @@ public class SparqlQueryService implements QueryService {
             for (var row : results) {
                 var resourceUri = row.getResource(request.getView());
 
-                if(uniqueIris.size() <= size) {
+                if(uniqueIris.size() < size) {
                     uniqueIris.add(resourceUri);
                 } else {
                     hasNext = true;
