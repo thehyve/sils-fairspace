@@ -27,7 +27,6 @@ import static org.apache.jena.system.Txn.calculateRead;
 
 @Log4j2
 public class SparqlQueryService implements QueryService {
-    private static final String RESOURCES_VIEW = "Resource";
     private final Config.Search config;
     private final ViewsConfig searchConfig;
     private final Dataset ds;
@@ -39,17 +38,11 @@ public class SparqlQueryService implements QueryService {
     }
 
     public ViewPageDTO retrieveViewPage(ViewRequest request) {
-        var query = new SparqlViewQueryBuilder(RESOURCES_VIEW)
-                .getQuery(getView(request.getView()), request.getFilters());
-
-        log.debug("Executing query:\n{}", query);
-
         var page = (request.getPage() != null && request.getPage() >= 1) ? request.getPage() : 1;
         var size = (request.getSize() != null && request.getSize() >= 1) ? request.getSize() : 20;
-        query.setLimit(size + 1);
-        query.setOffset((page - 1) * size);
-
-        log.debug("Query with filters and pagination applied: \n{}", query);
+        var query = new SparqlViewQueryBuilder(getView(request.getView()), page, size)
+                .getQuery(request.getFilters());
+        log.debug("Executing query with filters and pagination:\n{}", query);
 
         var selectExecution = QueryExecutionFactory.create(query, ds);
         selectExecution.setTimeout(config.pageRequestTimeout);
@@ -214,8 +207,8 @@ public class SparqlQueryService implements QueryService {
     }
 
     public CountDTO count(CountRequest request) {
-        var query = new SparqlViewQueryBuilder(RESOURCES_VIEW)
-                .getQuery(getView(request.getView()), request.getFilters());
+        var query = new SparqlViewQueryBuilder(getView(request.getView()))
+                .getQuery(request.getFilters());
 
         log.debug("Querying the total number of matches: \n{}", query);
 

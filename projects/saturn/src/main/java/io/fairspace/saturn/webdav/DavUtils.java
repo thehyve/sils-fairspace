@@ -7,8 +7,9 @@ import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.CollectionResource;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.Resource;
 
-import java.util.HashMap;
+import java.util.*;
 
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.PathUtils.MAX_ROOT_DIRECTORY_NAME_LENGTH;
@@ -23,6 +24,25 @@ public final class DavUtils {
 
     public static ResIterator getHierarchyClasses() {
         return VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy);
+    }
+
+    /**
+     * Returns a hierarchy tree with all available resources per tree level
+     */
+    public static ArrayList<List<org.apache.jena.rdf.model.Resource>> getHierarchyTree() {
+        ArrayList<List<org.apache.jena.rdf.model.Resource>> hierarchyTree = new ArrayList<>();
+        Optional<Resource> hierarchyRoot = getHierarchyRootClasses().toList().stream().findFirst();
+        hierarchyRoot.ifPresent(resource -> buildHierarchyTree(hierarchyTree, Arrays.asList(resource)));
+        return hierarchyTree;
+    }
+
+    private static void buildHierarchyTree(
+            ArrayList<List<org.apache.jena.rdf.model.Resource>> hierarchyTree,
+            List<org.apache.jena.rdf.model.Resource> current) {
+        hierarchyTree.add(current);
+        current.stream()
+                .filter(c -> c.hasProperty(FS.hierarchyDescendants) && c.getProperty(FS.hierarchyDescendants).getList().size() > 0)
+                .forEach(c ->  buildHierarchyTree(hierarchyTree, c.getProperty(FS.hierarchyDescendants).getList().mapWith(RDFNode::asResource).toList()));
     }
 
     public static org.apache.jena.rdf.model.Resource childSubject(org.apache.jena.rdf.model.Resource subject, String name) {
@@ -66,26 +86,6 @@ public final class DavUtils {
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
-    }
-
-    public static HashMap<String, String> getHierarchyItemParents() {
-        HashMap<String, String> parents = new HashMap<>();
-
-        var hierarchyItems = VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy).toList();
-
-        for (var parent : hierarchyItems) {
-            var descendents = parent.getProperty(FS.hierarchyDescendants);
-
-            if (descendents == null || descendents.getList().size() == 0) {
-                continue;
-            }
-
-            for(var descendent : descendents.getList().iterator().toList()) {
-                parents.put(descendent.asResource().getURI(), parent.getURI());
-            }
-        }
-
-        return parents;
     }
 
     public static void validateResourceName(String name) throws BadRequestException {
