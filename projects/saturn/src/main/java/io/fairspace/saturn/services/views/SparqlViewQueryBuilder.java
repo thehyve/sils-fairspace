@@ -4,7 +4,6 @@ import io.fairspace.saturn.config.ViewsConfig;
 import io.fairspace.saturn.config.ViewsConfig.ColumnType;
 import io.fairspace.saturn.config.ViewsConfig.View;
 import io.fairspace.saturn.vocabulary.FS;
-import io.fairspace.saturn.webdav.DavUtils;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -38,7 +37,6 @@ public class SparqlViewQueryBuilder {
     private HashSet<String> entityColumnsWithSubquery;
     private final String PLACEHOLDER = " [subquery_column_placeholder] ";
     private HashMap<String, List<String>> entityTypes;
-    private static final HashMap<String, String> parents = DavUtils.getHierarchyItemParents();
 
     public SparqlViewQueryBuilder(View view) {
         this.view = view;
@@ -357,25 +355,5 @@ public class SparqlViewQueryBuilder {
         view.joinColumns.forEach(column -> {
             entityTypes.put(column.sourceClassName, List.of(column.sourceClass));
         });
-    }
-
-    /**
-     * We have a tree structure of directories. The sparql queries we use need to now in which direction to
-     * traverse the 'belongsTo' properties. Either toward the root or in opposite direction (and use a '^' in sparql)
-     * <p>
-     * Here we determine the position of the target directory, is it between current node and root, or between current
-     * node and endnodes.
-     */
-    private Boolean entityLocatedTowardRoot(String treeLocation, String targetEntity) {
-        var parent = parents.get(treeLocation);
-
-        if (parent == null || parent.isEmpty()) {
-            return false;
-        }
-        if (parent.equals(targetEntity)) {
-            return true;
-        }
-
-        return entityLocatedTowardRoot(parent, targetEntity);
     }
 }

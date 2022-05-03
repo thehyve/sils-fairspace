@@ -27,8 +27,7 @@ public final class DavUtils {
     }
 
     /**
-     * Returns a hierarchy tree with only a single resource per tree level
-     * @return
+     * Returns a hierarchy tree with all available resources per tree level
      */
     public static ArrayList<List<org.apache.jena.rdf.model.Resource>> getHierarchyTree() {
         ArrayList<List<org.apache.jena.rdf.model.Resource>> hierarchyTree = new ArrayList<>();
@@ -87,19 +86,6 @@ public final class DavUtils {
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
-    }
-
-    public static HashMap<String, String> getHierarchyItemParents() {
-        HashMap<String, String> parents = new HashMap<>();
-        var hierarchyItems = getHierarchyClasses();
-
-        hierarchyItems.forEach(parent -> {
-            var descendents = parent.getProperty(FS.hierarchyDescendants);
-            if (descendents == null || descendents.getList().size() == 0) return;
-            descendents.getList().iterator().forEach(descendent -> parents.put(descendent.asResource().getURI(), parent.getURI()));
-        });
-
-        return parents;
     }
 
     public static void validateResourceName(String name) throws BadRequestException {
