@@ -8,7 +8,7 @@ views:
       - name: externalFileLink
         title: File link
         source: https://sils.uva.nl/ontology#externalFileLink
-        type: text
+        type: link
     joinColumns:
       - name: studyName
         title: Study name

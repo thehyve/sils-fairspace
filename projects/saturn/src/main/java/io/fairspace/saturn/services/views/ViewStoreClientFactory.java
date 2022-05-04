@@ -27,7 +27,7 @@ public class ViewStoreClientFactory {
 
     public static String databaseTypeForColumnType(ColumnType type) {
         return switch (type) {
-            case Text, Term -> "text";
+            case Text, Term, Link -> "text";
             case Date -> "timestamp";
             case Number -> "numeric";
             case Identifier -> H2_DATABASE ? "varchar not null" : "text not null";
