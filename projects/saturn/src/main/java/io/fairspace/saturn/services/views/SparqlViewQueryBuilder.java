@@ -176,6 +176,7 @@ public class SparqlViewQueryBuilder {
 
     private void createSubqueriesForFacetFilters(List<ViewFilter> filters) {
         var entitiesWithFilter = filters.stream()
+                .filter(f -> !f.field.equals("location")) // location filters are processed separate
                 .map(f -> f.field)
                 .sorted(comparing(field -> field.contains("_") ? getColumn(field).priority : 0))
                 .map(field -> field.split("_")[0])
@@ -210,7 +211,6 @@ public class SparqlViewQueryBuilder {
                 .filter(f -> f.field.equals("location"))
                 .findFirst()
                 .ifPresent(locationFilter -> {
-                    filters.remove(locationFilter);
                     if (locationFilter.values != null && !locationFilter.values.isEmpty()) {
                         locationFilter.values.forEach(v -> validateIRI(v.toString()));
                         builder.append("?dir fs:belongsTo* ?location .\n FILTER (?location IN (")
