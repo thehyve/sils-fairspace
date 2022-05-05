@@ -162,6 +162,7 @@ export const FileOperations = ({
         .catch((err) => {
             ErrorDialog.showError("An error occurred while undeleting file or directory", err, () => handleUndelete());
         });
+    const isRoot = !!openedDirectory.path && getStrippedPath(openedDirectory.path) === "";
 
     return (
         <>
@@ -173,7 +174,7 @@ export const FileOperations = ({
                                 onCreate={(name, entityType, linkedEntityIri) => handleCreateDirectory(name, entityType, linkedEntityIri)}
                                 disabled={busy}
                                 allowedTypes={allowedTypes}
-                                locationIsRoot={!!openedDirectory.path && getStrippedPath(openedDirectory.path) === ""}
+                                locationIsRoot={isRoot}
                             >
                                 <IconButton
                                     aria-label="Create directory"
@@ -245,7 +246,7 @@ export const FileOperations = ({
                 )}
             </FileOperationsGroup>
             <FileOperationsGroup>
-                {!isExternalStorage && (
+                {!isExternalStorage && !isRoot && (
                     <IconButton
                         aria-label="Copy"
                         title="Copy"
@@ -255,7 +256,7 @@ export const FileOperations = ({
                         <ContentCopy />
                     </IconButton>
                 )}
-                {isWritingEnabled && (
+                {isWritingEnabled && !isRoot && (
                     <>
                         <IconButton
                             aria-label="Cut"

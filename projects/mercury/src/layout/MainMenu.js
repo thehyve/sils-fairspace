@@ -51,7 +51,7 @@ export default () => {
                         <ListItemText primary={storage.label} />
                     </ListItem>
                 ))}
-                {views && views.length > 0 && currentUser.canViewPublicMetadata && (
+                {views && views.length > 0 && (
                     <ListItem
                         key="metadata-views"
                         component={NavLink}
