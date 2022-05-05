@@ -158,6 +158,16 @@ export const getLabelForType = (vocabulary: any[], typeUri: string) => {
 };
 
 /**
+ * Returns the human readable plural label for the given type or the singular if no plural is specified
+ * @param typeUri
+ * @returns {string}
+ */
+export const getLabelPluralForType = (vocabulary: any[], typeUri: string) => {
+    const typeShape = vocabulary.find(shape => shape['@id'] === typeUri);
+    return getFirstPredicateValue(typeShape, constants.NAME_PLURAL) || getLabelForType(vocabulary, typeUri);
+};
+
+/**
  * Returns a list of property shapes that are in given node shape
  * @param shape
  */

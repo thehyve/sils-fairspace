@@ -23,12 +23,13 @@ import ColumnFilterInput from "../common/components/ColumnFilterInput";
 import MessageDisplay from "../common/components/MessageDisplay";
 import TablePaginationActions from "../common/components/TablePaginationActions";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
-import {getHierarchyLevelByType, isDirectory} from "./fileUtils";
+import {getAllowedDirectoryTypes, getHierarchyLevelByType, isDirectory} from "./fileUtils";
+import {getLabelPluralForType} from "../metadata/common/vocabularyUtils";
 
 export const FileList = ({
     files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile, hierarchy = [], classes = {}
+    showDeleted, preselectedFile, hierarchy = [], openedDirectory = {}, classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
 
@@ -49,6 +50,7 @@ export const FileList = ({
 
     const [filterValue, setFilterValue] = useState("");
     const [filteredFiles, setFilteredFiles] = useState(files);
+    const {vocabulary} = useContext(VocabularyContext);
     const {orderedItems, orderAscending, orderBy, toggleSort} = useSorting(filteredFiles, columns, 'name');
     const directoriesBeforeFiles = useMemo(
         () => stableSort(orderedItems, compareBy('type')),
@@ -82,9 +84,12 @@ export const FileList = ({
     }, [preselectedFile]);
 
     if (!files || files.length === 0 || files[0] === null) {
+        const currentLevelType = getAllowedDirectoryTypes(hierarchy, openedDirectory.directoryType)[0];
+        const typeName = getLabelPluralForType(vocabulary, currentLevelType);
+
         return (
             <MessageDisplay
-                message="Empty directory"
+                message={"Empty " + typeName + " folder"}
                 variant="h6"
                 withIcon={false}
                 isError={false}
