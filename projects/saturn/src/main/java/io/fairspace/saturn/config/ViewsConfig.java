@@ -16,6 +16,7 @@ public class ViewsConfig {
     public enum ColumnType {
         Text,
         Set,
+        Link,
         Term,
         TermSet,
         Number,

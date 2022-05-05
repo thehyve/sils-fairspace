@@ -8,7 +8,7 @@ views:
       - name: externalFileLink
         title: File link
         source: https://sils.uva.nl/ontology#externalFileLink
-        type: text
+        type: link
     joinColumns:
       - name: studyName
         title: Study name
@@ -41,10 +41,10 @@ views:
         sourceClass: https://sils.uva.nl/ontology#Object
         sourceClassName: Object
         type: number
-#      - name: studyDescription
-#        title: Study description
-#        source: http://www.w3.org/2000/01/rdf-schema#label
-#        sourceClass: https://sils.uva.nl/ontology#Study
-#        sourceClassName: Study
-#        type: text
+      - name: sampleCollectionTemperature
+        title: Sample collection temperature
+        source: https://sils.uva.nl/ontology#sampleCollectionTemperature
+        sourceClass: https://sils.uva.nl/ontology#Sample
+        sourceClassName: Sample
+        type: number
 

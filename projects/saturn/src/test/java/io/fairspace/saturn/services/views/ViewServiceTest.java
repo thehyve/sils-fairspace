@@ -61,16 +61,7 @@ public class ViewServiceTest {
 
     @Before
     public void before() throws SQLException, BadRequestException, ConflictException, NotAuthorizedException, IOException {
-        var viewDatabase = new Config.ViewDatabase();
-        viewDatabase.url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
-        viewDatabase.username = "sa";
-        viewDatabase.password = "";
-        ViewsConfig config = ConfigLoader.VIEWS_CONFIG;
-        ViewStoreClientFactory.H2_DATABASE = true;
-        var viewStoreClientFactory = new ViewStoreClientFactory(config, viewDatabase);
-
-        var dsg = new TxnIndexDatasetGraph(DatasetGraphFactory.createTxnMem(), viewStoreClientFactory);
-
+        var dsg = DatasetGraphFactory.createTxnMem();
         Dataset ds = wrap(dsg);
         Transactions tx = new SimpleTransactions(ds);
         Model model = ds.getDefaultModel();
@@ -80,7 +71,7 @@ public class ViewServiceTest {
         var davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         ds.getContext().set(FS_ROOT, davFactory.root);
 
-        viewService = new ViewService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, ds, viewStoreClientFactory);
+        viewService = new ViewService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, ds, null);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
         api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
@@ -108,10 +99,10 @@ public class ViewServiceTest {
     @Test
     public void testFetchViewConfig() {
         var facets = viewService.getFacets();
-        var dateFacets = facets.stream()
-                .filter(facet -> facet.getType() == ViewsConfig.ColumnType.Date)
+        var selection = facets.stream()
+                .filter(facet -> facet.getType() == ViewsConfig.ColumnType.Number)
                 .collect(Collectors.toList());
-        Assert.assertEquals(1, dateFacets.size());
+        Assert.assertEquals(1, selection.size());
         viewService.getViews();
     }
 }
