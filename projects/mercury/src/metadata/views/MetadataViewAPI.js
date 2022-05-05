@@ -3,8 +3,8 @@ import axios, {CancelTokenSource} from "axios";
 import {extractJsonData, handleHttpError} from "../../common/utils/httpUtils";
 import type {AccessLevel} from "../../users/userUtils";
 
-export type ValueType = 'Identifier' | 'Text' | 'Number' | 'Date' | 'Term' | 'Set' | 'TermSet';
-export const TextualValueTypes: ValueType[] = ['Identifier', 'Text', 'Set'];
+export type ValueType = 'Identifier' | 'Text' | 'Link' | 'Number' | 'Date' | 'Term' | 'Set' | 'TermSet';
+export const TextualValueTypes: ValueType[] = ['Identifier', 'Text', 'Set', 'Link'];
 
 export type MetadataViewFilter = {
     field: string;

@@ -7,6 +7,9 @@ import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.CollectionResource;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.Resource;
+
+import java.util.*;
 
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.PathUtils.MAX_ROOT_DIRECTORY_NAME_LENGTH;
@@ -21,6 +24,25 @@ public final class DavUtils {
 
     public static ResIterator getHierarchyClasses() {
         return VOCABULARY.listSubjectsWithProperty(FS.isPartOfHierarchy);
+    }
+
+    /**
+     * Returns a hierarchy tree with all available resources per tree level
+     */
+    public static ArrayList<List<org.apache.jena.rdf.model.Resource>> getHierarchyTree() {
+        ArrayList<List<org.apache.jena.rdf.model.Resource>> hierarchyTree = new ArrayList<>();
+        Optional<Resource> hierarchyRoot = getHierarchyRootClasses().toList().stream().findFirst();
+        hierarchyRoot.ifPresent(resource -> buildHierarchyTree(hierarchyTree, Arrays.asList(resource)));
+        return hierarchyTree;
+    }
+
+    private static void buildHierarchyTree(
+            ArrayList<List<org.apache.jena.rdf.model.Resource>> hierarchyTree,
+            List<org.apache.jena.rdf.model.Resource> current) {
+        hierarchyTree.add(current);
+        current.stream()
+                .filter(c -> c.hasProperty(FS.hierarchyDescendants) && c.getProperty(FS.hierarchyDescendants).getList().size() > 0)
+                .forEach(c ->  buildHierarchyTree(hierarchyTree, c.getProperty(FS.hierarchyDescendants).getList().mapWith(RDFNode::asResource).toList()));
     }
 
     public static org.apache.jena.rdf.model.Resource childSubject(org.apache.jena.rdf.model.Resource subject, String name) {

@@ -91,7 +91,7 @@ describe('MetadataViewTable', () => {
             columns={columns}
             visibleColumnNames={columns.map(c => c.name)}
             data={data}
-            collections={[{iri: 'http://localhost:8080/api/webdav/c01', access: 'Read'}]}
+            collections={[{iri: 'http://localhost:8080/api/webdav/c01'}]}
             locationContext=""
             toggleRow={() => {}}
             history={historyMock}
@@ -106,6 +106,6 @@ describe('MetadataViewTable', () => {
         tableRows.first().prop("onDoubleClick")();
 
         expect(historyMock.push).toHaveBeenCalledTimes(1);
-        expect(historyMock.push).toHaveBeenCalledWith('/browser/c01');
+        expect(historyMock.push).toHaveBeenCalledWith('/metadata?iri=http://localhost:8080/api/webdav/c01');
     });
 });

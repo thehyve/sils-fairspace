@@ -1,269 +1,50 @@
 views:
-  - name: Project
-    title: Projects
-    itemName: Project
-    types:
-      - https://sils.uva.nl/ontology#Project
-    columns:
-      - name: identifier
-        title: Project identifier
-        source: https://sils.uva.nl/ontology#projectIdentifier
-        type: text
-      - name: description
-        title: Description
-        source: https://sils.uva.nl/ontology#projectDescription
-        type: text
-    join:
-      - view: Investigation
-        on: https://sils.uva.nl/ontology#project
-        reverse: true
-        include:
-          - id
-      - view: Resource
-        on: https://sils.uva.nl/ontology#aboutProject
-        reverse: true
-        include:
-          - type
-
-  - name: Investigation
-    title: Investigations
-    itemName: Investigation
-    types:
-      - https://sils.uva.nl/ontology#Investigation
-    columns:
-      - name: identifier
-        title: Investigation identifier
-        source: https://sils.uva.nl/ontology#investigationIdentifier
-        type: text
-      - name: description
-        title: Description
-        source: https://sils.uva.nl/ontology#investigationDescription
-        type: text
-      - name: organization
-        title: Organization
-        source: https://sils.uva.nl/ontology#organization
-        type: text
-      - name: department
-        title: Department
-        source: https://sils.uva.nl/ontology#department
-        type: text
-    join:
-      - view: Project
-        on: https://sils.uva.nl/ontology#project
-        include:
-          - id
-      - view: Study
-        on: https://sils.uva.nl/ontology#investigation
-        reverse: true
-        include:
-          - id
-      - view: Resource
-        on: https://sils.uva.nl/ontology#aboutInvestigation
-        reverse: true
-        include:
-          - type
-
-  - name: Study
-    title: Studies
-    itemName: Study
-    types:
-      - https://sils.uva.nl/ontology#Study
-    columns:
-      - name: identifier
-        title: Study identifier
-        source: https://sils.uva.nl/ontology#studyIdentifier
-        type: text
-      - name: description
-        title: Description
-        source: https://sils.uva.nl/ontology#studyDescription
-        type: text
-    join:
-      - view: Investigation
-        on: https://sils.uva.nl/ontology#investigation
-        include:
-          - id
-      - view: ObservationUnit
-        on: https://sils.uva.nl/ontology#investigation
-        reverse: true
-        include:
-          - id
-      - view: Resource
-        on: https://sils.uva.nl/ontology#aboutStudy
-        reverse: true
-        include:
-          - type
-
-  - name: ObservationUnit
-    title: Observation units
-    itemName: Observation unit
-    types:
-      - https://sils.uva.nl/ontology#ObservationUnit
-    columns:
-      - name: identifier
-        title: Observation unit identifier
-        source: https://sils.uva.nl/ontology#observationUnitIdentifier
-        type: text
-      - name: description
-        title: Description
-        source: https://sils.uva.nl/ontology#observationUnitDescription
-        type: text
-      - name: country
-        title: Country
-        source: https://sils.uva.nl/ontology#country
-        type: text
-    join:
-      - view: Study
-        on: https://sils.uva.nl/ontology#study
-        include:
-          - id
-      - view: Sample
-        on: https://sils.uva.nl/ontology#observationUnit
-        reverse: true
-        include:
-          - id
-      - view: Resource
-        on: https://sils.uva.nl/ontology#aboutObservationUnit
-        reverse: true
-        include:
-          - type
-
-  - name: Sample
-    title: Samples
-    itemName: Sample
-    types:
-      - https://sils.uva.nl/ontology#Sample
-    columns:
-      - name: identifier
-        title: Sample identifier
-        source: https://sils.uva.nl/ontology#sampleIdentifier
-        type: text
-      - name: description
-        title: Description
-        source: https://sils.uva.nl/ontology#sampleDescription
-        type: text
-      - name: species
-        title: Sample organism
-        source: https://sils.uva.nl/ontology#isOfSpecies
-        type: term
-        rdfType: https://sils.uva.nl/ontology#Species
-      - name: material
-        title: Material
-        source: https://sils.uva.nl/ontology#material
-        type: text
-      - name: country
-        title: Country
-        source: https://sils.uva.nl/ontology#country
-        type: text
-    join:
-      - view: ObservationUnit
-        on: https://sils.uva.nl/ontology#observationUnit
-        include:
-          - id
-      - view: Assay
-        on: https://sils.uva.nl/ontology#sample
-        reverse: true
-        include:
-          - assayType
-      - view: Resource
-        on: https://sils.uva.nl/ontology#aboutSample
-        reverse: true
-        include:
-          - type
-
-  - name: Assay
-    title: Assays
-    itemName: Assay
-    types:
-      - https://sils.uva.nl/ontology#Assay
-    columns:
-      - name: identifier
-        title: Assay identifier
-        source: https://sils.uva.nl/ontology#assayIdentifier
-        type: text
-      - name: description
-        title: Description
-        source: https://sils.uva.nl/ontology#assayDescription
-        type: text
-      - name: assayType
-        title: Assay type
-        source: https://sils.uva.nl/ontology#isOfAssayType
-        type: term
-        rdfType: https://sils.uva.nl/ontology#AssayType
-      - name: isolationProtocol
-        title: Isolation protocol
-        source: https://sils.uva.nl/ontology#isolationProtocol
-        type: text
-      - name: sequencingCenter
-        title: Sequencing center
-        source: https://sils.uva.nl/ontology#sequencingCenter
-        type: text
-      - name: sequencingPlatform
-        title: Sequencing platform
-        source: https://sils.uva.nl/ontology#sequencingPlatform
-        type: text
-      - name: sequencingDate
-        title: Sequencing date
-        source: https://sils.uva.nl/ontology#sequencingDate
-        type: date
-      - name: LCMSAssayMachine
-        title: LCMS machine
-        source: https://sils.uva.nl/ontology#LCMSAssayMachine
-        type: term
-        rdfType: https://sils.uva.nl/ontology#LCMSApparatus
-      - name: LCMSAssayMode
-        title: LCMS assay mode
-        source: https://sils.uva.nl/ontology#hasLCMSAssayMode
-        type: term
-        rdfType: https://sils.uva.nl/ontology#LCMSAssayMode
-    join:
-      - view: Sample
-        on: https://sils.uva.nl/ontology#sample
-        include:
-          - id
-      - view: Resource
-        on: https://sils.uva.nl/ontology#aboutAssay
-        reverse: true
-        include:
-          - type
-
   - name: Resource
-    title: Collections and files
+    title: Files
     itemName: Name
     types:
-      - https://fairspace.nl/ontology#Collection
-      - https://fairspace.nl/ontology#Directory
-      - https://fairspace.nl/ontology#File
+      - https://sils.uva.nl/ontology#ExternalFile
     columns:
-      - name: type
-        title: Resource type
-        source: http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+      - name: externalFileLink
+        title: File link
+        source: https://sils.uva.nl/ontology#externalFileLink
+        type: link
+    joinColumns:
+      - name: studyName
+        title: Study name
+        source: http://www.w3.org/2000/01/rdf-schema#label
+        sourceClass: https://sils.uva.nl/ontology#Study
+        sourceClassName: Study
+        type: text
+      - name: projectName
+        title: Project name
+        source: http://www.w3.org/2000/01/rdf-schema#label
+        sourceClass: https://sils.uva.nl/ontology#Project
+        sourceClassName: Project
+        type: text
+      - name: objectSpecies
+        title: Object species
+        source: https://sils.uva.nl/ontology#objectSpecies
+        rdfType: https://sils.uva.nl/ontology#Species
+        sourceClass: https://sils.uva.nl/ontology#Object
+        sourceClassName: Object
         type: term
-      - name: dateCreated
-        title: File created
-        source: https://fairspace.nl/ontology#dateCreated
-        type: date
-    join:
-      - view: Project
-        on: https://sils.uva.nl/ontology#aboutProject
-        include:
-          - id
-      - view: Investigation
-        on: https://sils.uva.nl/ontology#aboutInvestigation
-        include:
-          - id
-      - view: Study
-        on: https://sils.uva.nl/ontology#aboutStudy
-        include:
-          - id
-      - view: ObservationUnit
-        on: https://sils.uva.nl/ontology#aboutObservationUnit
-        include:
-          - id
-      - view: Sample
-        on: https://sils.uva.nl/ontology#aboutSample
-        include:
-          - id
-      - view: Assay
-        on: https://sils.uva.nl/ontology#aboutAssay
-        include:
-          - assayType
+      - name: objectAltitude
+        title: Object altitude
+        source: https://sils.uva.nl/ontology#objectAltitude
+        sourceClass: https://sils.uva.nl/ontology#Object
+        sourceClassName: Object
+        type: number
+      - name: objectDepth
+        title: Object depth
+        source: https://sils.uva.nl/ontology#objectDepth
+        sourceClass: https://sils.uva.nl/ontology#Object
+        sourceClassName: Object
+        type: number
+      - name: sampleCollectionTemperature
+        title: Sample collection temperature
+        source: https://sils.uva.nl/ontology#sampleCollectionTemperature
+        sourceClass: https://sils.uva.nl/ontology#Sample
+        sourceClassName: Sample
+        type: number
+

@@ -22,7 +22,8 @@ study:study1 a sils:Study ;
                  rdfs:label "Study 1" .
 
 object:object1 a sils:Object ;
-             rdfs:label "Object 1" .
+             rdfs:label "Object 1" ;
+             sils:objectAltitude 94 .
 
 sample:s1 a sils:Sample   ;
            rdfs:label "Sample 1" ;
