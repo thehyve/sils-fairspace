@@ -47,8 +47,7 @@ auth:
 webDAV:
   blobStorePath: "/data/saturn/files/blobs"
 viewDatabase:
-  enabled: true
-  url: jdbc:postgresql://fairspace-postgres:5432/fairspace
+  enabled: false
 services: {}
 features: []
 EndOfMessage

@@ -40,7 +40,8 @@ const useStyles = makeStyles((theme) => ({
         transform: 'rotate(180deg)',
     },
     card: {
-        marginTop: 10,
+        marginTop: 0,
+        marginBottom: 6,
         flex: 1,
         display: "flex",
         flexDirection: "column",

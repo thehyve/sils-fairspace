@@ -23,15 +23,15 @@ describe('FileList', () => {
     ];
 
     it('shows warning when no files are present', () => {
-        const {queryByText} = render(<FileList files={[]} />);
+        const {queryByText} = render(<FileList openedDirectoryType='testType' files={[]} />);
 
-        expect(queryByText('Empty directory')).toBeInTheDocument();
+        expect(queryByText('Empty testType folder')).toBeInTheDocument();
     });
 
     it('renders view when files are provided', () => {
         const {queryByText} = render(<FileList files={files} />);
 
-        expect(queryByText(/empty directory/i)).not.toBeInTheDocument();
+        expect(queryByText(/Empty testType folder/i)).not.toBeInTheDocument();
         expect(queryByText(/deleted/i)).not.toBeInTheDocument();
         expect(queryByText(/name/i)).toBeInTheDocument();
         expect(queryByText(/type/i)).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('FileList', () => {
     it('renders view with deleted column in "show deleted" mode', () => {
         const {queryByText} = render(<FileList files={files} showDeleted />);
 
-        expect(queryByText(/empty directory/i)).not.toBeInTheDocument();
+        expect(queryByText(/Empty testType folder/i)).not.toBeInTheDocument();
         expect(queryByText(/deleted/i)).toBeInTheDocument();
         expect(queryByText(/name/i)).toBeInTheDocument();
         expect(queryByText(/type/i)).toBeInTheDocument();
