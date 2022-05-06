@@ -27,7 +27,7 @@ data:
     webDAV:
       blobStorePath: "/data/saturn/files/blobs"
     viewDatabase:
-      enabled: true
+      enabled: false
     services:
 {{ toYaml .Values.fairspace.services | indent 6 }}
     features:
