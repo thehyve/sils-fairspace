@@ -23,12 +23,14 @@ import ColumnFilterInput from "../common/components/ColumnFilterInput";
 import MessageDisplay from "../common/components/MessageDisplay";
 import TablePaginationActions from "../common/components/TablePaginationActions";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
-import {getHierarchyLevelByType, isDirectory} from "./fileUtils";
+import {getAllowedDirectoryTypes, getHierarchyLevelByType, isDirectory} from "./fileUtils";
+import {getLabelPluralForType} from "../metadata/common/vocabularyUtils";
 
 export const FileList = ({
     files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile, hierarchy = [], classes = {}
+    showDeleted, preselectedFile, hierarchy = [],
+    openedDirectoryType, classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
 
@@ -84,7 +86,7 @@ export const FileList = ({
     if (!files || files.length === 0 || files[0] === null) {
         return (
             <MessageDisplay
-                message="Empty directory"
+                message={"Empty " + openedDirectoryType + " folder"}
                 variant="h6"
                 withIcon={false}
                 isError={false}
@@ -234,9 +236,11 @@ export const FileList = ({
 };
 
 const ContextualFileList = props => {
-    const {hierarchy} = useContext(VocabularyContext);
+    const {hierarchy, vocabulary} = useContext(VocabularyContext);
+    const currentLevelType = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType)[0];
+    const typeName = getLabelPluralForType(vocabulary, currentLevelType);
 
-    return <FileList hierarchy={hierarchy} {...props} />;
+    return <FileList hierarchy={hierarchy} openedDirectoryType={typeName} {...props} />;
 };
 
 export default withStyles(styles)(ContextualFileList);

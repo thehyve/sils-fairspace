@@ -115,6 +115,7 @@ export const FileBrowser = (props: FileBrowserProperties) => {
                 onAllSelection={shouldSelectAll => (shouldSelectAll ? selection.selectAll(files.map(file => file.filename)) : selection.deselectAll())}
                 showDeleted={showDeleted}
                 preselectedFile={preselectedFile}
+                openedDirectory={openedDirectory}
             />
             {renderFileOperations()}
         </div>
