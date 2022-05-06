@@ -118,13 +118,10 @@ export const MetadataView = (props: MetadataViewProperties) => {
 
     const appendCustomColumns = (view: MetadataViewOptions) => {
         if (view.name === RESOURCES_VIEW) {
-            const pathColumn = {title: "Path", name: "path", type: "Custom"};
-            const accessColumn = {title: "Access", name: "access", type: "Custom"};
             return [
                 view.columns.find(c => c.name === RESOURCES_VIEW),
-                pathColumn,
+                // any custom column here
                 ...view.columns.filter(c => c.name !== RESOURCES_VIEW),
-                accessColumn
             ];
         }
         return view.columns;
@@ -183,13 +180,12 @@ export const MetadataView = (props: MetadataViewProperties) => {
         </Grid>
     );
 
-    const renderFacets = (view: MetadataViewOptions) => {
-        const viewFacets = facets.filter(facet => (facet.name.toLowerCase().startsWith(view.name.toLowerCase())));
-        return viewFacets.length > 0 && (
+    const renderFacets = (view: MetadataViewOptions) => (
+        facets.length > 0 && (
             <Grid key={view.name} container item direction="column" justifyContent="flex-start" spacing={1}>
                 <div className={classes.facetHeaders} style={{textTransform: 'uppercase'}}>{view.title}</div>
                 {
-                    viewFacets.map(facet => renderSingleFacet(facet))
+                    facets.map(facet => renderSingleFacet(facet))
                 }
                 {
                     // location is the collection location, which we will group under resources
@@ -200,8 +196,7 @@ export const MetadataView = (props: MetadataViewProperties) => {
                     ) : ""
                 }
             </Grid>
-        );
-    };
+        ));
 
     const renderViewTabs = () => (
         <div>

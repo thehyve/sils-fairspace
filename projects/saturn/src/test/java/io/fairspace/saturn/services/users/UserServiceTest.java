@@ -51,8 +51,6 @@ public class UserServiceTest {
         tx.executeWrite(model -> {
             userAuthentication = mockAuthentication("user");
             user = createTestUser("user", false);
-            user.setCanViewPublicData(true);
-            user.setCanViewPublicMetadata(true);
             new DAO(model).write(user);
             adminAuthentication = mockAuthentication("admin");
             admin = createTestUser("admin", true);
@@ -96,12 +94,11 @@ public class UserServiceTest {
      * While fetching the list of users, Saturn may update the user objects in the RDF database
      * when some user properties have changed in Keycloak or when new users have been added.
      * That update did trigger a transaction error when occurring during a read action, such as fetching
-     * the list of workspaces (see <a href="https://thehyve.atlassian.net/browse/VRE-1455">VRE-1455</a>).
+     * the list of workspaces (deprecated) (see <a href="https://thehyve.atlassian.net/browse/VRE-1455">VRE-1455</a>).
      *
      * This test ensures that such updates happen asynchronously, not interfering with the
      * ongoing read transaction.
      */
-    @Ignore("Important test! Replace fetching workspaces with other trigger after changing the permission model.")
     @Test
     public void testFetchUsersWhileFetchingWorkspaces() throws InterruptedException {
         var pristineUser = tx.calculateRead(model ->
@@ -112,9 +109,8 @@ public class UserServiceTest {
         triggerKeycloakUserUpdate();
 
         selectRegularUser();
-        // Fetching the list of workspaces triggers fetching the current user (for access checks).
-        // This will trigger saving the updated user (in a write transactions) during a read transaction.
-        // workspaceService.listWorkspaces(); #TODO
+        // Fetching the current user will trigger saving the updated user (in a write transactions) during a read transaction.
+        userService.currentUser();
 
         Thread.sleep(500);
         var updatedUser = tx.calculateRead(model ->

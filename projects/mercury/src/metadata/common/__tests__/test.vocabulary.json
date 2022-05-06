@@ -99,15 +99,6 @@
     }]
   },
   {
-    "@id": "_:canList",
-    "http://www.w3.org/ns/shacl#path": [{
-      "@id": "https://fairspace.nl/ontology#canList"
-    }],
-    "http://www.w3.org/ns/shacl#name": [{
-      "@value": "Can list"
-    }]
-  },
-  {
     "@id": "https://fairspace.nl/ontology#Directory",
     "@type": [
       "http://www.w3.org/ns/shacl#NodeShape"
@@ -130,7 +121,7 @@
     }, {
       "@id": "_:description"
     }, {
-      "@id": "_:canList"
+      "@id": "_:canRead"
     }],
     "https://fairspace.nl/ontology#machineOnly": [{
       "@value": true
@@ -262,6 +253,9 @@
       "@list": [{
           "@id": "https://fairspace.nl/ontology#ResearchProject"
        }]
+    }],
+    "https://fairspace.nl/ontology#adminEditOnly": [{
+      "@value": true
     }]
   },
   {
@@ -295,6 +289,9 @@
       "@list": [{
           "@id": "https://fairspace.nl/ontology#ExternalResearchProject"
       }]
+    }],
+    "https://fairspace.nl/ontology#adminEditOnly": [{
+      "@value": true
     }],
     "http://www.w3.org/2000/01/rdf-schema#subClassOf": [{
       "@id": "https://fairspace.nl/ontology#Project"

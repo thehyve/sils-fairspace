@@ -27,7 +27,7 @@ public class ViewStoreClientFactory {
 
     public static String databaseTypeForColumnType(ColumnType type) {
         return switch (type) {
-            case Text, Term -> "text";
+            case Text, Term, Link -> "text";
             case Date -> "timestamp";
             case Number -> "numeric";
             case Identifier -> H2_DATABASE ? "varchar not null" : "text not null";
@@ -49,7 +49,7 @@ public class ViewStoreClientFactory {
         databaseConfig.setUsername(viewDatabase.username);
         databaseConfig.setPassword(viewDatabase.password);
         databaseConfig.setAutoCommit(false);
-        databaseConfig.setConnectionTimeout(1000);
+        databaseConfig.setConnectionTimeout(10000);
         databaseConfig.setMaximumPoolSize(50);
 
         dataSource = new HikariDataSource(databaseConfig);

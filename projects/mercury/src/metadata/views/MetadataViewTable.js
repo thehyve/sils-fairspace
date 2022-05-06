@@ -73,9 +73,9 @@ export const MetadataViewTable = (props: MetadataViewTableProperties) => {
         }
     };
 
-    const handleResultDoubleClick = (iri: string, row: Map<string, any>) => {
+    const handleResultDoubleClick = (iri: string) => {
         if (isResourcesView) {
-            history.push(redirectLink(iri, getResourceType(row)));
+            history.push(`/metadata?iri=${iri}`);
         }
     };
 
@@ -128,6 +128,16 @@ export const MetadataViewTable = (props: MetadataViewTableProperties) => {
         const value = row[column.name];
         const displayValue = (value || []).map(v => ((column.type === 'Date') ? formatDate(v.value) : v.label)).join(', ');
 
+        if (column.type === 'Link') {
+            return (
+                <TableCell key={column.name}>
+                    <a href={displayValue} target="_blank" rel="noopener noreferrer" color="inherit">
+                        {displayValue}
+                    </a>
+                </TableCell>
+            );
+        }
+
         return (
             <TableCell key={column.name}>
                 <span className={classes.cellContents}>{displayValue}</span>
@@ -159,7 +169,7 @@ export const MetadataViewTable = (props: MetadataViewTableProperties) => {
                             row[idColumn.name][0].label,
                             dataLinkColumn ? row[dataLinkColumn.name] : []
                         )}
-                        onDoubleClick={() => handleResultDoubleClick(row[idColumn.name][0].value, row)}
+                        onDoubleClick={() => handleResultDoubleClick(row[idColumn.name][0].value)}
                     >
                         {visibleColumns.map(column => renderTableCell(row, column))}
                     </TableRow>

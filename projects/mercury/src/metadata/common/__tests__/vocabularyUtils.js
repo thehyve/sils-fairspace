@@ -180,7 +180,8 @@ describe('Directory types hierarchy', () => {
                 representsExternalFile: false,
                 allowedDescendantTypes: [
                     "https://fairspace.nl/ontology#ResearchProject"
-                ]
+                ],
+                isAdminEditOnly: true
             },
             {
                 type: "https://fairspace.nl/ontology#ResearchProject",
@@ -190,7 +191,8 @@ describe('Directory types hierarchy', () => {
                 representsExternalFile: false,
                 allowedDescendantTypes: [
                     "https://fairspace.nl/ontology#ExternalResearchProject"
-                ]
+                ],
+                isAdminEditOnly: true
             },
             {
                 type: "https://fairspace.nl/ontology#ExternalResearchProject",
@@ -198,7 +200,8 @@ describe('Directory types hierarchy', () => {
                 labelPlural: "External research projects",
                 isRoot: false,
                 representsExternalFile: false,
-                allowedDescendantTypes: []
+                allowedDescendantTypes: [],
+                isAdminEditOnly: false
             }
         ]);
     });

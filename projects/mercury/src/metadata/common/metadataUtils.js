@@ -112,18 +112,8 @@ export const shouldPropertyBeHidden = (key, domain) => {
         case consts.TYPE_URI:
         case consts.LINKED_ENTITY_TYPE_URI:
         case consts.FILE_PATH_URI:
-        case consts.CAN_LIST_URI:
-        case consts.CAN_READ_URI:
-        case consts.CAN_WRITE_URI:
-        case consts.CAN_MANAGE_URI:
-        case consts.CAN_ADD_SHARED_METADATA_URI:
-        case consts.CAN_VIEW_PUBLIC_METADATA_URI:
-        case consts.CAN_VIEW_PUBLIC_DATA_URI:
-        case consts.CAN_QUERY_METADATA_URI:
         case consts.IS_ADMIN:
         case consts.IS_SUPERADMIN:
-        case consts.IS_MEMBER_OF_URI:
-        case consts.IS_MANAGER_OF_URI:
             return true;
         case consts.LABEL_URI:
             return isManaged;
@@ -161,7 +151,8 @@ export const getTypeInfo = (linkedDataItem, vocabulary) => {
         typeIri: getFirstPredicateId(shape, consts.SHACL_TARGET_CLASS) || shape['@id'],
         label: getFirstPredicateValue(shape, consts.SHACL_NAME),
         description: getFirstPredicateValue(shape, consts.SHACL_DESCRIPTION),
-        comment: getFirstPredicateValue(shape, consts.COMMENT_URI)
+        comment: getFirstPredicateValue(shape, consts.COMMENT_URI),
+        isAdminEditOnly: getFirstPredicateValue(shape, consts.IS_ADMIN_EDIT_ONLY)
     };
 };
 

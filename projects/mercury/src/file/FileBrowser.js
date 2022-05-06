@@ -1,10 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core";
 import FileList from "./FileList";
 import FileOperations from "./FileOperations";
 import {encodePath, isDirectory} from "./fileUtils";
-import {showCannotOverwriteDeletedError} from "./UploadsContext";
 import type {OpenedDirectory} from "./DirectoryPage";
 import type {HierarchyLevel} from "../metadata/common/vocabularyUtils";
 
@@ -66,21 +65,11 @@ export const FileBrowser = (props: FileBrowserProperties) => {
         history
     } = props;
     const isWritingEnabled = !openedDirectory.isDeleted;
-    const [showCannotOverwriteWarning, setShowCannotOverwriteWarning] = useState(false);
-    const [overwriteFileCandidateNames] = useState([]);
-    const [overwriteFolderCandidateNames] = useState([]);
 
     // Deselect all files on history changes
     /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => history.listen(() => selection.deselectAll()),
         [history]);
-
-    useEffect(() => {
-        if (showCannotOverwriteWarning) {
-            setShowCannotOverwriteWarning(false);
-            showCannotOverwriteDeletedError([...overwriteFileCandidateNames, ...overwriteFolderCandidateNames].length);
-        }
-    }, [overwriteFileCandidateNames, overwriteFolderCandidateNames, showCannotOverwriteWarning]);
 
     // A highlighting of a path means only this path would be selected/checked
     const handlePathHighlight = path => {

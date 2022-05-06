@@ -12,7 +12,6 @@ import io.fairspace.saturn.services.metadata.validation.DeletionValidator;
 import io.fairspace.saturn.services.search.FileSearchRequest;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
-import io.fairspace.saturn.webdav.BlobInfo;
 import io.fairspace.saturn.webdav.BlobStore;
 import io.fairspace.saturn.webdav.DavFactory;
 import io.milton.http.ResourceFactory;
@@ -20,7 +19,7 @@ import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.ConflictException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.MakeCollectionableResource;
-import io.milton.resource.PutableResource;
+import lombok.SneakyThrows;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
@@ -28,13 +27,13 @@ import org.apache.jena.sparql.core.DatasetImpl;
 import org.apache.jena.sparql.util.Context;
 import org.eclipse.jetty.server.Authentication;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,14 +45,10 @@ import static org.apache.jena.query.DatasetFactory.wrap;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@Ignore("Ignored until the basic data model is not defined")
 @RunWith(MockitoJUnitRunner.class)
 public class SparqlQueryServiceTest {
     static final String BASE_PATH = "/api/webdav";
     static final String baseUri = ConfigLoader.CONFIG.publicUrl + BASE_PATH;
-    static final String SAMPLE_NATURE_BLOOD = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C12434";
-    static final String ANALYSIS_TYPE_RNA_SEQ = "https://institut-curie.org/osiris#O6-12";
-    static final String ANALYSIS_TYPE_IMAGING = "https://institut-curie.org/osiris#C37-2";
 
     @Mock
     BlobStore store;
@@ -71,6 +66,8 @@ public class SparqlQueryServiceTest {
     User admin;
     Authentication.User adminAuthentication;
     private org.eclipse.jetty.server.Request request;
+
+    private DavFactory davFactory;
 
 
     private void selectRegularUser() {
@@ -91,7 +88,7 @@ public class SparqlQueryServiceTest {
     private void setupUsers(Model model) {
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
-        user.setCanViewPublicMetadata(true);
+//        user.setCanViewPublicMetadata(true);
         new DAO(model).write(user);
         user2Authentication = mockAuthentication("user2");
         user2 = createTestUser("user2", false);
@@ -109,9 +106,9 @@ public class SparqlQueryServiceTest {
         Model model = ds.getDefaultModel();
 
         var context = new Context();
-        var davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
+        davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         ds.getContext().set(FS_ROOT, davFactory.root);
-        var metadataPermissions = new MetadataPermissions(davFactory, userService);
+        var metadataPermissions = new MetadataPermissions(userService, VOCABULARY);
         var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), metadataPermissions);
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 
@@ -129,155 +126,214 @@ public class SparqlQueryServiceTest {
 
         var taxonomies = model.read("taxonomies.ttl");
         api.put(taxonomies);
-
-        when(request.getAttribute("BLOB")).thenReturn(new BlobInfo("id", 0, "md5"));
-
-        var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
-        var coll1 = (PutableResource) root.createCollection("coll1");
-        coll1.createNew("coffee.jpg", null, 0L, "image/jpeg");
-
-        selectRegularUser();
-
-        var coll2 = (PutableResource) root.createCollection("coll2");
-        coll2.createNew("sample-s2-b-rna.fastq", null, 0L, "chemical/seq-na-fastq");
-        coll2.createNew("sample-s2-b-rna_copy.fastq", null, 0L, "chemical/seq-na-fastq");
-
         var testdata = model.read("testdata.ttl");
         api.put(testdata);
+
+        var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
+
+        // existing dept
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("http://example.com/department#d1");
+        var dept01 = (MakeCollectionableResource) root.createCollection("Dept001");
+
+        // new dept
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
+        root.createCollection("Dept02");
+
+        // new PI
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var pi001 = (MakeCollectionableResource) dept01.createCollection("PI001");
+
+        // new Project
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project");
+        var project001 = (MakeCollectionableResource) pi001.createCollection("Project001");
+
+        // new Study
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Study");
+        var study001 = (MakeCollectionableResource) project001.createCollection("Study001");
+
+        // existing Object
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("http://example.com/object#object1");
+        when(request.getHeader("Entity-Type")).thenReturn("");
+        var object001 = (MakeCollectionableResource) study001.createCollection("Object001");
+
+        // new Sample
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Sample");
+        var sample001 = (MakeCollectionableResource) object001.createCollection("Sample001");
+
+        // new Assay
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Assay");
+        sample001.createCollection("Assay001");
     }
 
     @Test
-    public void testRetrieveSamplePage() {
-        var viewRequest = new ViewRequest();
-        viewRequest.setView("Sample");
-        viewRequest.setPage(1);
-        viewRequest.setSize(10);
-        var page = queryService.retrieveViewPage(viewRequest);
+    public void testRetrieveResourcePage_NoFilters_NoFiles() {
+        var vr = new ViewRequest();
+        vr.setView("Resource");
+        vr.setPage(1);
+        vr.setSize(10);
+        vr.setFilters(new ArrayList<>());
+        var page = queryService.retrieveViewPage(vr);
+        assertEquals(0, page.getRows().size());
+    }
+
+    @SneakyThrows
+    @Test
+    public void testRetrieveResourcePage_NoFilters_2Files() {
+        var assay = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
+
+        // new File
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay.createCollection("File001");
+
+        // new File
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay.createCollection("File001-2");
+
+        var vr = new ViewRequest();
+        vr.setView("Resource");
+        vr.setPage(1);
+        vr.setSize(10);
+        vr.setFilters(new ArrayList<>());
+        var page = queryService.retrieveViewPage(vr);
         assertEquals(2, page.getRows().size());
-        // The implementation does not sort results. Probably deterministic,
-        // but no certain order is guaranteed.
-        var row = page.getRows().get(0).get("Sample").iterator().next().getValue().equals("http://example.com/samples#s1-a")
-                ? page.getRows().get(0) : page.getRows().get(1);
-        assertEquals("Sample A for subject 1", row.get("Sample").iterator().next().getLabel());
-        assertEquals(SAMPLE_NATURE_BLOOD, row.get("Sample_nature").iterator().next().getValue());
-        assertEquals("Blood", row.get("Sample_nature").iterator().next().getLabel());
-        assertEquals("Liver", row.get("Sample_topography").iterator().next().getLabel());
-        assertEquals(45.2f, ((Number) row.get("Sample_tumorCellularity").iterator().next().getValue()).floatValue(), 0.01);
+
+        // altitude, as defined in testdata.ttl
+        var objectAltitude = page.getRows().get(0).get("Object_objectAltitude").iterator().next().getValue();
+
+        assertEquals(94, objectAltitude);
     }
 
+    @SneakyThrows
     @Test
-    public void testCountSamples() {
-        selectRegularUser();
+    public void testCountResources() {
+        var assay = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
+
         var requestParams = new CountRequest();
-        requestParams.setView("Sample");
+        requestParams.setView("Resource");
+        requestParams.setFilters(new ArrayList<>());
         var result = queryService.count(requestParams);
+        assertEquals(0, result.getCount());
+
+        // new File
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay.createCollection("File001");
+
+        // new File
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay.createCollection("File001-2");
+
+        result = queryService.count(requestParams);
         assertEquals(2, result.getCount());
     }
 
+    @SneakyThrows
     @Test
-    public void testCountSamplesWithoutViewAccess() {
-        selectExternalUser();
-        var countRequest = new CountRequest();
-        countRequest.setView("Sample");
-        var result = queryService.count(countRequest);
-        assertEquals(0, result.getCount());
-    }
+    public void testRetrieveViewPageUsingObjectFilter() {
+        var assay = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
 
-    @Test
-    public void testRetrieveSamplePageUsingSampleFilter() {
-        var request = new ViewRequest();
-        request.setView("Sample");
-        request.setPage(1);
-        request.setSize(10);
-        request.setFilters(List.of(
+        // new File
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay.createCollection("File001");
+
+        var vr = new ViewRequest();
+        vr.setView("Resource");
+        vr.setPage(1);
+        vr.setSize(10);
+        vr.setFilters(List.of(
                 ViewFilter.builder()
-                        .field("Sample_nature")
-                        .values(List.of(SAMPLE_NATURE_BLOOD))
+                        .field("Object_objectAltitude")
+                        .min(92)
                         .build()
         ));
-        var page = queryService.retrieveViewPage(request);
+        var page = queryService.retrieveViewPage(vr);
         assertEquals(1, page.getRows().size());
     }
 
+    @SneakyThrows
     @Test
-    public void testRetrieveSamplePageUsingPrefixFilter() {
-        var request = new ViewRequest();
-        request.setView("Sample");
-        request.setPage(1);
-        request.setSize(10);
-        request.setFilters(List.of(
-                ViewFilter.builder()
-                        .field("Sample")
-                        .prefix("sample b")
-                        .build()
-        ));
-        var page = queryService.retrieveViewPage(request);
-        assertEquals(1, page.getRows().size());
-    }
-
-    @Test
-    public void testRetrieveSamplePageForAccessibleCollection() {
-        var request = new ViewRequest();
-        request.setView("Sample");
-        request.setPage(1);
-        request.setSize(10);
-        request.setFilters(Collections.singletonList(
-                ViewFilter.builder()
-                        .field("Resource_analysisType")
-                        .values(Collections.singletonList(ANALYSIS_TYPE_RNA_SEQ))
-                        .build()
-        ));
-        var page = queryService.retrieveViewPage(request);
-        assertEquals(1, page.getRows().size());
-    }
-
-    @Test
-    public void testRetrieveUniqueSamplesForLocation() {
-        var request = new ViewRequest();
-        request.setView("Sample");
-        request.setPage(1);
-        request.setSize(10);
-        request.setFilters(Collections.singletonList(
+    public void testRetrieveUniqueFilesForLocation() {
+        var vr_filter = new ViewRequest();
+        vr_filter.setView("Resource");
+        vr_filter.setPage(1);
+        vr_filter.setSize(10);
+        vr_filter.setFilters(Collections.singletonList(
                 ViewFilter.builder()
                         .field("location")
-                        .values(Collections.singletonList(baseUri + "/coll2"))
+                        .values(Collections.singletonList(baseUri + "/Dept001/PI001/Project001/Study001/Object001/Sample001"))
                         .build()
         ));
-        var page = queryService.retrieveViewPage(request);
+
+        // no files yet
+        var page = queryService.retrieveViewPage(vr_filter);
+        assertEquals(0, page.getRows().size());
+
+        var object001 = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001");
+
+        // new file002
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Sample");
+        var sample002 = (MakeCollectionableResource) object001.createCollection("Sample002");
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Assay");
+        var assay002 = (MakeCollectionableResource) sample002.createCollection("Assay002");
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay002.createCollection("File002");
+
+        // file002 should not be found given the search path
+        page = queryService.retrieveViewPage(vr_filter);
+        assertEquals(0, page.getRows().size());
+
+        var assay001 = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
+        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
+        assay001.createCollection("File001");
+
+        // file001 and file002 are expected
+        var vr_no_filter = new ViewRequest();
+        vr_no_filter.setView("Resource");
+        vr_no_filter.setPage(1);
+        vr_no_filter.setSize(10);
+        vr_no_filter.setFilters(new ArrayList<>());
+        page = queryService.retrieveViewPage(vr_no_filter);
+        assertEquals(2, page.getRows().size());
+
+        // file001 is expected
+        page = queryService.retrieveViewPage(vr_filter);
         assertEquals(1, page.getRows().size());
     }
 
     @Test
-    public void testRetrieveSamplesForInvalidLocation() {
-        var request = new ViewRequest();
-        request.setView("Sample");
-        request.setPage(1);
-        request.setSize(10);
-        request.setFilters(Collections.singletonList(
+    public void testRetrieveResourcesForInvalidLocation() {
+        var vr = new ViewRequest();
+        vr.setView("Resource");
+        vr.setPage(1);
+        vr.setSize(10);
+        vr.setFilters(Collections.singletonList(
                 ViewFilter.builder()
                         .field("location")
                         .values(Collections.singletonList(">; INSERT something"))
                         .build()
         ));
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> queryService.retrieveViewPage(request));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> queryService.retrieveViewPage(vr));
         String expectedMessage = "Invalid IRI";
         String actualMessage = exception.getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage));
     }
 
-    @Test
-    public void testRetrieveFilesForParent() {
-        selectAdmin();
-        var request = new FileSearchRequest();
-        request.setQuery("coffee");
-        request.setParentIRI(baseUri + "/coll1");
-
-        var results = queryService.searchFiles(request);
-        assertEquals(1, results.size());
-    }
-
-    @Test
+     @Test
     public void testRetrieveFilesForInvalidParent() {
         selectAdmin();
         var request = new FileSearchRequest();
@@ -289,21 +345,5 @@ public class SparqlQueryServiceTest {
         String actualMessage = exception.getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-    @Test
-    public void testRetrieveSamplePageForUnaccessibleCollection() {
-        var request = new ViewRequest();
-        request.setView("Sample");
-        request.setPage(1);
-        request.setSize(10);
-        request.setFilters(List.of(
-                ViewFilter.builder()
-                        .field("Resource_analysisType")
-                        .values(List.of(ANALYSIS_TYPE_IMAGING))
-                        .build()
-        ));
-        var page = queryService.retrieveViewPage(request);
-        assertEquals(0, page.getRows().size());
     }
 }

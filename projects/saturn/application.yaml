@@ -52,7 +52,7 @@ services:
   "test username": http://google.com?q=${username}
 features:
 viewDatabase:
-  enabled: true
+  enabled: false
   url: jdbc:postgresql://localhost:9432/fairspace
 search:
   pageRequestTimeout: 10000

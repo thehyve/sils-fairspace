@@ -6,7 +6,7 @@ import ContentCut from "mdi-material-ui/ContentCut";
 import ContentPaste from "mdi-material-ui/ContentPaste";
 import ErrorDialog from "../common/components/ErrorDialog";
 
-import {getAllowedDirectoryTypes, getParentPath, getStrippedPath, joinPaths} from "./fileUtils";
+import {canEditHierarchyLevel, getAllowedDirectoryTypes, getParentPath, getStrippedPath, joinPaths} from "./fileUtils";
 import {COPY, CUT} from '../constants';
 import FileOperationsGroup from "./FileOperationsGroup";
 import ClipboardContext from '../common/contexts/ClipboardContext';
@@ -16,6 +16,8 @@ import ProgressButton from "../common/components/ProgressButton";
 import RenameButton from "./buttons/RenameButton";
 import styles from "./FileOperations.styles";
 import VocabularyContext from "../metadata/vocabulary/VocabularyContext";
+import UserContext from "../users/UserContext";
+import {isAdmin} from "../users/userUtils";
 
 export const Operations = {
     PASTE: 'PASTE',
@@ -29,6 +31,7 @@ Object.freeze(Operations);
 
 export const FileOperations = ({
     isWritingEnabled,
+    currentUser = {},
     showDeleted,
     isExternalStorage = false,
     openedDirectory = {},
@@ -53,6 +56,7 @@ export const FileOperations = ({
     const isClipboardItemsOnOpenedPath = !clipboard.isEmpty() && clipboard.filenames.map(f => getParentPath(f)).includes(openedDirectory.path);
     const isLinkedEntityTypeValidForParent = !clipboard.isEmpty() && allowedTypes.includes(clipboard.linkedEntityType);
     const isPasteDisabled = !isWritingEnabled || clipboard.isEmpty() || (isClipboardItemsOnOpenedPath && clipboard.method === CUT) || !isLinkedEntityTypeValidForParent;
+    const isAdminOnlyOperationEnabled = isAdmin(currentUser);
 
     const fileOperation = (operationCode, operationPromise) => {
         setActiveOperation(operationCode);
@@ -207,12 +211,12 @@ export const FileOperations = ({
                                 agreeButtonText="Remove"
                                 dangerous
                                 onClick={handleDelete}
-                                disabled={noPathSelected || busy}
+                                disabled={noPathSelected || busy || (isDeletedItemSelected && !isAdminOnlyOperationEnabled)}
                             >
                                 <IconButton
                                     title="Delete"
                                     aria-label="Delete"
-                                    disabled={noPathSelected || busy}
+                                    disabled={noPathSelected || busy || (isDeletedItemSelected && !isAdminOnlyOperationEnabled)}
                                 >
                                     <Delete />
                                 </IconButton>
@@ -281,9 +285,15 @@ export const FileOperations = ({
 const ContextualFileOperations = props => {
     const clipboard = useContext(ClipboardContext);
     const {hierarchy} = useContext(VocabularyContext);
+    const {currentUser} = useContext(UserContext);
+
     const allowedTypes = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType);
 
-    return <FileOperations clipboard={clipboard} allowedTypes={allowedTypes} {...props} />;
+    if (allowedTypes.length > 0 && !canEditHierarchyLevel(currentUser, hierarchy, allowedTypes[0])) {
+        return <></>;
+    }
+
+    return <FileOperations clipboard={clipboard} allowedTypes={allowedTypes} currentUser={currentUser} {...props} />;
 };
 
 export default withStyles(styles)(ContextualFileOperations);

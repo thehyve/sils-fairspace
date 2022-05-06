@@ -50,6 +50,7 @@ sils:Department a rdfs:Class, sh:NodeShape ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:PrincipalInvestigator ) ;
     fs:hierarchyRoot true ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;
@@ -115,6 +116,7 @@ sils:PrincipalInvestigator a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:Project ) ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;
@@ -178,6 +180,7 @@ sils:Project a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:Study ) ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;
@@ -228,6 +231,7 @@ sils:Study a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:Object ) ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;
@@ -350,6 +354,7 @@ sils:Object a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:Sample ) ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;
@@ -632,6 +637,7 @@ sils:Sample a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:Assay ) ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;
@@ -1085,6 +1091,7 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
     sh:ignoredProperties ( rdf:type owl:sameAs ) ;
     fs:partOfHierarchy true ;
     fs:hierarchyDescendants ( sils:ExternalFile ) ;
+    fs:adminEditOnly true ;
     sh:property
     [
         sh:name "Label" ;

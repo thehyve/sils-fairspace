@@ -36,16 +36,4 @@ public class User extends PersistentEntity {
     @RDFProperty(FS.IS_ADMIN_URI)
     @JsonProperty("isAdmin")
     private boolean admin;
-
-    @RDFProperty(FS.CAN_VIEW_PUBLIC_METADATA_URI)
-    private boolean canViewPublicMetadata;
-
-    @RDFProperty(FS.CAN_VIEW_PUBLIC_DATA_URI)
-    private boolean canViewPublicData;
-
-    @RDFProperty(FS.CAN_ADD_SHARED_METADATA_URI)
-    private boolean canAddSharedMetadata;
-
-    @RDFProperty(FS.CAN_QUERY_METADATA_URI)
-    private boolean canQueryMetadata;
 }

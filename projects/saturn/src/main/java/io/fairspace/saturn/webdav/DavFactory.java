@@ -16,10 +16,7 @@ import java.util.Optional;
 
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
 import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
-import static io.fairspace.saturn.util.EnumUtils.max;
-import static io.fairspace.saturn.util.EnumUtils.min;
-import static io.fairspace.saturn.webdav.AccessMode.DataPublished;
-import static io.fairspace.saturn.webdav.AccessMode.MetadataPublished;
+import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavUtils.*;
 import static io.fairspace.saturn.webdav.PathUtils.encodePath;
 import static io.fairspace.saturn.webdav.WebDAVServlet.*;
@@ -62,57 +59,25 @@ public class DavFactory implements ResourceFactory {
     }
 
     public Access getAccess(org.apache.jena.rdf.model.Resource subject) {
-        var uri = subject.getURI();
-        var nextSeparatorPos = uri.indexOf('/', rootSubject.getURI().length() + 1);
-        var coll = rootSubject.getModel().createResource(nextSeparatorPos < 0 ? uri : uri.substring(0, nextSeparatorPos));
-
-        var user = currentUserResource();
-        var deleted = coll.hasProperty(FS.dateDeleted);
-
-        var access = getGrantedPermission(coll, user);
-
-
-        if (coll.hasLiteral(FS.accessMode, DataPublished.name()) && (userService.currentUser().isCanViewPublicData() || access.canRead())) {
-            return Access.Read;
-        }
-        if (!access.canList() && userService.currentUser().isCanViewPublicMetadata()
-                && (coll.hasLiteral(FS.accessMode, MetadataPublished.name()) || coll.hasLiteral(FS.accessMode, DataPublished.name()))) {
-            access = Access.List;
-        }
+        var deleted = subject.hasProperty(FS.dateDeleted);
 
         if (deleted) {
             if (!showDeleted() && !isMetadataRequest()) {
                 return Access.None;
-            } else {
-                access = min(access, Access.List);
             }
-        } else if (coll.hasProperty(FS.status, Status.ReadOnly.name())) {
-            access = min(access, Access.Read);
-        } else if (coll.hasProperty(FS.status, Status.Archived.name())) {
-            access = min(access, Access.List);
-        }
-
-        if(access == Access.None && userService.currentUser().isAdmin()) {
-            return Access.Write;
-        }
-
-        return access;
-    }
-
-    protected static Access getGrantedPermission(org.apache.jena.rdf.model.Resource resource, org.apache.jena.rdf.model.Resource principal) {
-        if (principal.hasProperty(FS.canManage, resource)) {
-            return Access.Manage;
-        }
-        if (principal.hasProperty(FS.canWrite, resource)) {
-            return Access.Write;
-        }
-        if (principal.hasProperty(FS.canRead, resource)) {
             return Access.Read;
         }
-        if (principal.hasProperty(FS.canList, resource)) {
-            return Access.List;
+
+        if (userService.currentUser().isAdmin()) {
+            return Access.Write;
         }
-        return Access.None;
+
+        var linkedEntityType = subject.getPropertyResourceValue(FS.linkedEntityType);
+        if (!VOCABULARY.getResource(linkedEntityType.getURI()).hasProperty(FS.adminEditOnly)) {
+            return Access.Write;
+        }
+
+        return Access.Read;
     }
 
     Resource getResource(org.apache.jena.rdf.model.Resource subject, Access access) {
@@ -159,12 +124,12 @@ public class DavFactory implements ResourceFactory {
     }
 
     public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
-        var linkedEntity = getLinkedEntity(subject);
+        var linkedEntity = getNewLinkedEntity(subject);
         subject.addProperty(FS.linkedEntity, linkedEntity);
         subject.addProperty(FS.linkedEntityType, linkedEntity.getPropertyResourceValue(RDF.type));
     }
 
-    private org.apache.jena.rdf.model.Resource getLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
+    private org.apache.jena.rdf.model.Resource getNewLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
         var linkedEntityIri = linkedEntityIri();
         if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
             return getExistingEntityToLink(subject, linkedEntityIri);
