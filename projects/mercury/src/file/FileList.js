@@ -29,7 +29,7 @@ import {getLabelPluralForType} from "../metadata/common/vocabularyUtils";
 export const FileList = ({
     files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile, hierarchy = [], openedDirectory = {},
+    showDeleted, preselectedFile, hierarchy = [],
     openedDirectoryType, classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
@@ -240,7 +240,7 @@ const ContextualFileList = props => {
     const currentLevelType = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType)[0];
     const typeName = getLabelPluralForType(vocabulary, currentLevelType);
 
-    return <FileList hierarchy={hierarchy} {...props} />;
+    return <FileList hierarchy={hierarchy} openedDirectoryType={typeName} {...props} />;
 };
 
 export default withStyles(styles)(ContextualFileList);
