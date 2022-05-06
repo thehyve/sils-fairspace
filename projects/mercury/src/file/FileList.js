@@ -29,7 +29,8 @@ import {getLabelPluralForType} from "../metadata/common/vocabularyUtils";
 export const FileList = ({
     files, onPathCheckboxClick, onPathDoubleClick,
     selectionEnabled, onAllSelection, onPathHighlight,
-    showDeleted, preselectedFile, hierarchy = [], openedDirectory = {}, classes = {}
+    showDeleted, preselectedFile, hierarchy = [], openedDirectory = {},
+    openedDirectoryType, classes = {}
 }) => {
     const [hoveredFileName, setHoveredFileName] = useState('');
 
@@ -50,7 +51,6 @@ export const FileList = ({
 
     const [filterValue, setFilterValue] = useState("");
     const [filteredFiles, setFilteredFiles] = useState(files);
-    const {vocabulary} = useContext(VocabularyContext);
     const {orderedItems, orderAscending, orderBy, toggleSort} = useSorting(filteredFiles, columns, 'name');
     const directoriesBeforeFiles = useMemo(
         () => stableSort(orderedItems, compareBy('type')),
@@ -84,12 +84,9 @@ export const FileList = ({
     }, [preselectedFile]);
 
     if (!files || files.length === 0 || files[0] === null) {
-        const currentLevelType = getAllowedDirectoryTypes(hierarchy, openedDirectory.directoryType)[0];
-        const typeName = getLabelPluralForType(vocabulary, currentLevelType);
-
         return (
             <MessageDisplay
-                message={"Empty " + typeName + " folder"}
+                message={"Empty " + openedDirectoryType + " folder"}
                 variant="h6"
                 withIcon={false}
                 isError={false}
@@ -239,7 +236,9 @@ export const FileList = ({
 };
 
 const ContextualFileList = props => {
-    const {hierarchy} = useContext(VocabularyContext);
+    const {hierarchy, vocabulary} = useContext(VocabularyContext);
+    const currentLevelType = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType)[0];
+    const typeName = getLabelPluralForType(vocabulary, currentLevelType);
 
     return <FileList hierarchy={hierarchy} {...props} />;
 };
