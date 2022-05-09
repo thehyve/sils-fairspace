@@ -17,9 +17,7 @@ import BreadCrumbs from "../common/components/BreadCrumbs";
 import usePageTitleUpdater from "../common/hooks/UsePageTitleUpdater";
 import styles from "./DirectoryPage.styles";
 import {getMetadataViewsPath, RESOURCES_VIEW} from "../metadata/views/metadataViewUtils";
-import UserContext from "../users/UserContext";
 import MetadataViewContext from "../metadata/views/MetadataViewContext";
-import type {User} from "../users/UsersAPI";
 import {MetadataViewOptions} from "../metadata/views/MetadataViewAPI";
 import type {Match} from "../types";
 import {handleTextSearchRedirect} from "../search/searchUtils";
@@ -50,7 +48,6 @@ type DirectoryPageProperties = ContextualDirectoryPageProperties & {
     files: File[];
     hierarchy: HierarchyLevel[];
     fileActions: any;
-    currentUser: User;
     views: MetadataViewOptions[];
     showDeleted: boolean;
     setShowDeleted: (boolean) => void;
@@ -65,7 +62,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
         views = [],
         files = [],
         hierarchy = [],
-        fileActions, refreshFiles, currentUser, location, history, classes
+        fileActions, refreshFiles, location, history, classes
     } = props;
 
     const selection = useMultipleSelection();
@@ -110,8 +107,7 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
     const path = (selection.selected.length === 1) ? selection.selected[0] : openedDirectory.path;
 
     const showMetadataSearchButton: boolean = (
-        currentUser && currentUser.canViewPublicMetadata && views && views.some(v => v.name === RESOURCES_VIEW)
-        && !openedDirectory.isDeleted
+        views && views.some(v => v.name === RESOURCES_VIEW) && !openedDirectory.isDeleted
     );
 
     const allowCsvUpload = openedDirectory && openedDirectory.path.length < path.length;
@@ -193,7 +189,6 @@ export const DirectoryPage = (props: DirectoryPageProperties) => {
 
 const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
     const [showDeleted, setShowDeleted] = useState(false);
-    const {currentUser} = useContext(UserContext);
     const {views} = useContext(MetadataViewContext);
     const {hierarchy} = useContext(VocabularyContext);
     const {params} = props.match;
@@ -227,7 +222,6 @@ const ContextualDirectoryPage = (props: ContextualDirectoryPageProperties) => {
             fileActions={fileActions}
             showDeleted={showDeleted}
             setShowDeleted={setShowDeleted}
-            currentUser={currentUser}
             views={views}
             {...props}
         />

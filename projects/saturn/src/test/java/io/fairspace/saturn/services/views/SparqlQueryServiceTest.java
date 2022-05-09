@@ -88,7 +88,6 @@ public class SparqlQueryServiceTest {
     private void setupUsers(Model model) {
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
-//        user.setCanViewPublicMetadata(true);
         new DAO(model).write(user);
         user2Authentication = mockAuthentication("user2");
         user2 = createTestUser("user2", false);

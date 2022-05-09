@@ -154,11 +154,8 @@ public class UserService {
             if (user == null) {
                 throw new NotFoundException();
             }
-            if (user.isSuperadmin()) {
-                if (Stream.of(roles.getAdmin(), roles.getCanViewPublicData(), roles.getCanViewPublicMetadata())
-                        .anyMatch(role -> role != null && !role)) {
-                    throw new IllegalArgumentException("Cannot revoke admin or public access roles from superadmin user.");
-                }
+            if (user.isSuperadmin() && roles.getAdmin() != null && !roles.getAdmin()) {
+                throw new IllegalArgumentException("Cannot revoke admin role from superadmin user.");
             }
             username[0] = user.getUsername();
             if (roles.getAdmin() != null) {

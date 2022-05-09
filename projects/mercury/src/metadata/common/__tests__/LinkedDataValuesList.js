@@ -72,7 +72,6 @@ describe('LinkedDataValuesList', () => {
     it('should show an add input field when adding is allowed', () => {
         const {queryAllByTestId} = render(
             <LinkedDataValuesList
-                canAdd
                 addComponent={StringValue}
                 columnDefinition={columnDefinition}
                 property={defaultProperty}
@@ -86,7 +85,6 @@ describe('LinkedDataValuesList', () => {
         const property = {...defaultProperty, maxValuesCount: 3};
         const {queryAllByTestId} = render(
             <LinkedDataValuesList
-                canAdd
                 addComponent={StringValue}
                 columnDefinition={columnDefinition}
                 property={property}
