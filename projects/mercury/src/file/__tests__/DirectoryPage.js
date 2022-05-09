@@ -16,7 +16,6 @@ function shallowRender(history, path, locationSearch = '') {
             location={{search: locationSearch}}
             history={history}
             classes={{}}
-            currentUser={{canViewPublicMetadata: true}}
             refreshFiles={() => {}}
             fileActions={[]}
             showDeleted={false}
