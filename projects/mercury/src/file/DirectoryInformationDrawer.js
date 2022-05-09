@@ -254,16 +254,10 @@ const PathMetadata = React.forwardRef((
 ) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
     const {hierarchy, vocabulary} = useContext(VocabularyContext);
-    const [updateDate, setUpdateDate] = useState(Date.now());
+    const [updateDate, setUpdateDate] = useState(undefined);
     const classes = useStyles();
     const uploadDone = () => {
-        // eslint-disable-next-line
-        console.log('before ' + updateDate);
         setUpdateDate(Date.now());
-        // eslint-disable-next-line
-        console.log('after ' + updateDate);
-        // eslint-disable-next-line
-        console.log('now  ' + Date.now());
     };
     let body;
     let linkedEntityType;
