@@ -61,11 +61,8 @@ public class DavFactory implements ResourceFactory {
     public Access getAccess(org.apache.jena.rdf.model.Resource subject) {
         var deleted = subject.hasProperty(FS.dateDeleted);
 
-        if (deleted) {
-            if (!showDeleted() && !isMetadataRequest()) {
-                return Access.None;
-            }
-            return Access.Read;
+        if (deleted && !showDeleted() && !isMetadataRequest()) {
+            return Access.None;
         }
 
         if (userService.currentUser().isAdmin()) {

@@ -237,8 +237,11 @@ export const FileList = ({
 
 const ContextualFileList = props => {
     const {hierarchy, vocabulary} = useContext(VocabularyContext);
-    const currentLevelType = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType)[0];
-    const typeName = getLabelPluralForType(vocabulary, currentLevelType);
+    let typeName = "";
+    if (props.openedDirectory) {
+        const currentLevelType = getAllowedDirectoryTypes(hierarchy, props.openedDirectory.directoryType)[0];
+        typeName = getLabelPluralForType(vocabulary, currentLevelType);
+    }
 
     return <FileList hierarchy={hierarchy} openedDirectoryType={typeName} {...props} />;
 };
