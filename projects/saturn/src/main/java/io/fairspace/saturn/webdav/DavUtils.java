@@ -2,14 +2,14 @@ package io.fairspace.saturn.webdav;
 
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.exceptions.BadRequestException;
-import io.milton.http.exceptions.ConflictException;
-import io.milton.http.exceptions.NotAuthorizedException;
-import io.milton.resource.CollectionResource;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.PathUtils.MAX_ROOT_DIRECTORY_NAME_LENGTH;
@@ -107,15 +107,6 @@ public final class DavUtils {
             var message = "The directory name exceeds maximum length " + MAX_ROOT_DIRECTORY_NAME_LENGTH + ".";
             setErrorMessage(message);
             throw new BadRequestException(message);
-        }
-    }
-
-    public static void validateResourceDoesNotExist(CollectionResource resource, String name) throws NotAuthorizedException, BadRequestException, ConflictException {
-        var existing = resource.child(name);
-        if (existing != null) {
-            var message = "Target directory with this name already exists.";
-            setErrorMessage(message);
-            throw new ConflictException(existing, message);
         }
     }
 }

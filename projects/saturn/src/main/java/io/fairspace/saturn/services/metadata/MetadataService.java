@@ -6,6 +6,7 @@ import io.fairspace.saturn.services.metadata.validation.MetadataRequestValidator
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.services.metadata.validation.Violation;
 import io.fairspace.saturn.vocabulary.FS;
+import io.fairspace.saturn.webdav.Access;
 import io.fairspace.saturn.webdav.DavFactory;
 import io.milton.resource.CollectionResource;
 import io.milton.resource.MoveableResource;
@@ -234,7 +235,7 @@ public class MetadataService {
             try {
                 Resource parentResource = dirResource.getPropertyResourceValue(FS.belongsTo);
                 io.milton.resource.Resource parentDavResource = davFactory.getResource(parentResource);
-                ((MoveableResource) davFactory.getResource(dirResource)).moveTo((CollectionResource) parentDavResource, label);
+                ((MoveableResource) davFactory.getResourceByType(dirResource, Access.Manage)).moveTo((CollectionResource) parentDavResource, label);
                 updatedDavResources.add(dirResource);
             } catch (Exception e) {
                 var message = String.format(
