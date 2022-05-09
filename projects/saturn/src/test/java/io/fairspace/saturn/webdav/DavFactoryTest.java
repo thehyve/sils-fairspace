@@ -332,7 +332,7 @@ public class DavFactoryTest {
         assertEquals(((DirectoryResource) deleted).getAccess(), Access.Read.name());
 
         selectAdmin();
-        assertEquals(((DirectoryResource) deleted).getAccess(), Access.Read.name());
+        assertEquals(((DirectoryResource) deleted).getAccess(), Access.Write.name());
     }
 
     @Test
