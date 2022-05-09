@@ -145,7 +145,7 @@ const generateTemplate = (vocabulary, metadataType) => {
 };
 
 const MetadataCard = (props) => {
-    const {title, avatar, children, forceExpand, allowCsvUpload, metadataUploadPath, metadataUploadType, setUpdateDate} = props;
+    const {title, avatar, children, forceExpand, allowCsvUpload, metadataUploadPath, metadataUploadType, uploadDone} = props;
     const [expandedManually, setExpandedManually] = useState(null); // true | false | null
     const expanded = (expandedManually != null) ? expandedManually : forceExpand;
     const toggleExpand = () => setExpandedManually(!expanded === forceExpand ? null : !expanded);
@@ -159,7 +159,7 @@ const MetadataCard = (props) => {
         setUploadingMetadata(true);
         LocalFileAPI.uploadMetadata(metadataUploadPath, file)
             .then(() => enqueueSnackbar('Metadata have been successfully uploaded'))
-            .then(() => setUpdateDate(Date.Now))
+            .then(() => uploadDone())
             .catch(e => {
                 const errorContents = (
                     <DialogContentText>
@@ -256,6 +256,15 @@ const PathMetadata = React.forwardRef((
     const {hierarchy, vocabulary} = useContext(VocabularyContext);
     const [updateDate, setUpdateDate] = useState(Date.now());
     const classes = useStyles();
+    const uploadDone = () => {
+        // eslint-disable-next-line
+        console.log('before ' + updateDate);
+        setUpdateDate(Date.now());
+        // eslint-disable-next-line
+        console.log('after ' + updateDate);
+        // eslint-disable-next-line
+        console.log('now  ' + Date.now());
+    };
     let body;
     let linkedEntityType;
     let linkedEntityIri;
@@ -299,7 +308,7 @@ const PathMetadata = React.forwardRef((
             allowCsvUpload={allowCsvUpload}
             metadataUploadPath={hasEditRight && forceExpand && path}
             metadataUploadType={linkedEntityType}
-            setUpdateDate={setUpdateDate}
+            uploadDone={uploadDone}
         >
             {body}
         </MetadataCard>
