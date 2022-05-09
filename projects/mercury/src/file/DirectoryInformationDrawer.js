@@ -254,7 +254,7 @@ const PathMetadata = React.forwardRef((
 ) => {
     const {data, error, loading} = useAsync(() => LocalFileAPI.stat(path, showDeleted), [path]);
     const {hierarchy, vocabulary} = useContext(VocabularyContext);
-    const [updateDate, setUpdateDate] = useState(undefined);
+    const [updateDate, setUpdateDate] = useState();
     const classes = useStyles();
     const uploadDone = () => {
         setUpdateDate(Date.now());
