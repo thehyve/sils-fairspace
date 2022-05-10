@@ -102,8 +102,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     private org.apache.jena.rdf.model.Resource createResource(String name) throws ConflictException, NotAuthorizedException, BadRequestException {
         validateResourceName(name);
         name = name.trim();
-        validateResourceDoesNotExist(this, name);
-
+        factory.validateChildNameUniqueness(subject, name);
         var subj = factory.createDavResource(name, subject);
 
         updateParents(subject);

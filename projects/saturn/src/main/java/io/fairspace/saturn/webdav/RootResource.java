@@ -16,7 +16,6 @@ import org.apache.jena.vocabulary.RDF;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static io.fairspace.saturn.webdav.DavUtils.*;
 import static io.fairspace.saturn.webdav.WebDAVServlet.timestampLiteral;
@@ -62,7 +61,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
     public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException, NotAuthorizedException {
         validateRootDirectoryName(name);
         name = name.trim();
-        validateResourceDoesNotExist(this, name);
+        factory.validateChildNameUniqueness(factory.rootSubject, name);
 
         var subj = factory.createDavResource(name, factory.rootSubject)
                 .addProperty(RDF.type, FS.Directory)
