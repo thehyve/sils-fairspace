@@ -102,7 +102,7 @@ public class DavFactory implements ResourceFactory {
     public void validateChildNameUniqueness(org.apache.jena.rdf.model.Resource subject, String childName) throws ConflictException {
         var existing = getResourceByType(childSubject(subject, childName), Access.Manage);
         if (existing != null) {
-            var message = "Target directory with name: " + childName +  " already exists.";
+            var message = "Target directory with name: " + childName + " already exists.";
             setErrorMessage(message);
             throw new ConflictException(message);
         }
@@ -143,7 +143,7 @@ public class DavFactory implements ResourceFactory {
                     .orElse(null);
 
             if (existingType == null || existingType.isBlank()) {
-                var message = "No entity found for uri '"+linkedEntityIri + "'.";
+                var message = "No entity found for uri '" + linkedEntityIri + "'.";
                 setErrorMessage(message);
                 throw new BadRequestException(message);
             }
