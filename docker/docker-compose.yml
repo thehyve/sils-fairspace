@@ -1,24 +1,6 @@
 version: '3'
 
 services:
-  fairspace-postgres:
-    image: postgres:13-alpine
-    container_name: fairspace-postgres-database
-    environment:
-      POSTGRES_DB: fairspace
-      POSTGRES_USER: fairspace
-      POSTGRES_PASSWORD: fairspace
-    volumes:
-      - fairspace-postgres-data:/var/lib/postgresql/data
-    restart: unless-stopped
-    logging:
-      driver: ${DOCKER_LOGGING_DRIVER:-journald}
-      options:
-        labels: application
-        tag: fairspace-postgres
-    networks:
-      - fairspace-db-network
-
   fairspace-saturn:
     image: ${SATURN_IMAGE}
     container_name: fairspace-saturn
@@ -39,8 +21,6 @@ services:
       - audit:/data/saturn/audit
       - ./ssl/extra_certs.pem:/opt/extra_certs.pem
     restart: unless-stopped
-    depends_on:
-      - fairspace-postgres
     logging:
       driver: ${DOCKER_LOGGING_DRIVER:-journald}
       options:
@@ -48,7 +28,6 @@ services:
         tag: fairspace-saturn
     networks:
       - nginx-proxy-network
-      - fairspace-db-network
     extra_hosts:
       - ${KEYCLOAK_HOSTNAME}:${DOCKER_HOST_IP}
 
@@ -85,14 +64,11 @@ services:
       - ${KEYCLOAK_HOSTNAME}:${DOCKER_HOST_IP}
 
 volumes:
-  fairspace-postgres-data:
   database:
   files:
   audit:
 
 networks:
-  fairspace-db-network:
-    driver: bridge
   nginx-proxy-network:
     driver: bridge
 

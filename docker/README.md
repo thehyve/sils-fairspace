@@ -26,7 +26,6 @@ Variable                   | Description
 `KEYCLOAK_REALM`           | Keycloak realm, e.g. `fairspace`
 `KEYCLOAK_CLIENT_ID`       | Keycloak client id, e.g. `fairspace-client`
 `KEYCLOAK_CLIENT_SECRET`   | Keycloak client secret, e.g. `**********`
-`POSTGRESQL_PORT`          | Fairspace views PostgreSQL database port, e.g. `5432`
 `FAIRSPACE_URL`            | URL of Fairspace, e.g. `https://fairspace.example.com`
 `PLUTO_LOGLEVEL`           | Level of Pluto application logs, default: `INFO`
 `PLUTO_CONNECT_TIMEOUT_MILLIS`| Pluto connection timeout in milliseconds, default: `600000`.
