@@ -138,9 +138,17 @@ public class DavFactory implements ResourceFactory {
         if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
             var existing = rootSubject.getModel().getResource(linkedEntityIri);
 
-            return Optional.ofNullable(existing.getPropertyResourceValue(RDF.type))
+            var existingType = Optional.ofNullable(existing.getPropertyResourceValue(RDF.type))
                     .map(org.apache.jena.rdf.model.Resource::toString)
                     .orElse(null);
+
+            if (existingType == null || existingType.isBlank()) {
+                var message = "No entity found for uri '"+linkedEntityIri + "'.";
+                setErrorMessage(message);
+                throw new BadRequestException(message);
+            }
+
+            return existingType;
         }
 
         // return for new entity
