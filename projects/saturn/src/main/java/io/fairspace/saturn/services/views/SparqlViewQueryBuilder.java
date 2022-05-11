@@ -32,22 +32,12 @@ import static org.apache.jena.sparql.expr.NodeValue.*;
 public class SparqlViewQueryBuilder {
     private StringBuilder builder;
     private final View view;
-    private long limit;
-    private long offset;
     private HashSet<String> entityColumnsWithSubquery;
     private final String PLACEHOLDER = " [subquery_column_placeholder] ";
     private HashMap<String, List<String>> entityTypes;
 
     public SparqlViewQueryBuilder(View view) {
         this.view = view;
-        this.limit = -1L;
-        this.offset = -1L;
-    }
-
-    public SparqlViewQueryBuilder(View view, int page, int size) {
-        this.view = view;
-        this.limit = (size + 1);
-        this.offset = ((page - 1) * size);
     }
 
     public Query getQuery(List<ViewFilter> viewFilters) {
@@ -67,15 +57,12 @@ public class SparqlViewQueryBuilder {
                 .append(PLACEHOLDER)
                 .append("\nWHERE {\n");
 
-        builder.append("?dir fs:linkedEntity ?").append(view.name)
-                .append(" .\n");
+        builder.append("?dir fs:linkedEntity ?").append(view.name).append(" .\n")
+                .append("FILTER NOT EXISTS { ?dir fs:dateDeleted ?anydate } .\n");
 
         applyHierarchy();
         applyFilters(viewFilters);
 
-        builder.append("{\nSELECT DISTINCT ?")
-                .append(view.name)
-                .append(" WHERE {\n");
         if (view.types.size() == 1) {
             builder.append("?")
                     .append(view.name)
@@ -87,16 +74,10 @@ public class SparqlViewQueryBuilder {
                     .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", ")))
                     .append("))\n");
         }
+
         builder.append("FILTER NOT EXISTS { ?")
                 .append(view.name)
-                .append(" fs:dateDeleted ?any } .\n}\n");
-        if (limit > -1L && offset > -1L) {
-            builder.append("LIMIT ").append(limit)
-                    .append(" OFFSET ").append(offset).append("\n");
-        }
-        builder.append("}\n");
-
-        builder.append("}\n");
+                .append(" fs:dateDeleted ?any }\n}");
 
         String query = builder.toString();
         query = addSubqueryColumns(query);
