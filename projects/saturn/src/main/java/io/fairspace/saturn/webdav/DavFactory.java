@@ -126,14 +126,32 @@ public class DavFactory implements ResourceFactory {
         return rootSubject.getModel().createResource(getUserURI().getURI());
     }
 
-    public boolean isFileSystemResource(org.apache.jena.rdf.model.Resource resource) {
-        return resource.getURI().startsWith(rootSubject.getURI());
-    }
-
     public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
         var linkedEntity = getNewLinkedEntity(subject);
         subject.addProperty(FS.linkedEntity, linkedEntity);
         subject.addProperty(FS.linkedEntityType, linkedEntity.getPropertyResourceValue(RDF.type));
+    }
+
+    public String getEntityTypeFromRequest() throws BadRequestException {
+        // return for existing entity
+        var linkedEntityIri = linkedEntityIri();
+        if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
+            var existing = rootSubject.getModel().getResource(linkedEntityIri);
+
+            return Optional.ofNullable(existing.getPropertyResourceValue(RDF.type))
+                    .map(org.apache.jena.rdf.model.Resource::toString)
+                    .orElse(null);
+        }
+
+        // return for new entity
+        var type = entityType();
+        if (type == null || type.isBlank()) {
+            var message = "The linked entity type and the linked entity IRI are empty.";
+            setErrorMessage(message);
+            throw new BadRequestException(message);
+        }
+
+        return type;
     }
 
     private org.apache.jena.rdf.model.Resource getNewLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
