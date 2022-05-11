@@ -38,11 +38,15 @@ public class SparqlQueryService implements QueryService {
     }
 
     public ViewPageDTO retrieveViewPage(ViewRequest request) {
+        var query = new SparqlViewQueryBuilder(getView(request.getView()))
+                .getQuery(request.getFilters());
+        log.debug("Executing query:\n{}", query);
+
         var page = (request.getPage() != null && request.getPage() >= 1) ? request.getPage() : 1;
         var size = (request.getSize() != null && request.getSize() >= 1) ? request.getSize() : 20;
-        var query = new SparqlViewQueryBuilder(getView(request.getView()), page, size)
-                .getQuery(request.getFilters());
-        log.debug("Executing query with filters and pagination:\n{}", query);
+        query.setLimit(size + 1);
+        query.setOffset((page - 1) * size);
+        log.debug("Query with filters and pagination applied: \n{}", query);
 
         var selectExecution = QueryExecutionFactory.create(query, ds);
         selectExecution.setTimeout(config.pageRequestTimeout);
