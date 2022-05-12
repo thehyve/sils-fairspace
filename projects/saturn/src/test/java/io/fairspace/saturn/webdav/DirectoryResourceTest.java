@@ -109,19 +109,17 @@ public class DirectoryResourceTest {
 
         var taxonomies = model.read("taxonomies.ttl");
         metadataService.put(taxonomies);
+        var testdata = model.read("testdata.ttl");
+        metadataService.put(testdata);
 
         var blob = new BlobInfo("id", FILE_SIZE, "md5");
         when(request.getAttribute("BLOB")).thenReturn(blob);
-//        when(blobFileItem.getBlob()).thenReturn(blob);
         when(file.getInputStream()).thenAnswer(invocation -> new ByteArrayInputStream(new byte[FILE_SIZE]));
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
         var coll1 = (PutableResource) root.createCollection("coll1");
-        var coll2 = (PutableResource) root.createCollection("coll2");
         coll1.createNew("coffee.jpg", null, 0L, "image/jpeg");
-
-        var testdata = model.read("testdata.ttl");
-        metadataService.put(testdata);
+        root.createCollection("coll2");
     }
 
     @Ignore("File upload functionality currently not supported.")
