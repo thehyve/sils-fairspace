@@ -38,6 +38,7 @@ import java.util.Map;
 
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static org.apache.jena.query.DatasetFactory.wrap;
@@ -84,12 +85,13 @@ public class DirectoryResourceTest {
 
     @Before
     public void before() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+        Context context = new Context();
         var dsg = DatasetGraphFactory.createTxnMem();
         Dataset ds = wrap(dsg);
         Transactions tx = new SimpleTransactions(ds);
         model = ds.getDefaultModel();
         MetadataPermissions permissions = new MetadataPermissions(userService, VOCABULARY);
-        Context context = new Context();
+        context.set(METADATA_PERMISSIONS, permissions);
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
         context.set(METADATA_SERVICE, metadataService);
