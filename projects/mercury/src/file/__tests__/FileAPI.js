@@ -72,7 +72,7 @@ describe('FileAPI', () => {
             LocalFileAPI.client = () => ({copyFile});
 
             return expect(LocalFileAPI.copy("/test", "special-characters"))
-                .rejects.toThrow(/destination can not be copied to/);
+                .rejects.toThrow(/The destination file already exists/);
         });
 
         it('should result in a clear error on 412 response', () => {

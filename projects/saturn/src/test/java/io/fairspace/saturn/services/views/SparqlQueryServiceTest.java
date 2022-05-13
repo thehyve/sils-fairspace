@@ -19,7 +19,6 @@ import io.milton.http.exceptions.BadRequestException;
 import io.milton.http.exceptions.ConflictException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.MakeCollectionableResource;
-import lombok.SneakyThrows;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
@@ -58,27 +57,11 @@ public class SparqlQueryServiceTest {
     private MetadataPermissions permissions;
     MetadataService api;
     QueryService queryService;
-
-    User user;
-    Authentication.User userAuthentication;
-    User user2;
-    Authentication.User user2Authentication;
     User admin;
     Authentication.User adminAuthentication;
     private org.eclipse.jetty.server.Request request;
 
     private DavFactory davFactory;
-
-
-    private void selectRegularUser() {
-        lenient().when(request.getAuthentication()).thenReturn(userAuthentication);
-        lenient().when(userService.currentUser()).thenReturn(user);
-    }
-
-    private void selectExternalUser() {
-        lenient().when(request.getAuthentication()).thenReturn(user2Authentication);
-        lenient().when(userService.currentUser()).thenReturn(user2);
-    }
 
     private void selectAdmin() {
         lenient().when(request.getAuthentication()).thenReturn(adminAuthentication);
@@ -86,13 +69,6 @@ public class SparqlQueryServiceTest {
     }
 
     private void setupUsers(Model model) {
-        userAuthentication = mockAuthentication("user");
-        user = createTestUser("user", false);
-//        user.setCanViewPublicMetadata(true);
-        new DAO(model).write(user);
-        user2Authentication = mockAuthentication("user2");
-        user2 = createTestUser("user2", false);
-        new DAO(model).write(user2);
         adminAuthentication = mockAuthentication("admin");
         admin = createTestUser("admin", true);
         new DAO(model).write(admin);
@@ -118,10 +94,8 @@ public class SparqlQueryServiceTest {
         api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
 
         setupUsers(model);
-
         setupRequestContext();
         request = getCurrentRequest();
-
         selectAdmin();
 
         var taxonomies = model.read("taxonomies.ttl");
@@ -182,20 +156,14 @@ public class SparqlQueryServiceTest {
         assertEquals(0, page.getRows().size());
     }
 
-    @SneakyThrows
     @Test
-    public void testRetrieveResourcePage_NoFilters_2Files() {
+    public void testRetrieveResourcePage_NoFilters_3Files() throws ConflictException, BadRequestException, NotAuthorizedException {
         var assay = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
-
-        // new File
         when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
         assay.createCollection("File001");
-
-        // new File
-        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
-        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
         assay.createCollection("File001-2");
+        assay.createCollection("File001-3");
 
         var vr = new ViewRequest();
         vr.setView("Resource");
@@ -203,17 +171,23 @@ public class SparqlQueryServiceTest {
         vr.setSize(10);
         vr.setFilters(new ArrayList<>());
         var page = queryService.retrieveViewPage(vr);
-        assertEquals(2, page.getRows().size());
+        assertEquals(3, page.getRows().size());
 
         // altitude, as defined in testdata.ttl
         var objectAltitude = page.getRows().get(0).get("Object_objectAltitude").iterator().next().getValue();
-
         assertEquals(94, objectAltitude);
+
+        vr.setSize(2);
+        vr.setPage(1);
+        page = queryService.retrieveViewPage(vr);
+        assertEquals(2, page.getRows().size());
+        vr.setPage(2);
+        page = queryService.retrieveViewPage(vr);
+        assertEquals(1, page.getRows().size());
     }
 
-    @SneakyThrows
     @Test
-    public void testCountResources() {
+    public void testCountResources() throws BadRequestException, NotAuthorizedException, ConflictException {
         var assay = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
 
         var requestParams = new CountRequest();
@@ -222,23 +196,17 @@ public class SparqlQueryServiceTest {
         var result = queryService.count(requestParams);
         assertEquals(0, result.getCount());
 
-        // new File
         when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
         assay.createCollection("File001");
-
-        // new File
-        when(request.getHeader("Linked-Entity-IRI")).thenReturn("");
-        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#ExternalFile");
         assay.createCollection("File001-2");
 
         result = queryService.count(requestParams);
         assertEquals(2, result.getCount());
     }
 
-    @SneakyThrows
     @Test
-    public void testRetrieveViewPageUsingObjectFilter() {
+    public void testRetrieveViewPageUsingObjectFilter() throws ConflictException, BadRequestException, NotAuthorizedException {
         var assay = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH + "/Dept001/PI001/Project001/Study001/Object001/Sample001/Assay001");
 
         // new File
@@ -260,9 +228,8 @@ public class SparqlQueryServiceTest {
         assertEquals(1, page.getRows().size());
     }
 
-    @SneakyThrows
     @Test
-    public void testRetrieveUniqueFilesForLocation() {
+    public void testRetrieveUniqueFilesForLocation() throws ConflictException, BadRequestException, NotAuthorizedException {
         var vr_filter = new ViewRequest();
         vr_filter.setView("Resource");
         vr_filter.setPage(1);

@@ -18,6 +18,10 @@ const defaultOptions = {withCredentials: true, headers: {"X-Requested-With": "XM
 // Keep all item properties
 const includeDetails = {...defaultOptions, details: true};
 
+const existingDirectoryExtraNote = "Note that the linked entity can be reused in multiple locations.\n"
+    + "In case of renaming the name has to be unique in all these locations.\n"
+    + "The directory or file might also exist as deleted.";
+
 export type File = {
     iri: string;
     filename: string;
@@ -119,7 +123,9 @@ class FileAPI {
                         case 403:
                             throw new Error("You do not have authorization to create a directory \nin this collection.");
                         case 405:
-                            throw new Error("A directory or file with this name already exists. \nPlease choose another name");
+                        case 409:
+                            throw new Error("A directory or file with this name already exists. \nPlease choose another name.\n\n"
+                                + existingDirectoryExtraNote);
                     }
                 }
 
@@ -258,7 +264,8 @@ class FileAPI {
                             throw new Error("Could not move one or more files. Only admins can move files.");
                         case 409:
                         case 412:
-                            throw new Error("Could not move one or more files. The destination file already exists.");
+                            throw new Error("Could not move one or more files. The destination file already exists.\n\n"
+                            + existingDirectoryExtraNote);
                     }
                 }
 
@@ -288,7 +295,6 @@ class FileAPI {
                         case 403:
                             throw new Error("Could not copy one or more files. \nDo you have write permission to the destination collection?");
                         case 409:
-                            throw new Error("Could not copy one or more files. \nThe destination can not be copied to.");
                         case 412:
                             throw new Error("Could not copy one or more files. \nThe destination file already exists.");
                     }

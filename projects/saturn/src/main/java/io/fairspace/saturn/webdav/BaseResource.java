@@ -16,6 +16,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.shacl.vocabulary.SHACL;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
@@ -151,6 +152,10 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
             setErrorMessage(message);
             throw new BadRequestException(message);
         }
+        validateTargetNotExists(parent, name);
+    }
+
+    private void validateTargetNotExists(CollectionResource parent, String name) throws ConflictException, BadRequestException, NotAuthorizedException {
         if (parent != null && parent.child(name) != null) {
             var message = "Resource with the name " + name + " already exist in the specified directory.";
             setErrorMessage(message);
@@ -164,13 +169,16 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
                 .addProperty(RDFS.label, name);
     }
 
-    private void moveResourcesWithTheSameLinkedEntity(String name) {
-        subject.getModel()
+    private void moveResourcesWithTheSameLinkedEntity(String name) throws ConflictException, BadRequestException, NotAuthorizedException {
+        ExtendedIterator<Statement> linkedResourcesToMove = subject.getModel()
                 .listStatements(null, FS.linkedEntity, subject.getPropertyResourceValue(FS.linkedEntity))
-                .filterDrop(statement -> statement.getSubject().equals(subject))
-                .forEachRemaining(statement ->
-                        move(statement.getSubject(), statement.getSubject().getPropertyResourceValue(FS.belongsTo), name, true)
-                );
+                .filterDrop(statement -> statement.getSubject().equals(subject));
+        while (linkedResourcesToMove.hasNext()) {
+            Statement nextResource = linkedResourcesToMove.next();
+            var parent = nextResource.getSubject().getPropertyResourceValue(FS.belongsTo);
+            validateTargetNotExists((CollectionResource) factory.getResource(parent), name);
+            move(nextResource.getSubject(), parent, name, true);
+        }
     }
 
     @Override
@@ -259,8 +267,8 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
     private void copy(Resource subject, Resource parent, String name, Resource user, Literal date) {
         var newSubject = childSubject(parent, name);
         newSubject.removeProperties();
-        newSubject.addProperty(FS.belongsTo, parent);
-        newSubject.addProperty(RDFS.label, name)
+        newSubject.addProperty(RDFS.label, name);
+        newSubject.addProperty(FS.belongsTo, parent)
                 .addProperty(FS.dateCreated, date)
                 .addProperty(FS.createdBy, user);
 
@@ -279,8 +287,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
             newSubject.addLiteral(FS.currentVersion, 1)
                     .addProperty(FS.versions, newSubject.getModel().createList(ver));
         }
-        subject.getModel()
-                .listSubjectsWithProperty(FS.belongsTo, subject)
+        subject.getModel().listSubjectsWithProperty(FS.belongsTo, subject)
                 .toSet()  // convert to set, to prevent updating a model while iterating over its elements
                 .forEach(r -> copy(r, newSubject, getStringProperty(r, RDFS.label), user, date));
 

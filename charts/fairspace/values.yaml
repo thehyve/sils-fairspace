@@ -132,6 +132,8 @@ saturn:
     tdb.prefix_index_primary: "GPU"
     tdb.prefix_indexes:
       - "GPU"
+  viewDatabase:
+    enabled: false
   vocabulary:
   views:
 

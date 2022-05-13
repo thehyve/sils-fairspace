@@ -5,6 +5,7 @@ import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.ConflictException;
 import io.milton.http.exceptions.NotAuthorizedException;
 import io.milton.resource.Resource;
 import org.apache.jena.sparql.util.Context;
@@ -61,11 +62,8 @@ public class DavFactory implements ResourceFactory {
     public Access getAccess(org.apache.jena.rdf.model.Resource subject) {
         var deleted = subject.hasProperty(FS.dateDeleted);
 
-        if (deleted) {
-            if (!showDeleted() && !isMetadataRequest()) {
-                return Access.None;
-            }
-            return Access.Read;
+        if (deleted && !showDeleted() && !isMetadataRequest()) {
+            return Access.None;
         }
 
         if (userService.currentUser().isAdmin()) {
@@ -90,7 +88,7 @@ public class DavFactory implements ResourceFactory {
         return getResourceByType(subject, access);
     }
 
-    Resource getResourceByType(org.apache.jena.rdf.model.Resource subject, Access access) {
+    public Resource getResourceByType(org.apache.jena.rdf.model.Resource subject, Access access) {
         if (subject.hasProperty(RDF.type, FS.File)) {
             return new FileResource(this, subject, access);
         }
@@ -99,6 +97,15 @@ public class DavFactory implements ResourceFactory {
         }
 
         return null;
+    }
+
+    public void validateChildNameUniqueness(org.apache.jena.rdf.model.Resource subject, String childName) throws ConflictException {
+        var existing = getResourceByType(childSubject(subject, childName), Access.Manage);
+        if (existing != null) {
+            var message = "Target directory with name: " + childName +  " already exists.";
+            setErrorMessage(message);
+            throw new ConflictException(message);
+        }
     }
 
     public org.apache.jena.rdf.model.Resource createDavResource(String name, org.apache.jena.rdf.model.Resource parentSubject) {

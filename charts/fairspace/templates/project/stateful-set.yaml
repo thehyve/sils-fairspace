@@ -23,6 +23,7 @@ spec:
 {{- end }}
     spec:
       containers:
+{{- if .Values.saturn.viewDatabase.enabled }}
         - name: {{ .Release.Name }}-postgres-database
           image: postgres:13-alpine
           volumeMounts:
@@ -36,6 +37,7 @@ spec:
               value: fairspace
             - name: POSTGRES_PASSWORD
               value: fairspace
+{{- end }}
         - name: {{ .Release.Name }}-pluto
           image: "{{ .Values.pluto.image.image }}:{{ .Values.pluto.image.tag }}"
           imagePullPolicy: {{ .Values.pluto.image.pullPolicy }}
@@ -118,6 +120,7 @@ spec:
         configMap:
           name: {{ .Release.Name }}-pluto
   volumeClaimTemplates:
+{{- if .Values.saturn.viewDatabase.enabled }}
   - metadata:
       name: postgres
     spec:
@@ -131,6 +134,7 @@ spec:
   {{- else }}
       storageClassName: {{ .Values.postgres.persistence.storage.storageClass | quote }}
   {{- end }}
+{{- end }}
 {{- end }}
   - metadata:
       name: audit

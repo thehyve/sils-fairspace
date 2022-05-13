@@ -10,12 +10,4 @@ public class UserRolesUpdate {
 
     @JsonProperty("isAdmin")
     private Boolean admin;
-
-    private Boolean canViewPublicMetadata;
-
-    private Boolean canViewPublicData;
-
-    private Boolean canAddSharedMetadata;
-
-    private Boolean canQueryMetadata;
 }

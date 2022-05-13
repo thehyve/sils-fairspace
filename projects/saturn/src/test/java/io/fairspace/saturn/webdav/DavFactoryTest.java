@@ -194,6 +194,41 @@ public class DavFactoryTest {
         assertEquals(1, rootDir.getChildren().size());
     }
 
+    @Test
+    public void testCreateChildDirectoryWithExistingNameFails() throws NotAuthorizedException, BadRequestException, ConflictException {
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        var rootDir = (FolderResource) root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        rootDir.createCollection("dir01");
+        try {
+            rootDir.createCollection("dir01");
+            fail("Children name should be unique.");
+        } catch (ConflictException e) {
+            assertEquals("Target directory with name: dir01 already exists.", e.getMessage());
+        }
+        assertEquals(1, rootDir.getChildren().size());
+    }
+
+    @Test
+    public void testCreateChildDirectoryWithExistingNameAsDeletedFails() throws NotAuthorizedException, BadRequestException, ConflictException {
+        var root = (MakeCollectionableResource) factory.getResource(null, BASE_PATH);
+        var rootDir = (FolderResource) root.createCollection("dir0");
+        when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#PrincipalInvestigator");
+        var dir1 = rootDir.createCollection("dir01");
+        ((FolderResource) dir1).delete();
+
+        assertEquals(0, rootDir.getChildren().size());
+
+        try {
+            rootDir.createCollection("dir01");
+            fail("Children name should be unique.");
+        } catch (ConflictException e) {
+            assertEquals("Target directory with name: dir01 already exists.", e.getMessage());
+        }
+        assertEquals(0, rootDir.getChildren().size());
+    }
+
+
     @Test(expected = BadRequestException.class)
     public void testCreateRootDirectoryWithNonRootEntityType() throws NotAuthorizedException, BadRequestException, ConflictException {
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Project"); // NON-root type
@@ -332,7 +367,7 @@ public class DavFactoryTest {
         assertEquals(((DirectoryResource) deleted).getAccess(), Access.Read.name());
 
         selectAdmin();
-        assertEquals(((DirectoryResource) deleted).getAccess(), Access.Read.name());
+        assertEquals(((DirectoryResource) deleted).getAccess(), Access.Write.name());
     }
 
     @Test

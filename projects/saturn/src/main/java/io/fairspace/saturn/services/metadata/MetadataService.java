@@ -6,6 +6,7 @@ import io.fairspace.saturn.services.metadata.validation.MetadataRequestValidator
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.services.metadata.validation.Violation;
 import io.fairspace.saturn.vocabulary.FS;
+import io.fairspace.saturn.webdav.Access;
 import io.fairspace.saturn.webdav.DavFactory;
 import io.milton.resource.CollectionResource;
 import io.milton.resource.MoveableResource;
@@ -227,27 +228,25 @@ public class MetadataService {
         Set<Resource> updatedDavResources = new HashSet<>();
         var linkedDirectories = before.listStatements(null, FS.linkedEntity, resource)
                 .filterKeep(statement -> statement.getSubject().hasProperty(RDF.type, FS.Directory))
-                .mapWith(Statement::getSubject);
+                .mapWith(Statement::getSubject)
+                .filterDrop(dirResource -> dirResource.hasProperty(RDFS.label, label));
         if (linkedDirectories.hasNext()) {
-            linkedDirectories
-                    .filterDrop(dirResource -> dirResource.hasProperty(RDFS.label, label))
-                    .forEachRemaining(dirResource -> {
-                        try {
-                            Resource parentResource = dirResource.getPropertyResourceValue(FS.belongsTo);
-                            io.milton.resource.Resource parentDavResource = davFactory.getResource(parentResource);
-                            ((MoveableResource) davFactory.getResource(dirResource)).moveTo((CollectionResource) parentDavResource, label);
-                            updatedDavResources.add(dirResource);
-                        } catch (Exception e) {
-                            var message = String.format(
-                                    "Cannot rename directory resource linked to the entity %s to %s. %s",
-                                    resource.getURI(),
-                                    label,
-                                    e.getMessage());
-                            var violations = new LinkedHashSet<Violation>();
-                            violations.add(new Violation(message, resource.getURI(), "Label", label));
-                            throw new ValidationException(violations);
-                        }
-                    });
+            Resource dirResource = linkedDirectories.next();
+            try {
+                Resource parentResource = dirResource.getPropertyResourceValue(FS.belongsTo);
+                io.milton.resource.Resource parentDavResource = davFactory.getResource(parentResource);
+                ((MoveableResource) davFactory.getResourceByType(dirResource, Access.Manage)).moveTo((CollectionResource) parentDavResource, label);
+                updatedDavResources.add(dirResource);
+            } catch (Exception e) {
+                var message = String.format(
+                        "Cannot rename directory resource linked to the entity %s to %s. %s",
+                        resource.getURI(),
+                        label,
+                        e.getMessage());
+                var violations = new LinkedHashSet<Violation>();
+                violations.add(new Violation(message, resource.getURI(), "Label", label));
+                throw new ValidationException(violations);
+            }
         }
         return updatedDavResources;
     }
