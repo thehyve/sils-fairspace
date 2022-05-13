@@ -54,14 +54,8 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     public boolean authorise(Request request, Request.Method method, Auth auth) {
         return switch (method) {
             case COPY -> access.canRead();
-            case MKCOL -> {
-                try {
-                    yield writeAllowed();
-                } catch (BadRequestException e) {
-                    setErrorMessage(e.getMessage());
-                    yield false;
-                }
-            }
+            // MKCOL authorization is checked in DavFactory.validateAuthorization
+            case MKCOL -> true;
             default -> super.authorise(request, method, auth);
         };
     }
@@ -384,11 +378,5 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
         }
 
         return dirResource;
-    }
-
-    private boolean writeAllowed() throws BadRequestException {
-        MetadataPermissions metadataPermissions = factory.context.get(METADATA_PERMISSIONS);
-        var type = factory.getEntityTypeFromRequest();
-        return metadataPermissions.canWriteMetadataByUri(type);
     }
 }

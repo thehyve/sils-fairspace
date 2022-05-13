@@ -59,6 +59,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
      */
     @Override
     public io.milton.resource.CollectionResource createCollection(String name) throws ConflictException, BadRequestException, NotAuthorizedException {
+        validatePermission();
         validateRootDirectoryName(name);
         name = name.trim();
         factory.validateChildNameUniqueness(factory.rootSubject, name);
@@ -71,6 +72,14 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
         factory.linkEntityToSubject(subj);
 
         return (CollectionResource) factory.getResource(subj, Access.Manage);
+    }
+
+    private void validatePermission() throws NotAuthorizedException {
+        var iter = DavUtils.getHierarchyRootClasses();
+        while(iter.hasNext()) {
+            var resource = iter.nextResource();
+                factory.validateAuthorization(resource.getURI());
+        }
     }
 
     @Override

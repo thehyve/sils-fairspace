@@ -1,6 +1,7 @@
 package io.fairspace.saturn.webdav;
 
 import io.fairspace.saturn.rdf.ModelUtils;
+import io.fairspace.saturn.services.metadata.MetadataPermissions;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.ResourceFactory;
@@ -16,6 +17,7 @@ import java.net.URI;
 import java.util.Optional;
 
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavUtils.*;
@@ -126,53 +128,33 @@ public class DavFactory implements ResourceFactory {
         return rootSubject.getModel().createResource(getUserURI().getURI());
     }
 
-    public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
-        var linkedEntity = getNewLinkedEntity(subject);
+    public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException, NotAuthorizedException {
+        var linkedEntity = getLinkedEntity(subject);
         subject.addProperty(FS.linkedEntity, linkedEntity);
         subject.addProperty(FS.linkedEntityType, linkedEntity.getPropertyResourceValue(RDF.type));
     }
 
-    public String getEntityTypeFromRequest() throws BadRequestException {
-        // return for existing entity
-        var linkedEntityIri = linkedEntityIri();
-        if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
-            var existing = rootSubject.getModel().getResource(linkedEntityIri);
-
-            var existingType = Optional.ofNullable(existing.getPropertyResourceValue(RDF.type))
-                    .map(org.apache.jena.rdf.model.Resource::toString)
-                    .orElse(null);
-
-            if (existingType == null || existingType.isBlank()) {
-                var message = "No entity found for uri '" + linkedEntityIri + "'.";
-                setErrorMessage(message);
-                throw new BadRequestException(message);
-            }
-
-            return existingType;
+    public void validateAuthorization(String typeUri) throws NotAuthorizedException {
+        MetadataPermissions metadataPermissions = context.get(METADATA_PERMISSIONS);
+        if (!metadataPermissions.canWriteMetadataByUri(typeUri)) {
+            throw new NotAuthorizedException();
         }
-
-        // return for new entity
-        var type = entityType();
-        if (type == null || type.isBlank()) {
-            var message = "The linked entity type and the linked entity IRI are empty.";
-            setErrorMessage(message);
-            throw new BadRequestException(message);
-        }
-
-        return type;
     }
 
-    private org.apache.jena.rdf.model.Resource getNewLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
+    private org.apache.jena.rdf.model.Resource getLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException, NotAuthorizedException {
         var linkedEntityIri = linkedEntityIri();
         if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
+            validateAuthorization(linkedEntityIri);
             return getExistingEntityToLink(subject, linkedEntityIri);
         } else {
             var type = entityType();
+
             if (type == null || type.isBlank()) {
                 var message = "The linked entity type and the linked entity IRI are empty.";
                 setErrorMessage(message);
                 throw new BadRequestException(message);
             }
+            validateAuthorization(type);
             var typeResource = createResource(type);
             validateLinkedEntityType(typeResource);
             var parentType = Optional.ofNullable(subject.getPropertyResourceValue(FS.belongsTo))
