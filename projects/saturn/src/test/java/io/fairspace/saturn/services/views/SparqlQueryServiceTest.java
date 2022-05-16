@@ -108,14 +108,18 @@ public class SparqlQueryServiceTest {
         var context = new Context();
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         ds.getContext().set(FS_ROOT, davFactory.root);
-        var permissions = new MetadataPermissions(userService, VOCABULARY);
+        permissions = mock(MetadataPermissions.class);
+        when(permissions.canWriteMetadata(any())).thenReturn(true);
+        when(permissions.canWriteMetadataByUri(any())).thenReturn(true);
+        when(permissions.canReadMetadata()).thenReturn(true);
         context.set(METADATA_PERMISSIONS, permissions);
         var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), permissions);
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 
         queryService = new SparqlQueryService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, filteredDataset);
 
-        when(permissions.canWriteMetadata(any())).thenReturn(true);
+
+
         api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), this.permissions, davFactory);
 
         setupUsers(model);
