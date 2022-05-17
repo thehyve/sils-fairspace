@@ -78,7 +78,7 @@ class RootResource implements io.milton.resource.CollectionResource, MakeCollect
         var iter = DavUtils.getHierarchyRootClasses();
         while(iter.hasNext()) {
             var resource = iter.nextResource();
-                factory.validateAuthorization(resource.getURI());
+                factory.validateCanWrite(resource.getURI());
         }
     }
 

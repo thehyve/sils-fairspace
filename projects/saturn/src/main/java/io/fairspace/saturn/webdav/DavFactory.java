@@ -134,7 +134,7 @@ public class DavFactory implements ResourceFactory {
         subject.addProperty(FS.linkedEntityType, linkedEntity.getPropertyResourceValue(RDF.type));
     }
 
-    public void validateAuthorization(String typeUri) throws NotAuthorizedException {
+    public void validateCanWrite(String typeUri) throws NotAuthorizedException {
         MetadataPermissions metadataPermissions = context.get(METADATA_PERMISSIONS);
         if (!metadataPermissions.canWriteMetadataByUri(typeUri)) {
             throw new NotAuthorizedException();
@@ -144,7 +144,7 @@ public class DavFactory implements ResourceFactory {
     private org.apache.jena.rdf.model.Resource getLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException, NotAuthorizedException {
         var linkedEntityIri = linkedEntityIri();
         if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
-            validateAuthorization(linkedEntityIri);
+            validateCanWrite(linkedEntityIri);
             return getExistingEntityToLink(subject, linkedEntityIri);
         } else {
             var type = entityType();
@@ -154,7 +154,7 @@ public class DavFactory implements ResourceFactory {
                 setErrorMessage(message);
                 throw new BadRequestException(message);
             }
-            validateAuthorization(type);
+            validateCanWrite(type);
             var typeResource = createResource(type);
             validateLinkedEntityType(typeResource);
             var parentType = Optional.ofNullable(subject.getPropertyResourceValue(FS.belongsTo))

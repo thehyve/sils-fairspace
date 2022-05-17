@@ -56,6 +56,7 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
             case COPY -> access.canRead();
             // MKCOL authorization is checked in DavFactory.validateAuthorization
             case MKCOL -> true;
+            case MOVE -> true;
             default -> super.authorise(request, method, auth);
         };
     }

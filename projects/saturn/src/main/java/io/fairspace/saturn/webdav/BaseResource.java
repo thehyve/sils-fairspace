@@ -189,7 +189,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         var parentType = Optional.ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
 
-        factory.validateAuthorization(type.getURI());
+        factory.validateCanWrite(type.getURI());
         validateIfTypeIsValidForParent(type, parentType);
 
         if(isRename) {
@@ -271,7 +271,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
         var parentType = parentSubject.getPropertyResourceValue(FS.linkedEntityType);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
-        factory.validateAuthorization(type.getURI());
+        factory.validateCanWrite(type.getURI());
         validateIfTypeIsValidForParent(type, parentType);
 
         copy(subject, parentSubject, name, factory.currentUserResource(), timestampLiteral());
