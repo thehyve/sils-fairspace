@@ -32,37 +32,19 @@ This repository is based on {fairspace-repository}[thehyve/fairspace].
 image:docs/images/Fairspace.png[Fairspace]
 
 Fairspace is a secure place for managing research data.
-Research teams have their own workspaces in which they
-can manage research data collections.
-Researchers can upload directories and files to data collections.
-Data access is organised on data collection level.
-Collections can be shared with other teams or individual researchers.
-Also, collections can be published for all researchers in the organisation. +
+Researchers can add or edit directories representing metadata entities.
+Data access is organised per entity type.
 
-Collections and files can be annotated with descriptive metadata.
 The metadata is stored using the {RDF}[Resource Description Framework (RDF)] in
 an {Jena}[Apache Jena] database.
 For the metadata, a data model can be configured that suits
 the data management needs of the organisation.
 The data model is specified using the {SHACL}[Shapes Constraint Language (SHACL)],
 see the section on <<Data model and view configuration>>.
-Descriptive metadata entities (e.g., subjects, projects, samples) should be added to the database by a
-careful process, ensuring that duplicates and inconsistencies are avoided and
-that all entities have proper unique identifiers.
-The application provides overviews of the available metadata entities.
-In the collection browser, researchers can link their collections and files to these entities
-or add textual descriptions and key words.
-
 
 .*Key features*
 ****
 
-* Fairspace is a data repository that enables researchers to securely *store* and *organise* their research data sets,
-and *share* the data with collaborators.
-* Fairspace lets researchers annotate their data collections with relevant metadata properties
-and link the data to associated metadata entities (subjects, samples, projects, etc.).
-This helps researchers find their own data and make it *findable* for others,
-contributing to implementation of the {FAIR}[FAIR principles].
 * Fairspace ensures that all metadata entities have a unique identifier and checks
 metadata consistency and validity upon data entry.
 * Fairspace allows organisations to *customise* the configured data model,
@@ -75,7 +57,6 @@ contributing to *interoperability* of data.
 ****
 
 toc::[]
-
 
 
 == Usage
@@ -94,64 +75,34 @@ external login:
 
 image:docs/images/screenshots/Keycloak login.png[Keycloak login]
 
-==== Workspaces
+==== Directories
 
-Users enter Fairspace on the workspaces page that lists all workspaces.
-A workspace represents a team in the organisation that collaborates on research data collections.
-
-image:docs/images/screenshots/Workspace list.png[Workspace list]
-
-Workspace administrators can edit the workspace overview page and
-manage workspace membership. All workspace members can add collections to the workspace.
-
-image:docs/images/screenshots/Workspace overview.png[Workspace overview]
-
-==== Collections
-
-The contents of collections can be navigated in the collections browser.
-It behaves like a regular file browser. Click to select a directory or file
-and see its metadata, double click to navigate into directories or
-open a file.
-
-Access is managed on collection level.
-Users with at least _write_ access to a collection can upload files or directories,
-rename or delete files, restore old file versions,
-and edit the associated metadata.
-
-Users with _manage_ access can share collections with other users or workspaces,
-and change the default access mode for workspace members.
-Collection managers can also change the status of the collection
-(_Active_, _Read-only_ or _Archived_), change the view mode
-(_Restricted_, _Metadata published_ or _Data published_ -- only available in the _Read-only_ status),
-delete the collection,
-or transfer ownership of the collection to another workspace.
-
-image:docs/images/screenshots/Collection browser.png[Collection browser]
+Data is organised into defined levels.
+The data model configuration allows to specify custom entity types, constraints and the hierarchy.
 
 Due to the data loss prevention, data in Fairspace is not removed from the system on deletion.
 Deleted collections and files can still be viewed in the application using "Show deleted" switch.
 The goal is to prevent deleted data from being overwritten by users (not to create collections or files with the paths
 that already existed in the system) and to allow administrators to perform special actions (to be performed only in exceptional special cases),
-like undeletion or permanent removal, to revert accidental removal or creation of a collection or a file.
+like undeletion or permanent removal, to revert accidental removal or creation of a directory.
 
 ===== Metadata forms
 
-Users with write access to the collection can annotate collections,
-directories and files using _metadata forms_.
+Users with write access to specific entity level can create directories at this level and edit properties of linked entities
+ using _metadata forms_.
 Free text fields, like description and key words, can be entered freely,
-links to shared entities, like subjects, samples and projects, or
-values from a controlled vocabulary, like taxonomy or analysis type,
+links to other entities or values from a controlled vocabulary, like taxonomy or analysis type,
 can be selected from a list:
 
 image:docs/images/screenshots/Metadata form.png[Metadata form]
 
-The shared metadata entities and controlled vocabularies cannot
+Entities that are not part of the hierarchy, as well as controlled vocabularies cannot
 be added via the user interface.
 The <<RDF metadata>> API should be used for that instead.
 
 ===== Metadata upload
 
-Another way to annotate directories and files is by uploading a comma-separated values (CSV) file with metadata.
+Another way to update metadata is by uploading a comma-separated values (CSV) file with metadata.
 This section describes the CSV-based format used for bulk metadata uploads.
 
 The file should be a valid CSV-file:
@@ -164,13 +115,13 @@ The file should be a valid CSV-file:
 In the metadata upload, lines starting with ``#`` are ignored. These lines are considered to be comments.
 
 The file should have a header row containing the names of the columns.
-The mandatory ``Path`` column is used for the file path. For the property columns, the name should match exactly the name of the property in the database.
+The mandatory ``DirectoryName`` column is used for the the name of directory in the current path.
+For the property columns, the name should match exactly the name of the property in the database.
 
 The format of the values is as follows:
 
-* _Path_: the relative path to a file or a directory (relative to the collection or directory where the file is uploaded).
-Use ``./`` for the current directory or collection.
-* _Entity types_ can be referenced by ID or unique label.
+* _DirectoryName_: the of a directory in the current folder.
+* _Entity types_ can be referenced by ID or unique label. If a label is not unique, the ID needs to be used, otherwise an error will be returned.
 * Multiple values must be separated by the pipe symbol ``|``, e.g.,
 use ``test|lab`` to enter the values ``test`` and ``lab``.
 
@@ -184,28 +135,26 @@ contains the available properties in the header row.
 
 .Example metadata file
 ====
-An example comma-separated values file with metadata about the current directory ``./``,
-which is annotated with a description and two key words (``sample`` and ``lab``),
-and the file ``test.txt`` which is linked to Subject 1 by the unique subject label
-and to the RNA-seq analysis type by the analysis type identifier (``O6-12``).
+An example comma-separated values file with metadata about the directories ``Department 1`` and ``Department 2``.
 [source, csv]
 ----
-Path,Is about subject,Type of analysis,Description,Keywords
-./,,,Directory with samples,sample|lab,
-test.txt,Subject 1,https://institut-curie.org/analysis#O6-12,,
+"DirectoryName","Label","Description","Location","Contact person name","Contact person telephone","Contact person email"
+"Department 1",,"This is the first department.","Utrecht, The Netherlands","John Smith","+31123456789","john.smith@example.com"
+"Department 2",,"This is the second department.","Amsterdam, The Netherlands","Jane Doe",,"jane.doe@example.com"
+
 ----
 This specifies the table:
 [%header,format=csv]
 |===
-Path,Is about subject,Type of analysis,Description,Keywords
-./,,,Directory with samples,sample|lab
-test.txt,Subject 1,https://institut-curie.org/analysis#O6-12,,
+"DirectoryName","Label","Description","Location","Contact person name","Contact person telephone","Contact person email"
+"Department 1",,"This is the first department.","Utrecht, The Netherlands","John Smith","+31123456789","john.smith@example.com"
+"Department 2",,"This is the second department.","Amsterdam, The Netherlands","Jane Doe",,"jane.doe@example.com"
 |===
 ====
 
 ==== Metadata
 
-Explore metadata and find associated collections and files.
+Explore metadata and find associated directories.
 image:docs/images/screenshots/Metadata view.png[Metadata]
 
 
@@ -405,7 +354,7 @@ curl -i -H "Authorization: ${AUTH_HEADER}" "${FAIRSPACE_URL}/api/users/current"
 
 ===== Automatic authentication in Jupyter Hub
 
-In Jupyter Hub, users are automatically authenticated and can directly connect to the
+If Jupyter Hub extension is added, after opening Jupyter users are automatically authenticated and can directly connect to the
 local API address without adding authentication headers.
 
 
@@ -420,8 +369,7 @@ Use ``\https://fairspace.example.com/api/webdav/`` or
 ``davs://fairspace.example.com/api/webdav/`` as location, with
 ``fairspace.example.com`` replaced by the server name.
 
-All visible collections in the system are exposed as top-level directories.
-Creating a top-level directory via WebDAV will result in an error message, see <<Create collection or directory>>.
+All entities visible in the browser are directories of a specific type. Each directory is linked to a metadata entity that contains set of properties that depend on the type.
 
 The {WebDAV}[Web-based Distributed Authoring and Versioning (WebDAV)] protocol allows users to operate on collections and files.
 Fairspace exposes a WebDAV API for accessing the file systems, while restricting access to only the files accessible by the user.
@@ -430,8 +378,9 @@ The WebDAV API allows to upload and download files and to perform standard file 
 as well as custom operations, such as collection lifecycle management
 and advanced data loss prevention features such as versioning and undeletion.
 
-Be aware that the _move_ operation moves both file content and all its metadata (e.g. linked metadata entities),
-whereas _copy_ includes only the file content and standard webdav properties, like file size.
+Be aware that the both _copy_ and _move_ operation copies/moves directory and all subdirectories, linked metadata entities however are not copied, but reused.
+In case of copy operation both original directory and its new copy will be linked to the same metadata entity. The same applies to all the child directories
+of the original directory.
 
 ===== Directory listing and path properties
 
@@ -463,7 +412,7 @@ whereas _copy_ includes only the file content and standard webdav properties, li
 ----
 import logging
 import os
-from requests import Request, Response, Session
+import requests
 
 log = logging.getLogger()
 
@@ -476,9 +425,7 @@ def exists(path):
         'Depth': '0',
         'Authorization': auth()
     }
-    session = Session()
-    req = Request('PROPFIND', f'{server_url}/api/webdav/{path}/', headers=headers, cookies=session.cookies)
-    response: Response = session.send(req.prepare())
+    response = requests.request('PROPFIND', f'{server_url}/api/webdav/{path}/', headers=headers)
     return response.ok
 ----
 ====
@@ -490,7 +437,7 @@ def exists(path):
 ----
 import logging
 import os
-from requests import Request, Response, Session
+import requests
 from xml.etree.ElementTree import fromstring
 
 log = logging.getLogger()
@@ -504,9 +451,8 @@ def ls(path: str):
         'Depth': '1',
         'Authorization': auth()
     }
-    session = Session()
-    req = Request('PROPFIND', f'{server_url}/api/webdav/{path}', headers=headers, cookies=session.cookies)
-    response: Response = session.send(req.prepare())
+    data = "<propfind><allprop /></propfind>"
+    response = requests.request('PROPFIND', f'{server_url}/api/webdav/{path}/', data=data, headers=headers)
     if not response.ok:
         raise Exception(f"Error fetching directory '{path}': {response.status_code} {response.reason}")
     tree = fromstring(response.content.decode())
@@ -526,199 +472,158 @@ curl -s -H "Authorization: ${AUTH_HEADER}" -X PROPFIND -H "Depth: 1" "${FAIRSPAC
 ----
 ====
 
-====== Example response
-.Example ``PROPFIND`` response
-[%collapsible]
-====
-Example response using ``PROPFIND`` on the root location ``https://fairspace.ci.fairway.app/api/webdav`` with ``Depth: 1`` and request body ``<propfind><allprop /></propfind>``.
-Adding the ``<allprop />`` in the request results in custom Fairspace properties,
-like the description (``ns1:comment``), to be included in the WebDAV response.
-[source, xml]
-----
-<?xml version="1.0" encoding="utf-8" ?>
-<d:multistatus xmlns:ns1="https://fairspace.nl/ontology#" xmlns:d="DAV:">
-    <d:response>
-        <d:href>/api/webdav/</d:href>
-        <d:propstat>
-            <d:prop>
-                <d:getcontenttype></d:getcontenttype>
-                <d:getetag>"https://fairspace.ci.fairway.app/api/webdav"</d:getetag>
-                <d:iscollection>TRUE</d:iscollection>
-                <d:displayname></d:displayname>
-                <d:isreadonly>TRUE</d:isreadonly>
-                <d:name></d:name>
-                <d:supported-report-set></d:supported-report-set>
-                <d:resourcetype>
-                    <d:collection/>
-                </d:resourcetype>
-            </d:prop>
-            <d:status>HTTP/1.1 200 OK</d:status>
-        </d:propstat>
-    </d:response>
-    <d:response>
-        <d:href>/api/webdav/Demonstration/</d:href>
-        <d:propstat>
-            <d:prop>
-                <ns1:access>Write</ns1:access>
-                <ns1:canRead>TRUE</ns1:canRead>
-                <ns1:userPermissions>http://fairspace.ci.fairway.app/iri/user-iri Manage
-                </ns1:userPermissions>
-                <ns1:accessMode>Restricted</ns1:accessMode>
-                <ns1:availableStatuses>Active</ns1:availableStatuses>
-                <ns1:canDelete>FALSE</ns1:canDelete>
-                <ns1:iri>https://fairspace.ci.fairway.app/api/webdav/Demonstration</ns1:iri>
-                <ns1:canWrite>TRUE</ns1:canWrite>
-                <ns1:ownedByCode>Demo</ns1:ownedByCode>
-                <ns1:canManage>FALSE</ns1:canManage>
-                <ns1:canUndelete>FALSE</ns1:canUndelete>
-                <ns1:workspacePermissions>http://fairspace.ci.fairway.app/iri/workspace-iri
-                    Write
-                </ns1:workspacePermissions>
-                <ns1:createdBy>http://fairspace.ci.fairway.app/iri/user-iri</ns1:createdBy>
-                <ns1:comment>Demonstration collection</ns1:comment>
-                <ns1:availableAccessModes>Restricted</ns1:availableAccessModes>
-                <ns1:ownedBy>http://fairspace.ci.fairway.app/iri/workspace-iri</ns1:ownedBy>
-                <ns1:status>Active</ns1:status>
-                <d:getcreated>2021-02-02T12:12:33Z</d:getcreated>
-                <d:creationdate>2021-02-02T12:12:33Z</d:creationdate>
-                <d:getcontenttype>text/html</d:getcontenttype>
-                <d:getetag>"https://fairspace.ci.fairway.app/api/webdav/Demonstration"</d:getetag>
-                <d:iscollection>TRUE</d:iscollection>
-                <d:displayname>Demonstration collection</d:displayname>
-                <d:isreadonly>FALSE</d:isreadonly>
-                <d:name>Demonstration collection</d:name>
-                <d:supported-report-set></d:supported-report-set>
-                <d:resourcetype>
-                    <d:collection/>
-                </d:resourcetype>
-            </d:prop>
-            <d:status>HTTP/1.1 200 OK</d:status>
-        </d:propstat>
-    </d:response>
-</d:multistatus>
-----
-====
-
-===== Create collection or directory
+===== Create directory of specific type
 
 |===
 2+| ``MKCOL /api/webdav/{path}``
 
-2+| Create collection or directory
+2+| Create a new Department-type directory
 2+| _Request headers_:
-| `Owner`
-| Specify the identifier of the owner workspace when creating a collection.
+| `Entity-Type`
+| Specify the URI of directory type, e.g. 'https://fairspace.nl/ontology#Department'
 |===
 
 
-.Example create collection or directory (Python)
+.Example create directory (Python)
 [%collapsible]
 ====
 [source, python]
 ----
 import logging
 import os
-from requests import Request, Response, Session
+import requests
 
 log = logging.getLogger()
 
 server_url = os.environ.get('FAIRSPACE_URL')
 
-def mkdir(path: str, workspace_iri: str=None):
+def mkdir(path: str, entity_type: str):
     # Create directory
     headers = {
-        'Authorization': auth()
+        'Authorization': auth(),
+        'Entity-Type': entity_type,
     }
-    if workspace_iri is not None:
-        headers['Owner'] = workspace_iri
-    req = Request('MKCOL', f'{server_url}/api/webdav/{path}/', headers=headers, cookies=self.session().cookies)
-    response: Response = Session().send(req.prepare())
+    response = requests.request('MKCOL', f'{server_url}/api/webdav/{path}/', headers=headers)
     if not response.ok:
+        log.error('Error uploading data!')
+        log.error(f'{response.status_code} {response.reason} {response.content.decode()}')
         raise Exception(f"Error creating directory '{path}': {response.status_code} {response.reason}")
 ----
 ====
 
-.Example create collection or directory (curl)
+.Example create directory (curl)
 [%collapsible]
 ====
 [source, bash]
 ----
-# Create a new collection, owned by workspace WORKSPACE_IRI
-NEW_COLLECTION=New collection
-WORKSPACE_IRI=http://fairspace.ci.fairway.app/iri/workspace-iri
-curl -i -H "Authorization: ${AUTH_HEADER}" -X MKCOL -H "Owner: ${WORKSPACE_IRI}" "${FAIRSPACE_URL}/api/webdav/${NEW_COLLECTION}"
-# Create a new directory in the newly created collection
-curl -i -H "Authorization: ${AUTH_HEADER}" -X MKCOL "${FAIRSPACE_URL}/api/webdav/${NEW_COLLECTION}/Test directory"
+# Create a new Department-type directory
+NEW_DIR=New department
+ENTITY_TYPE=https://fairspace.nl/ontology#Department
+curl -i -H "Authorization: ${AUTH_HEADER}" -X MKCOL -H "Entity-Type: ${ENTITY_TYPE}" "${FAIRSPACE_URL}/api/webdav/${NEW_DIR}"
 ----
 ====
 
-===== Upload files
+===== Create directory reusing existing metadata entity
 
 |===
-2+| ``POST /api/webdav/{path}`` +
-  ``action=upload_files``
+2+| ``MKCOL /api/webdav/{path}``
 
-2+| _Request data_:
-| ``action``
-| ``upload_files``
-| ``files``
-| Send files with the target file names as keys, see the examples below.
+2+| Create a new directory linked to existing department metadata entity
+2+| _Request headers_:
+| `Linked-Entity-IRI`
+| Specify the IRI of existing entity to be linked to the new directory, e.g. 'http://localhost/iri/ac122623-22f6-4311-83ea-97c024b9bbc2'
 |===
 
-.Example uploading files (Python)
+
+.Example create directory using existing entity (Python)
 [%collapsible]
 ====
 [source, python]
 ----
 import logging
 import os
-from requests import Response, Session
+import requests
 
 log = logging.getLogger()
 
 server_url = os.environ.get('FAIRSPACE_URL')
 
-def upload_files(path: str, files: Dict[str, any]):
-    # Upload files
-    response: Response = Session().post(f'{server_url}/api/webdav/{path}/',
-            headers={'Authorization': auth()},
-            data={'action': 'upload_files'},
-            files=files)
+def mkdir(path: str, entity_iri: str):
+    # Create directory
+    headers = {
+        'Authorization': auth(),
+        'Linked-Entity-IRI': entity_iri,
+    }
+    response = requests.request('MKCOL', f'{server_url}/api/webdav/{path}/', headers=headers)
     if not response.ok:
-        raise Exception(f"Error uploading files into '{path}': {response.status_code} {response.reason}")
+        log.error('Error uploading data!')
+        log.error(f'{response.status_code} {response.reason} {response.content.decode()}')
+        raise Exception(f"Error creating directory '{path}': {response.status_code} {response.reason}")
 ----
 ====
 
-.Example uploading files (curl)
+.Example create directory using existing entity (curl)
 [%collapsible]
 ====
 [source, bash]
 ----
-# Upload files 'coffee.jpg' and 'coffee 2.jpg' to a collection
-path="new collection"
-curl -i -H "Authorization: ${AUTH_HEADER}" -X POST -F 'action=upload_files' -F 'coffee.jpg=@coffee.jpg' -F 'coffee 2.jpg=@coffee 2.jpg'"${FAIRSPACE_URL}/api/webdav/${path}"
+# Create a new Department-type directory
+NEW_DIR=New department
+ENTITY_IRI=http://localhost/iri/ac122623-22f6-4311-83ea-97c024b9bbc2
+curl -i -H "Authorization: ${AUTH_HEADER}" -X MKCOL -H "Entity-Type: ${ENTITY_IRI}" "${FAIRSPACE_URL}/api/webdav/${NEW_DIR}"
 ----
 ====
 
-===== Copy and move a directory or file
+
+===== Copy and move a directory
 
 |===
 2+| ``COPY /api/webdav/{path}``
 
-2+| Copy a directory or file. Metadata linked to the file/directory is not copied.
+2+| Copy a directory. New directory will be linked to the same metadata entity as original directory.
 2+| _Request headers_:
 | ``Destination``
-| The destination path relative to the server, URL encoded, e.g., ``/api/webdav/collection%20abc/test.txt``.
+| The destination path relative to the server, URL encoded, e.g., ``/api/webdav/Department%201/PI%201``.
+| The destination directory has to have the same type as the source.
 |===
+
+.Example copy path (Python)
+[%collapsible]
+====
+[source, python]
+----
+import logging
+import os
+import requests
+from urllib.parse import quote
+
+log = logging.getLogger()
+
+server_url = os.environ.get('FAIRSPACE_URL')
+
+def copy():
+    path = 'Department 1/PI 1/Project 1/Study 1'
+    target = quote('Department 1/PI 1/Project 2/Study 1', safe='/')
+    headers = {
+        'Authorization': auth(),
+        'Destination': f"/api/webdav/{target}"
+    }
+    response = requests.request('COPY', f'{server_url}/api/webdav/{path}/', headers=headers)
+    if not response.ok:
+        log.error('Error uploading data!')
+        log.error(f'{response.status_code} {response.reason} {response.content.decode()}')
+        raise Exception(f"Error copying directory '{path}': {response.status_code} {response.reason}")
+----
+====
 
 .Example copy path (curl)
 [%collapsible]
 ====
 [source, bash]
 ----
-# Copy 'Examples/Test dir/test 1.txt' to 'Examples/Test dir/test 2.txt'
-path="Examples/Test dir/test 1.txt"
-target="/api/webdav/Examples/Test%20dir/test%202.txt"
+# Copy 'Department 1/PI 1/Project 1/Study 1' to 'Department 1/PI 1/Project 2/Study 1''
+path="Department 1/PI 1/Project 1/Study 1"
+target="/api/webdav/Department%201/PI%201/Project%202/Study%201"
 curl -i -H "Authorization: ${AUTH_HEADER}" -X COPY -H "Destination: ${target}" "${FAIRSPACE_URL}/api/webdav/${path}"
 ----
 ====
@@ -726,25 +631,55 @@ curl -i -H "Authorization: ${AUTH_HEADER}" -X COPY -H "Destination: ${target}" "
 |===
 2+| ``MOVE /api/webdav/{path}``
 
-2+| Move or rename a directory or file. Metadata linked to the file/directory is also moved along with it.
+2+| Move or rename a directory. Metadata linked to the directory is also moved along with it.
 2+| _Request headers_:
 | ``Destination``
-| The destination path relative to the server, URL encoded, e.g., ``/api/webdav/collection%20abc/test.txt``.
+| The destination path relative to the server, URL encoded, e.g., ``/api/webdav/Department%201/PI%201``.
+| The destination directory has to have the same type as the source.
 |===
+
+.Example move path (Python)
+[%collapsible]
+====
+[source, python]
+----
+import logging
+import os
+import requests
+from urllib.parse import quote
+
+log = logging.getLogger()
+
+server_url = os.environ.get('FAIRSPACE_URL')
+
+def copy():
+    path = 'Department 1/PI 1/Project 1/Study 1'
+    target = quote('Department 1/PI 1/Project 2/Study 1', safe='/')
+    headers = {
+        'Authorization': auth(),
+        'Destination': f"/api/webdav/{target}"
+    }
+    response = requests.request('MOVE', f'{server_url}/api/webdav/{path}/', headers=headers)
+    if not response.ok:
+        log.error('Error uploading data!')
+        log.error(f'{response.status_code} {response.reason} {response.content.decode()}')
+        raise Exception(f"Error moving directory '{path}': {response.status_code} {response.reason}")
+----
+====
 
 .Example move path (curl)
 [%collapsible]
 ====
 [source, bash]
 ----
-# Move 'Examples/Test dir/test 1.txt' to 'Examples/Test dir/test 2.txt'
-path="Examples/Test dir/test 1.txt"
-target="/api/webdav/Examples/Test%20dir/test%202.txt"
+# Copy 'Department 1/PI 1/Project 1/Study 1' to 'Department 1/PI 1/Project 2/Study 1''
+path="Department 1/PI 1/Project 1/Study 1"
+target="/api/webdav/Department%201/PI%201/Project%202/Study%201"
 curl -i -H "Authorization: ${AUTH_HEADER}" -X MOVE -H "Destination: ${target}" "${FAIRSPACE_URL}/api/webdav/${path}"
 ----
 ====
 
-===== Undelete a directory or file
+===== Undelete a directory
 
 |===
 2+| ``POST /api/webdav/{path}`` +
@@ -768,57 +703,10 @@ curl -i -H "Authorization: ${AUTH_HEADER}" -X POST -F "action=undelete" "${FAIRS
 ----
 ====
 
-===== Revert to a file version
-
-|===
-2+| ``POST /api/webdav/{path}`` +
-``action=revert``
-
-2+| Restore a previous file version
-2+| _Request data_:
-| ``action``
-| ``revert``
-| ``version``
-| The version number to restore.
-|===
-
-.Example revert file version (curl)
-[%collapsible]
-====
-[source, bash]
-----
-curl -i -H "Authorization: ${AUTH_HEADER}" -X POST -F "action=revert" -F "version=${version}" "${FAIRSPACE_URL}/api/webdav/${path}"
-----
-====
-
-===== Other collection actions
-
-On collections, a number of actions is available.
-These are not documented here in detail, but can be used from the user interface instead.
-
-[cols="1,1"]
-|===
-| Action
-
-| Description
-
-| ``set_access_mode``
-| Change the access mode of a collection.
-| ``set_status``
-| Change the status of a collection.
-| ``set_permission``
-| Change the permission of the specified user or workspace on a collection.
-| ``set_owned_by``
-| Transfer ownership of a collection to another workspace.
-| ``unpublish``
-| Unpublish a published collection.
-|===
-
 
 ==== SPARQL
 The {SPARQL}[SPARQL] API is a standard API for querying RDF databases.
-This endpoint is read-only and can be used for advanced search, analytics, data extraction, etc.
-It is only accessible for users with the _canQueryMetadata_ role.
+This endpoint is *read-only* and can be used for advanced search, analytics, data extraction, etc.
 
 |===
 | ``POST /api/rdf/query``
@@ -921,43 +809,57 @@ Fairspace will validate the uploaded metadata against the constraints defined in
 The validations include all the necessary type checks, referential consistency (validity of identifiers) checks, validation of mandatory fields, etc.
 If any entity violates the constraints, the entire bulk upload will be rejected.
 
-The ETL process will use a special technical account with the _Add shared metadata_ role.
-Regular users will not be able to add or modify shared metadata entities.
-Regular users can link files to shared metadata entities,
-see <<Metadata forms>> and <<Metadata upload>>.
+Users with admin role can add or modify directories and linked entities on all levels of the hierarchy.
+Regular users can add or modify directories and linked metadata entities of types definitions of which do not have `fs:adminEditOnly true` property in the data model.
 
-In addition to the main ETL workflow, data managers needs a possibility to add or modify certain properties of top-level metadata entities. This can be done using the RDF-based metadata API.
+API users can use the RDF-based metadata API to add or modify metadata properties.
 
-A number of guidelines for uploading shared metadata:
+A number of guidelines for uploading metadata:
 
 * Entities must have a type, a globally unique identifier,
   and a unique label for the type. +
 It is advised to use a unique identifier from an existing reference system for this purpose.
 * Because of the nature of linked data, it is advised
-  to add shared metatdata entities in an append-only fashion: only adding entities and avoid updating or deleting entities.
+  to add metatdata entities in an append-only fashion: only adding entities and avoid updating or deleting entities.
 * By nature of RDF, metadata is typically added on the level of triples.
 E.g., when adding a property ``dcat:keyword`` to a file, this will add a key word to the (possibly) already existing list of key words. +
 If you want to completely replace (or remove)
 a property from an entity, use the ``PATCH`` method instead of ``PUT``.
 
+Example controlled vocabulary file in turtle format: ``controlled_vocabulary.ttl``:
+[source, turtle]
+----
+@prefix test: <https://test.com/ontology#> .
+@prefix example: <https://example.com/ontology#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix uniprot: <https://www.uniprot.org/taxonomy/> .
+
+uniprot:9598 a custom_ontology:Species ;
+    rdfs:label "Pan troglodytes" .
+
+uniprot:9606 a custom_ontology:Species ;
+    rdfs:label "Homo sapiens" .
+
+example:DNASeqAssayType a test:AssayType ;
+    rdfs:label "DNA seq assay" .
+
+example:RNAAssayType a test:AssayType ;
+    rdfs:label "RNA assay" .
+----
+
 Example metadata file in turtle format: ``testdata.ttl``:
 [source, turtle]
 ----
-@prefix example: <https://example.com/ontology#> .
+@prefix test: <https://test.com/ontology#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix subject: <http://example.com/subjects#> .
-@prefix file: <http://example.com/api/webdav/> .
 @prefix gender: <http://hl7.org/fhir/administrative-gender#> .
 @prefix ncbitaxon: <https://bioportal.bioontology.org/ontologies/NCBITAXON/> .
-@prefix dcat: <http://www.w3.org/ns/dcat#> .
 
-subject:s1 a example:Subject ;
+subject:s1 a test:Subject ;
     rdfs:label "Subject 1" ;
     example:isOfSpecies ncbitaxon:9606 .
-
-file:coll1\/coffee.jpg
-    dcat:keyword "fairspace", "java" ;
-    example:aboutSubject example:s1 .
+    example:isOfGender gender:male ;
 ----
 
 .Example uploading metadata file using Python.
@@ -974,14 +876,15 @@ log = logging.getLogger()
 server_url = os.environ.get('FAIRSPACE_URL')
 
 with open('testdata.ttl') as testdata:
-    response: Response = Session().put(f"{server_url}/api/metadata/",
-        data=testdata.read(),
-        headers={
-            'Authorization': auth(),
-            'Content-type': 'text/turtle'
-        })
+    headers={'Content-type': 'text/turtle',
+             'Authorization': auth()}
+    with open('testdata.ttl') as testdata:
+        response = requests.put(f"{server_url}/api/metadata/", data=testdata.read(), headers=headers)
+
     if not response.ok:
-        raise Exception(f"Error uploading metadata: {response.status_code} {response.reason} {response.json}")
+        log.error('Error uploading data!')
+        log.error(f'{response.status_code} {response.reason} {response.json()}')
+        raise Exception('Error uploading data.')
 ----
 ====
 
@@ -1053,7 +956,7 @@ curl -G -H "Accept: application/ld+json" \
 3+| Add metadata. Existing metadata is left untouched.
     The data must be consistent with the data model after the update (see <<Data model and view configuration>>),
     otherwise ``400`` is returned.
-  Only available for users with _Add shared metadata_ role.
+
 3+| _Request body:_
 3+| Serialised RDF triples.
 |===
@@ -1085,7 +988,6 @@ example:Study_001 a test:Study ;
     Any existing metadata for a given subject/predicate combination will be overwritten with the provided values.
     The data must be consistent with the data model after the update (see <<Data model and view configuration>>),
     otherwise ``400`` is returned.
-  Only available for users with _Add shared metadata_ role.
 
 3+| _Request body:_
 3+| Serialised RDF triples.
@@ -1114,7 +1016,6 @@ example:Study_001 a test:Study ;
 If a request body is provided, the triples specified in the body will be deleted.
 Otherwise, the subject specified in the subject parameter will be marked as deleted.
 Please note that the subject will still exist in the database.
-Only available for users with _Add shared metadata_ role.
 
 3+| _Parameters:_
 | ``subject``
@@ -1198,12 +1099,12 @@ curl -X POST -H 'Content-type: application/json' -H 'Accept: application/json' -
   "view":"Resource",
   "filters":[
     {
-      "field":"Resource_type",
-      "values":["https://fairspace.nl/ontology#Collection"]
+      "field":"Resource",
+      "prefix":"Immuno"
     }
   ],
   "page":1,
-  "size":100
+  "size":10
 }' \
 "http://localhost:8080/api/views/"
 ----
@@ -1232,8 +1133,8 @@ curl -X POST -H 'Content-type: application/json' -H 'Accept: application/json' -
   "view":"Resource",
   "filters":[
     {
-      "field":"Resource_type",
-      "values":["https://fairspace.nl/ontology#Collection"]
+      "field":"Resource",
+      "prefix":"Immuno"
     }
   ]
 }' \
@@ -1278,13 +1179,13 @@ Search endpoint used for text search on labels or comments.
 Results contain a list of files (and/or directories, collections) with the following properties:
 | ``id``
 | string
-| File (or directory) identifier (IRI).
+| Directory identifier (IRI).
 | ``label``
 | string
-| File (or directory) name.
+| Directory name.
 | ``type``
 | string
-| Type of the resource as defined in the vocabulary, e.g. "https://fairspace.nl/ontology#File", "https://fairspace.nl/ontology#Directory"
+| Type of the resource as defined in the vocabulary, e.g. "https://fairspace.nl/ontology#Directory"
 | ``comment``
 | string
 | File (or directory) description. Optional.
@@ -1312,19 +1213,19 @@ curl -X POST -H 'Content-type: application/json' -H 'Accept: application/json' -
 {
   "results": [
     {
-      "id": "https://fairspace.example.com/api/webdav/col1/test",
-      "label": "test",
-      "type": "https://fairspace.nl/ontology#File",
-      "comment": "Description of the test file from col1."
+      "id": "https://fairspace.example.com/api/webdav/dep1/pi1",
+      "label": "pi1",
+      "type": "https://fairspace.nl/ontology#Directory",
+      "comment": null
     },
     {
-      "id": "https://fairspace.example.com/api/webdav/col2/new_test_folder",
-      "label": "new_test_folder",
+      "id": "https://fairspace.example.com/api/webdav/dep2/pi1/pi_study1",
+      "label": "pi_study1",
       "type": "https://fairspace.nl/ontology#Directory",
       "comment": null
     }
   ],
-  "query": "test"
+  "query": "pi"
 }
 ----
 ====
@@ -1350,135 +1251,12 @@ curl -X POST -H 'Content-type: application/json' -H 'Accept: application/json' -
 curl -X POST -H 'Content-type: application/json' -H 'Accept: application/json' -d \
 '{
   "query":"test",
-  "resourceType":"https://example.com/ontology#TumorPathologyEvent"
+  "resourceType":"https://example.com/ontology#Species"
 }' \
 'http://localhost:8080/api/search/lookup'
 ----
 ====
 
-
-==== Workspace management
-
-Operations on workspace entities.
-
-|===
-2+| ``GET /api/workspaces/``
-
-2+| List all available workspaces.
-2+| _Response_ contains the following data:
-| ``iri``
-| Unique workspace IRI.
-| ``code``
-| Unique workspace code.
-| ``title``
-| Workspace title.
-| ``managers``
-| List of  workspace managers.
-| ``summary``
-| Short summary on the workspace - how many collections and how many users it has.
-| ``canCollaborate``
-| If a current user is added to the workspace as a collaborator.
-| ``canManage``
-| If a current user is a workspace manager.
-|===
-
-.Example of listing available workspaces (curl)
-[%collapsible]
-====
-[source, bash]
-----
-curl -H "http://localhost:8080/api/workspaces/"
-----
-====
-
-|===
-3+| ``PUT /api/workspaces/``
-
-3+| Add a workspace. Available only to administrators.
-3+| _Parameters:_
-|``code``
-|string
-|Unique workspace code.
-3+| _Response:_
-3+| Response contains the workspace name and newly assigned IRI.
-|===
-
-.Example of adding a workspace (curl)
-[%collapsible]
-====
-[source, bash]
-----
-curl -X PUT -H "Content-type: application/json" -d '{"name": "test workspace"}' "http://localhost:8080/api/workspaces/"
-----
-====
-
-|===
-3+| ``DELETE /api/workspaces/``
-
-3+| Delete a workspace. Available only to administrators.
-3+| _Parameters:_
-| ``workspace``
-| string
-| Workspace IRI (URL-encoded).
-|===
-
-.Example of deleting a workspace (curl)
-[%collapsible]
-====
-[source, bash]
-----
-curl -X DELETE --data-urlencode "workspace=http://fairspace.com/iri/123" "http://localhost:8080/api/workspaces/"
-----
-====
-
-===== Workspace users
-
-|===
-3+| ``GET /api/workspaces/users/``
-
-3+| List all workspace users with workspace roles.
-3+| _Parameters:_
-| ``workspace``
-| string
-| Workspace IRI (URL-encoded).
-3+| _Response:_
-3+| Response contains list of workspace users with their workspace roles.
-|===
-
-.Example of listing workspace users (curl)
-[%collapsible]
-====
-[source, bash]
-----
-curl -G --data-urlencode "workspace=http://fairspace.com/iri/123" "http://localhost:8080/api/workspaces/users/"
-----
-====
-
-|===
-3+| ``PATCH /api/workspaces/users/``
-
-3+| Assign a workspace role to a user (``Member`` or ``Manager``) or revoke
-a workspace role (by assigning role ``None``).
-3+| _Parameters:_
-| ``workspace``
-| string
-| Workspace IRI.
-| ``user``
-| string
-| User IRI
-| ``role``
-| string
-| ``None`` (to remove), ``Member`` or ``Manager``
-|===
-
-.Example of updating workspace users (curl)
-[%collapsible]
-====
-[source, bash]
-----
-curl -X PATCH -H "Content-type: application/json" -d '{"workspace":"http://fairspace.com/iri/123","user":"http://fairspace.com/iri/456","role":"Member"}' "http://localhost:8080/api/workspaces/users/"
-----
-====
 
 
 ==== Users and permissions
@@ -1489,7 +1267,7 @@ curl -X PATCH -H "Content-type: application/json" -d '{"workspace":"http://fairs
 | List all organisation users.
 | _Response:_
 | Returns list of users with user's unique ID, name, email, username and user's organisation-level permissions:
-if a user is an administrator, super-administrator or can view public metadata, view public data or add shared metadata.
+if a user is an administrator or super-administrator.
 |===
 
 .Example listing users (curl)
@@ -1511,8 +1289,7 @@ curl -H 'Accept: application/json' 'http://localhost:8080/api/users/'
 | UUID of the user for which roles will be updated.
 | "role name"
 | boolean
-| Role name is any of ``isAdmin``, ``canViewPublicData``, ``canViewPublicMetadata``, ``canAddSharedMetadata``
-or ``canQueryMetadata``. The value determines whether the user has the role or not.
+| Role name is ``isAdmin`` if a user has an admin role.
 |===
 
 .Example updating user roles (curl)
@@ -1523,9 +1300,8 @@ or ``canQueryMetadata``. The value determines whether the user has the role or n
 curl -X PATCH -H "Accept: application/json" -H "Content-Type: application/json" -d \
 '{
   "id": "123e4567-e89b-12d3-a456-426614174000",
-  "canViewPublicData": false,
-  "canViewPublicMetadata": true
-}' \
+  "isAdmin": true
+  }' \
 "http://localhost:8080/api/users/"
 ----
 ====
@@ -1536,8 +1312,7 @@ curl -X PATCH -H "Accept: application/json" -H "Content-Type: application/json" 
 | Get current user.
 | _Response:_
 | Returns current user's unique ID, name, email, username and user's organisation-level permissions:
-if the user is an administrator, super-administrator or can view public metadata,
-view public data or add shared metadata.
+if the user is an administrator or super-administrator.
 |===
 
 .Example getting current user (curl)
@@ -1675,41 +1450,6 @@ curl -H 'Accept: application/json' 'http://localhost:8080/api/storages/'
 ----
 ====
 
-===== Maintenance
-
-|===
-2+| ``POST /api/maintenance/reindex``
-
-2+| Recreate the view database from the RDF database.
-
-Starts an asynchronous task to clean the PostgreSQL database with the data used for the metadata views, and to repopulate the database with the data from the RDF database.
-
-This can be used after a change in the data model or view configuration to ensure
-that all data is properly indexed.
-
-Only available when the application is configured with ``viewDatabase.enabled: true``.
-
-Only allowed for administrators.
-2+| _Response:_
-| ``204``
-| Asynchronous task to recreate the index has started.
-| ``403``
-| Operation not allowed. The current user is not an administrator.
-| ``409``
-| Reindexing is already in progress.
-| ``503``
-| Service not available. This means that the application is configured not to use a view database.
-|===
-
-
-.Example recreate index using curl
-[%collapsible]
-====
-[source, bash]
-----
-curl -X POST 'http://localhost:8080/api/maintenance/reindex'
-----
-====
 
 === External file system integration
 
@@ -1815,168 +1555,7 @@ storages:
     url: https://exstorage2/api/webdav
 ----
 
-
-== Structure and terminology
-
-In this section we describe in detail the main concepts and components of the
-Fairspace data repository and how they relate to each other.
-
-The core entities of the data repository are:
-
-* _Users_: individual users in the organisation, looking for data,
-contributing to data collections or managing data.
-* _Workspaces_ (for projects, teams): entities in the system linked, representing a group of users,
-to organise data collections and data access.
-* _Collections_: entities in the system to group data files.
-These are the minimal units of data for data access and data modification rules.
-* _Files_: The smallest units of data that the system processes.
-Files always belong to a single collection.
-Files can be added, changed and deleted, but not in all collection states.
-Changing a file creates a new version.
-Access to a file is based on access to the collection the file belongs to.
-Files can be organised in _Directories_, which we will leave out of most descriptions for brevity.
-
-image:docs/images/diagrams/Collections access model.png[Diagram]
-
-The diagram above sketches the relevant entities and actors.
-The basic structure consists of users, workspaces, collections and files as represented in the system.
-Collections are the basic units of data access management.
-A collection is owned by a workspace.
-The responsibility for a collection is organised via the owner workspace:
-members of the owner workspace can be assigned as editors or managers of the collection.
-This reflects the situation where in an organisation, a data collection belongs to a project or a research team.
-This way the workspace represents the organisational unit that is responsible for a number of data collections
-(e.g., a research team or project).
-Data can be shared with other workspaces or individual users (for reading)
-and ownership may be transferred to another workspace
-(e.g., in the case the workspace is temporary, or when the organisation changes).
-
-Fairspace provides a _data catalogue_, containing all the metadata,
-which is visible for all users with catalogue access (_View public metadata_).
-Users with metadata write access (_Add shared metadata_) can add metadata to the catalogue.
-Preferably this is done by an automated process that ensures the consistency
-of the metadata and uniqueness of metadata entities.
-Metadata on collection and file level is protected by the access policy of the collections.
-
-_User administration_ is organised in an external component ([Keycloak]),
-but user permissions are stored in Fairspace.
-A back end application is responsible for storing the data and metadata,
-and for providing APIs for securely retrieving and adding data and metadata using standard data formats and protocols.
-A user interface application provides an interactive file manager and (meta)data browser
-and data entry forms based on the back end APIs.
-Besides the data storage and data management, Fairspace offers _analysis environments_ using {JupyterHub}[Jupyter Hub].
-In Jupyter Hub, the data repository is accessible. Every user has a private working directory.
-We do no assumptions on the structure of the data or on the permissions of the external file systems
-that are connected to the data repository and referenced in the data catalogue.
-The organisation structure may be replicated in the different systems in incompatible ways,
-and the permissions may not be aligned.
-
-=== Workflow and access modes
-
-During the lifetime of a collection, different rules may be applicable for data modification and data access.
-In Fairspace, collections follow a workflow with the following statuses:
-
-* _Active_: for the phase of data collection, data production and data processing;
-* _Read-only_: for when the data set is complete and is available for reuse;
-* _Archived_: for when the data set should not be available for reading, but still needs to be preserved;
-* _Deleted_: for when the data set needs to be permanently made unavailable (non-readable and non-searchable).
-This status is irreversible. There is one exception to this rule – for the sake of data loss prevention, in special cases, administrators can still undelete a collection that was already deleted.
-
-In these different statuses, different actions on the data are enabled or disabled. Also, visibility of the data and linked metadata depends partly on the collection status.
-We also distinguish three access modes for reading and listing files in a collection (where listing also includes seeing the metadata):
-
-* _Restricted_: only access to explicitly selected workspaces and users;
-* _Metadata published_: the collection and its files are visible, metadata linked to them is visible for all users;
-* _Data published_: the files in the collection are readable for all users.
-This mode is irreversible. There is one exception to this rule – there might be a special situation, resulting from, e.g., a legal reason, when a collection has to be unpublished. This action is available to administrators, but it is highly discouraged, since the collection (meta)data may already be referenced in other systems.
-
-The statuses and access modes, and the transitions between them
-are shown in the following diagram.
-
-image:docs/images/diagrams/Dataset workflow and visibility modes.png[Collection editing and publication workflow]
-
-=== Roles and permissions
-
-We distinguish the following roles in the solution:
-
-* _User_: regular users can only view their own workspaces and collections.
-* _View public metadata_: the user can view public metadata, workspaces, collections and files;
-* _View public data_: the user can read public files;
-* _Admin_: can create workspaces, assign roles and permissions;
-* _Add shared metadata_: can add, modify and delete shared metadata entities.
-* _Query metadata_: can run <<SPARQL>> queries to query metadata.
-
-Most users should have the _View public data_ role.
-Only when the shared metadata may contain sensitive information that should
-not be visible for some users, the public data and public metadata roles should be discarded for
-those users.
-
-Workspaces are used to organise collections in a hierarchy. On workspace level there are two access levels:
-
-* _Manager_: can edit workspace details, manage workspace access and manage access to all collections that belong to the workspace;
-* _Member_: can create a collection in the workspace.
-
-Access to collections and files is managed on collection level. We distinguish the following access levels on collections:
-
-* _List_: see collection, directory and file names and metadata properties/relations
-(only applicable for collections shared via the _Metadata published_ access mode);
-* _Read_: read file contents;
-* _Write_: add files, add new file versions, mark files as deleted;
-* _Manage_: grant, revoke access to the collection, change collection status and modes.
-
-Access levels are hierarchical: the _Read_ level includes the _List_ level;
-the _Edit_ level includes _Read_ level; the _Manage_ level includes _Edit_ and _Read_ level access.
-The user that creates the collection gets _Manage_ access.
-
-
-
 == Data model and view configuration
-
-=== Metadata
-
-Metadata is data about data.
-Metadata is used to describe data assets, e.g., for making it easier to find or use certain data.
-Because metadata is data itself, it can be difficult to make a proper distinction between data and metadata in a system.
-
-==== Types of metadata
-
-In a digital archive, _technical metadata_ is linked to data assets, like file type, location, size, creation or modification dates, checksums for checking data integrity, ownership.
-Such metadata is essential for a system to store and retrieve data files.
-Technical metadata can also include data format specific properties, like encoding, data layout, resolution, etc., required to correctly read the data. +
-With most publications, _bibliographic metadata_ is associated, such as author, title, abstract, publication details, keywords and subject categories.
-Such metadata makes it possible to find relevant publications.
-This is the kind of metadata used by libraries and archives and numerous standards exist for such data, such as https://www.dublincore.org/[Dublin Core] and https://www.loc.gov/standards/mets/[METS].
-
-More detailed _descriptive metadata_ provides information about the contents of the data,
-e.g., description of rows and columns, summary statistics, project information, geographical information, results, study design, methods, materials or equipment.
-In the extreme case, the entire content of the file is captured in descriptive metadata.
-
-We can distinguish different kinds of descriptive metadata, such as:
-
-* Description of the _contents_ (rows, columns, values, summary statistics)
-* Description of the _subject_, what the data is about (subject, topic, project, study design, object of study, time, location)
-* Description of _data sources_ (for derived or processed data)
-* Description of the _methods_ or technology used to produce or capture the data, such as scripts and versions.
-
-In the context of health research data, it is essential to link data to research subjects, i.e., patients and samples.
-
-The values of the metadata can be of any type, numerical, free text, date,
-conform to a controlled vocabulary (e.g., ICD or SNOMED codes, units, file types)
-or a reference to a typed entity within the database, or external entities.
-
-Likewise, the data the metadata is about can be of any type, a file system, a tabular file, image, genomic data, a relational database, etc.
-
-==== Purpose
-Metadata is used for several purposes:
-
-* Descriptors to enable use of the data (file type, file format, encoding, how it was created/generated).
-The metadata may be used by users or scripts to read or interpret a particular file or data set.
-* Finding relevant data for analysis:
-** Metadata may be used to organise data within a data set that a researcher is working on, by using (study specific) categories linked to individual files.
-** Metadata may be used in search queries or navigation to find out if data is available that meets certain selection criteria (e.g., data types, categories, cohort characteristics), for inclusion in a new analysis.
-** Metadata may be used to identify data that is linked to a specific entity, such as a patient or a sample, to determine if such data has already been analysed, in order to avoid duplicate analysis.
-
-It is important to identify for which purpose metadata is collected and used, as it may affect which types of metadata are collected, how they are navigated and if access control on metadata is desired or required.
 
 === Data model
 
@@ -1992,13 +1571,10 @@ E.g., it is probably better to use a specific field ‘disease’ where the valu
 
 We distinguish different data domains in order to clearly separate the data that is system specific and the metadata that is more flexible.
 
-===== Workspaces and collection-level data
+===== System-level metadata
 
-Users, workspaces, collections, directories and files are system-level entities,
-representing the file system of the system.
-Access to these entities is restricted by the workspace-level and collection-level access control.
-These entities cannot be changed on demand, but are inherent to the system.
-However, custom properties and relations may be added, e.g., to link files to patients.
+The data model includes system-level properties and entities, like users or directories. These entities are defined in system-vocabulary and cannot be changed,
+because they are inherent to the system.
 
 ===== Metadata
 
@@ -2008,6 +1584,71 @@ These metadata are used to link entities in the file system to entities in the r
 such as samples, patients, diseases, diagnoses,
 or to entities in the organisation domain, such as projects.
 These entities may be displayed and navigated in the application and can be explored through the API (for technical users).
+
+====== Hierarchy configuration
+
+Hierarchy defines directory types and relations between them. Metadata entities that are part of the hierarchy should have
+the following properties as part of the entity class definition:
+
+|===
+| Property | Description
+
+| ``fs:partOfHierarchy: true``
+| Flag determining that the entity is part of the hierarchy.
+| ``fs:hierarchyDescendants``
+| List of entity types that are valid children of the current entity
+| ``fs:hierarchyRoot``
+| Flag determining that the current entity is a hierarchy root.
+|===
+
+.Example definition of metadata class that is part of the hierarchy.
+====
+
+In this example, the Department class is a root entity with `test:PrincipalInvestigator` class as allowed child.
+
+[source, turtle]
+----
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix fs: <https://fairspace.nl/ontology#> .
+@prefix test: <https://test.com/ontology#> .
+
+test:Department a rdfs:Class, sh:NodeShape ;
+    sh:closed false ;
+    sh:description "A division of a large organization such as a government, university, or business, dealing with a specific area of activity." ;
+    sh:name "Department" ;
+    fs:namePlural "Departments" ;
+    sh:ignoredProperties ( rdf:type owl:sameAs  ) ;
+    fs:partOfHierarchy true ;
+    fs:hierarchyDescendants ( test:PrincipalInvestigator ) ;
+    fs:hierarchyRoot true ;
+    fs:adminEditOnly true ;
+    sh:property
+    [
+        sh:name "Label" ;
+        sh:description "Unique department label." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        dash:singleLine true ;
+        fs:importantProperty true ;
+        sh:path rdfs:label ;
+        sh:order 0
+    ],
+    [
+        sh:name "Description" ;
+        sh:description "The description of the department." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:path rdfs:comment ;
+        sh:order 1
+    ] .
+
+----
+====
 
 ====== Controlled vocabularies
 
@@ -2030,9 +1671,8 @@ Fairspace uses an {Jena}[Apache Jena] database to store system metadata
 and the custom domain specific metadata.
 The data models for these metadata are defined using the {SHACL}[Shapes Constraint Language (SHACL)].
 
-* The system metadata includes workspaces, collections, directories, files, file versions, users and access rights.
-  The system data model is defined in  link:projects/saturn/src/main/resources/system-vocabulary.ttl[system-vocabulary.ttl]
-* The customisable data model includes the custom (shared)
+* The system system data model is defined in  link:projects/saturn/src/main/resources/system-vocabulary.ttl[system-vocabulary.ttl]
+* The customisable data model includes the custom
   metadata entities, custom controlled vocabulary types,
   and custom properties of the system entities.
   The default custom data model is defined in link:projects/saturn/vocabulary.ttl[vocabulary.ttl].
@@ -2040,7 +1680,7 @@ The data models for these metadata are defined using the {SHACL}[Shapes Constrai
 
 A schematic overview of the default data model in link:projects/saturn/vocabulary.ttl[vocabulary.ttl]:
 
-image:docs/images/diagrams/CDR data model.png[CDR data model]
+image:docs/images/diagrams/SILS data model.png[SILS data model]
 
 The data model defines an entity-relationship model, specifying
 the entity types that are relevant to describe your data assets,
@@ -2264,7 +1904,6 @@ and views configuration in link:projects/saturn/views.ttl[projects/saturn/views.
 Restart Saturn run.
 +
 . Load data for new entities or properties.
-. Reindex Postgres database using `/api/maintenance/reindex` API endpoint (see <<Maintenance>> API) to apply the changes for metadata search.
 
 
 ==== Controlled vocabularies
@@ -2328,6 +1967,10 @@ An example can be found in link:projects/saturn/views.yaml[views.yaml]
 
 
 == Installation and configuration
+
+=== Docker
+
+To deploy Fairspace and Keycloak using docker, follow link:docker/README.md[the docker deployment instructions].
 
 === Local development
 
@@ -2399,7 +2042,7 @@ We provide a number of charts for various components that can be used in combina
 
 - _Fairspace Keycloak_: Installs Keycloak and configures an ingress node for Keycloak. This chart is not required if Keycloak is already installed separately. You still need to <<Configure a Keycloak realm for Fairspace,configure a Keycloak realm for Fairspace>>.
 (Chart source: https://github.com/thehyve/fairspace-keycloak[].)
-- _Fairspace_: Installs the Fairspace application, including the _saturn_ backend, _pluto_ proxy, _mercury_ frontend and a PostgreSQL database, and configures an ingress node for Fairspace.
+- _Fairspace_: Installs the Fairspace application, including the _saturn_ backend, _pluto_ proxy and _mercury_ frontend, and configures an ingress node for Fairspace.
 - _Jupyter_: Installs a version of Jupyter Hub that uses Keycloak for authentication and launches a link:https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-datascience-notebook[jupyter-datascience-notebook] based Jupyter notebook with the Fairspace collections file system mounted automatically. (Chart source: https://github.com/thehyve/fairspace-jupyter[].)
 
 ==== Instructions for deploying to Google Cloud
@@ -2594,14 +2237,6 @@ fairspace:
     domain: fairspace.example.com
   features: []
   services:
-    JupyterHub: https://jupyterhub.example.com/user/${username}/lab
-  storages:
-    external:
-      name: external
-      label: "External storage"
-      url: https://storage.example.com/api/webdav
-      search-url: https://storage.example.com/api/search/files
-      root-directory-iri: https://storage.example.com/api/webdav
 
 # Specific settings for Saturn subchart
 saturn:
@@ -2639,21 +2274,7 @@ pluto:
   connectTimeoutMillis: 2000
   maxFileSize: 1GB    # max total size of file(s) that can be uploaded
   maxRequestSize: 1GB  # max total size of the request (should be > maxFileSize)
-  backends:
-    storageRoutes:
-      storage-external-webdav:
-        path: /api/storages/external/webdav/**
-        url: ${pluto.storages.external.url}
-      storage-external-search:
-        path: /api/storages/external/search/files/**
-        url: ${pluto.storages.external.search-url}
 
-# Settings for a volume with PostgreSQL database used by Fairspace to store data for the metadata views.
-postgres:
-  persistance:
-    storage:
-      size: 60Gi
-      storageClass: expandable
 ----
 
 ===== Deploy Jupyter Hub
@@ -2853,31 +2474,6 @@ Request: ``/api/metadata/``
 
 Fetching metadata is not included in audit log.
 
-===== Workspace operations
-
-Request: ``/api/workspace/``
-
-|===
-| Request method | Event | Additional params | Description
-
-| ``PUT``
-| ``WS_CREATE``
-| ``workspace``
-| Create workspace
-
-| ``DELETE``
-| ``WS_DELETE``
-| ``workspace``
-| Delete workspace
-
-| ``PATCH users/``
-| ``WS_SET_USER_ROLE``
-| ``workspace``, ``affected_user``, ``role``
-| Add user to the workspace, change workspace user role, delete a user from a workspace
-|===
-
-Listing workspaces and workspace users is not included in the audit log.
-
 ===== User roles operations
 
 Request: ``/api/users/``
@@ -3037,11 +2633,13 @@ Every file version is stored as a separate blob and is normally never deleted
 In combination with the fact that all operations on the RDF database are stored in the transaction log,
 that makes it possible to (incrementally) backup full state of workspaces and metadata at any point in time without stopping it.
 
-==== Secondary data storage for efficient data retrieval
+==== (DISABLED) Secondary data storage for efficient data retrieval
 
 To improve the performance of metadata views, especially for counts and pagination, a simple relational database
 (PostgreSQL) is used. This database is flexible, created based on views configuration file and RDF storage,
 which enables recreation of the database at any point of time.
+
+Note! This storage does not support hierarchical data browsing and is currently disabled!
 
 === Deployment architecture
 
@@ -3058,16 +2656,12 @@ For details on JupyterHub and Kubernetes see link:https://zero-to-jupyterhub.rea
 
 == Acknowledgement
 
-This project was realized thanks to and funded by:
-
-* The generosity of donors supporting the Curie Foundation.
-* Food Nutrition Security Cloud (FNS-Cloud). FNS-Cloud has received funding from the European Union’s Horizon 2020 Research and Innovation programme (H2020-EU.3.2.2.3. – A sustainable and competitive agri-food industry) under Grant Agreement No. 863059.
-* The Hyve BV, enabling open science (link:https://thehyve.nl[www.thehyve.nl]).
+This project was realized thanks to and funded by Swammerdam Institute for Life Sciences (SILS).
 
 
 == License
 
-Copyright (c) 2021 The Hyve B.V.
+Copyright (c) 2022 The Hyve B.V.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the Apache 2.0
 License published by the Apache Software Foundation, either version 2.0 of the License, or (at your option) any later version.
