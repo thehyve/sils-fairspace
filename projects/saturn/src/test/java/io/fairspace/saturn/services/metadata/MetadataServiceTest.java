@@ -34,6 +34,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.rdf.ModelUtils.modelOf;
 import static io.fairspace.saturn.vocabulary.FS.NS;
@@ -94,9 +95,10 @@ public class MetadataServiceTest {
     @Before
     public void setUp() {
         setupRequestContext();
+        var context = new Context();
         request = getCurrentRequest();
         permissions = new MetadataPermissions(userService, VOCABULARY.add(class2, FS.adminEditOnly, createTypedLiteral(true)));
-        var context = new Context();
+        context.set(METADATA_PERMISSIONS, permissions);
         model = ds.getDefaultModel();
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         api = new MetadataService(txn, SYSTEM_VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);

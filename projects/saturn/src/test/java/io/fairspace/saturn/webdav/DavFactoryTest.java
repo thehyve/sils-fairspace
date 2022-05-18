@@ -1,6 +1,7 @@
 package io.fairspace.saturn.webdav;
 
 import io.fairspace.saturn.rdf.dao.DAO;
+import io.fairspace.saturn.services.metadata.MetadataPermissions;
 import io.fairspace.saturn.services.users.User;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
@@ -29,6 +30,7 @@ import java.util.Map;
 
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.milton.http.ResponseStatus.SC_FORBIDDEN;
 import static java.lang.String.format;
@@ -79,6 +81,9 @@ public class DavFactoryTest {
     public void before() {
         factory = new DavFactory(model.createResource(baseUri), store, userService, context);
 
+        var permissions = new MetadataPermissions(userService, VOCABULARY);
+        context.set(METADATA_PERMISSIONS, permissions);
+
         userAuthentication = mockAuthentication("user");
         user = createTestUser("user", false);
         new DAO(model).write(user);
@@ -90,7 +95,7 @@ public class DavFactoryTest {
         setupRequestContext();
         request = getCurrentRequest();
 
-        selectRegularUser();
+        selectAdmin();
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
     }
 
@@ -114,6 +119,7 @@ public class DavFactoryTest {
         assertNotNull(factory.getResource(null, format("/api/webdav/%s/", dirName)));
         assertEquals(1, root.getChildren().size());
 
+        selectRegularUser();
         assertEquals(Access.Read, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + dirName)));
         selectAdmin();
         assertEquals(Access.Write, ((DavFactory) factory).getAccess(model.getResource(baseUri + "/" + dirName)));
@@ -404,6 +410,7 @@ public class DavFactoryTest {
         assertEquals(1, dir.getChildren().size());
         assertNotNull(dir.child("dir1"));
 
+        selectRegularUser();
         var deleted = (DeletableResource) dir.child("dir1");
 
         try {

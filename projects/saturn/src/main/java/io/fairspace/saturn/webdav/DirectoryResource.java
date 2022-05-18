@@ -1,6 +1,7 @@
 package io.fairspace.saturn.webdav;
 
 import io.fairspace.saturn.services.AccessDeniedException;
+import io.fairspace.saturn.services.metadata.MetadataPermissions;
 import io.fairspace.saturn.services.metadata.MetadataService;
 import io.fairspace.saturn.services.metadata.validation.ValidationException;
 import io.fairspace.saturn.vocabulary.FS;
@@ -31,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.rdf.ModelUtils.getStringProperty;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
@@ -52,6 +54,9 @@ class DirectoryResource extends BaseResource implements FolderResource, Deletabl
     public boolean authorise(Request request, Request.Method method, Auth auth) {
         return switch (method) {
             case COPY -> access.canRead();
+            // MKCOL authorization is checked in DavFactory.validateAuthorization
+            case MKCOL -> true;
+            case MOVE -> true;
             default -> super.authorise(request, method, auth);
         };
     }

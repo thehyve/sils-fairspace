@@ -39,6 +39,7 @@ import java.util.List;
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
 import static io.fairspace.saturn.config.Services.FS_ROOT;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static org.apache.jena.query.DatasetFactory.wrap;
 import static org.junit.Assert.*;
@@ -84,14 +85,19 @@ public class SparqlQueryServiceTest {
         var context = new Context();
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         ds.getContext().set(FS_ROOT, davFactory.root);
-        var metadataPermissions = new MetadataPermissions(userService, VOCABULARY);
-        var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), metadataPermissions);
+        permissions = mock(MetadataPermissions.class);
+        when(permissions.canWriteMetadata(any())).thenReturn(true);
+        when(permissions.canWriteMetadataByUri(any())).thenReturn(true);
+        when(permissions.canReadMetadata()).thenReturn(true);
+        context.set(METADATA_PERMISSIONS, permissions);
+        var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), permissions);
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 
         queryService = new SparqlQueryService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, filteredDataset);
 
-        when(permissions.canWriteMetadata(any())).thenReturn(true);
-        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
+
+
+        api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), this.permissions, davFactory);
 
         setupUsers(model);
         setupRequestContext();

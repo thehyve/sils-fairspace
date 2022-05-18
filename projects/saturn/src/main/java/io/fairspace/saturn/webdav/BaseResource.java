@@ -169,18 +169,13 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
                 .addProperty(RDFS.label, name);
     }
 
-    private void moveResourcesWithTheSameLinkedEntity(String name) throws ConflictException, BadRequestException, NotAuthorizedException {
-        ExtendedIterator<Statement> linkedResourcesToMove = subject.getModel()
-                .listStatements(null, FS.linkedEntity, subject.getPropertyResourceValue(FS.linkedEntity))
-                .filterDrop(statement -> statement.getSubject().equals(subject));
-        while (linkedResourcesToMove.hasNext()) {
-            Statement nextResource = linkedResourcesToMove.next();
-            var parent = nextResource.getSubject().getPropertyResourceValue(FS.belongsTo);
-            validateTargetNotExists((CollectionResource) factory.getResource(parent), name);
-            move(nextResource.getSubject(), parent, name, true);
-        }
-    }
-
+    /**
+     * Move is used for both moving a directory as well as renaming.
+     *
+     * The directory to be moved/renamed links to an entity. This entity can be used by
+     * multiple directories. In case of a rename, all directories linking to this single entity
+     * will be renamed.
+     */
     @Override
     public void moveTo(io.milton.resource.CollectionResource parent, String name)
             throws ConflictException, NotAuthorizedException, BadRequestException {
@@ -189,13 +184,18 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         }
         validateTarget(parent, name);
 
+        boolean isRename = !this.getName().equals(name);
         var parentSubject = (parent instanceof DirectoryResource) ? ((DirectoryResource) parent).subject : factory.rootSubject;
         var parentType = Optional.ofNullable(parentSubject).map(p -> p.getPropertyResourceValue(FS.linkedEntityType)).orElse(null);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
+
+        factory.validateCanWrite(type.getURI());
         validateIfTypeIsValidForParent(type, parentType);
 
-        renameLinkedEntity(name);
-        moveResourcesWithTheSameLinkedEntity(name);
+        if(isRename) {
+            renameLinkedEntity(name);
+            renameResourcesWithTheSameLinkedEntity(name);
+        }
 
         move(subject, parentSubject, name, true);
     }
@@ -242,6 +242,18 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
         }
     }
 
+    private void renameResourcesWithTheSameLinkedEntity(String name) throws ConflictException, BadRequestException, NotAuthorizedException {
+        ExtendedIterator<Statement> linkedResourcesToMove = subject.getModel()
+                .listStatements(null, FS.linkedEntity, subject.getPropertyResourceValue(FS.linkedEntity))
+                .filterDrop(statement -> statement.getSubject().equals(subject));
+        while (linkedResourcesToMove.hasNext()) {
+            Statement nextResource = linkedResourcesToMove.next();
+            var parent = nextResource.getSubject().getPropertyResourceValue(FS.belongsTo);
+            validateTargetNotExists((CollectionResource) factory.getResource(parent), name);
+            move(nextResource.getSubject(), parent, name, true);
+        }
+    }
+
     private static Resource copyVersion(Resource ver) {
         var newVer = ver.getModel().createResource();
         copyProperties(ver.asResource(), newVer, RDF.type, FS.dateModified, FS.deletedBy, FS.fileSize, FS.blobId, FS.md5);
@@ -259,6 +271,7 @@ abstract class BaseResource implements PropFindableResource, DeletableResource, 
 
         var parentType = parentSubject.getPropertyResourceValue(FS.linkedEntityType);
         var type = subject.getPropertyResourceValue(FS.linkedEntityType);
+        factory.validateCanWrite(type.getURI());
         validateIfTypeIsValidForParent(type, parentType);
 
         copy(subject, parentSubject, name, factory.currentUserResource(), timestampLiteral());

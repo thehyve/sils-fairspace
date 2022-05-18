@@ -16,8 +16,8 @@ public class MetadataPermissions {
         this.vocabulary = vocabulary;
     }
 
-    private boolean isAdminEditOnlyResource(org.apache.jena.rdf.model.Resource type) {
-        var resourceClass = vocabulary.getResource(type.getURI());
+    private boolean isAdminEditOnlyResource(String type) {
+        var resourceClass = vocabulary.getResource(type);
         return getBooleanProperty(resourceClass, FS.adminEditOnly);
     }
 
@@ -26,6 +26,10 @@ public class MetadataPermissions {
     }
 
     public boolean canWriteMetadata(Resource resourceType) {
-        return userService.currentUser().isAdmin() || (resourceType != null && !isAdminEditOnlyResource(resourceType));
+        return canWriteMetadataByUri(resourceType.getURI());
+    }
+
+    public boolean canWriteMetadataByUri(String typeUri) {
+        return userService.currentUser().isAdmin() || (typeUri != null && !isAdminEditOnlyResource(typeUri));
     }
 }
