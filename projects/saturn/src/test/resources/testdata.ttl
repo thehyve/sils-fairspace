@@ -33,7 +33,9 @@ sample:s2 a sils:Sample   ;
           rdfs:label "Sample 2" ;
           sils:sampleIsOfSpecies ncbitaxon:9606 .
 
-
+study:assay a sils:Assay ;
+             rdfs:label "Assay 1" ;
+             sils:pairedEnd true .
 
 
 

@@ -105,7 +105,7 @@ public class ViewServiceTest {
     public void testFetchViewConfig() {
         var facets = viewService.getFacets();
         var selection = facets.stream()
-                .filter(facet -> facet.getType() == ViewsConfig.ColumnType.Number)
+                .filter(facet -> facet.getType() == ViewsConfig.ColumnType.Boolean)
                 .collect(Collectors.toList());
         Assert.assertEquals(1, selection.size());
         viewService.getViews();

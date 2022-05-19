@@ -281,7 +281,7 @@ sils:Study a rdfs:Class, sh:NodeShape ;
     [
         sh:name "Organisms" ;
         sh:description "Organisms that are being studied." ;
-        sh:datatype xsd:string ;
+        sh:class sils:Species ;
         sh:path sils:studyOrganisms ;
         sh:order 5
     ],
@@ -1024,14 +1024,14 @@ sils:LCMSApparatus a rdfs:Class, sh:NodeShape ;
         sh:name "Type" ;
         sh:description "The LCMS apparatus type." ;
         sh:maxCount 1 ;
-        sh:class sils:LCMSApparatusType  ;
+        sh:class sils:LCMSApparatusType ;
         sh:path sils:isOfLCMSApparatusType ;
         sh:order 4
     ],
     [
         sh:name "Maximum resolution" ;
         sh:description "The maximum resolution the LCMS can measure at" ;
-        sh:datatype xsd:decimal ;
+        sh:datatype xsd:integer ;
         sh:maxCount 1 ;
         sh:path sils:maximumLCMSResolution ;
         sh:order 5
@@ -1074,7 +1074,7 @@ sils:assayIdentifier a rdf:Property .
 sils:assayTitle a rdf:Property .
 sils:isOfAssayType a rdf:Property .
 sils:sequenceTechnology a rdf:Property .
-sils:sequencingMode a rdf:Property .
+sils:pairedEnd a rdf:Property .
 sils:isolationProtocol a rdf:Property .
 sils:sequencingCenter a rdf:Property .
 sils:sequencingPlatform a rdf:Property .
@@ -1082,6 +1082,7 @@ sils:analysisDate a rdf:Property .
 sils:assayReference a rdf:Property .
 sils:LCMSAssayMachine a rdf:Property .
 sils:LCMSProtocol a rdf:Property .
+sils:LCMSAssayMachineType a rdf:Property .
 sils:assayPositiveMode a rdf:Property .
 sils:assayNegativeMode a rdf:Property .
 sils:assayMS1 a rdf:Property .
@@ -1150,11 +1151,11 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:order 5
     ],
     [
-        sh:name "Sequencing mode (PAIRED_END)" ;
+        sh:name "Paired end" ;
         sh:description "Whether or not measured in paired end. Required for sequencing assay type." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
-        sh:path sils:sequencingMode ;
+        sh:path sils:pairedEnd ;
         sh:order 6
     ],
     [
@@ -1206,52 +1207,60 @@ sils:Assay a rdfs:Class, sh:NodeShape ;
         sh:order 12
     ],
     [
+        sh:name "LCMS type" ;
+        sh:description "The type of LCMS apparatus." ;
+        sh:maxCount 1 ;
+        sh:class sils:LCMSApparatusType ;
+        sh:path sils:LCMSAssayMachineType ;
+        sh:order 13
+    ],
+    [
         sh:name "Positive mode" ;
         sh:description "If Positive mode spectra were measured." ;
         sh:datatype xsd:boolean  ;
         sh:maxCount 1 ;
         sh:path sils:assayPositiveMode ;
-        sh:order 13
+        sh:order 14
     ],
     [
         sh:name "Negative mode" ;
         sh:description "If Negative mode spectra were measured." ;
-        sh:datatype xsd:boolean  ;
+        sh:datatype xsd:boolean ;
         sh:maxCount 1 ;
         sh:path sils:assayNegativeMode ;
-        sh:order 14
+        sh:order 15
     ],
     [
         sh:name "MS1" ;
         sh:description "If MS1 spectra were measured." ;
-        sh:datatype xsd:boolean  ;
+        sh:datatype xsd:boolean ;
         sh:maxCount 1 ;
         sh:path sils:assayMS1 ;
-        sh:order 15
+        sh:order 16
     ],
     [
         sh:name "MS2" ;
         sh:description "If MS2 spectra were measured." ;
-        sh:datatype xsd:boolean  ;
+        sh:datatype xsd:boolean ;
         sh:maxCount 1 ;
         sh:path sils:assayMS2 ;
-        sh:order 16
+        sh:order 17
     ],
     [
         sh:name "MSn" ;
         sh:description "If MSn spectra were measured." ;
-        sh:datatype xsd:boolean  ;
+        sh:datatype xsd:boolean ;
         sh:maxCount 1 ;
         sh:path sils:assayMSn ;
-        sh:order 17
+        sh:order 18
     ],
     [
         sh:name "Ion Mobility" ;
         sh:description "If Ion Mobility was measured." ;
-        sh:datatype xsd:boolean  ;
+        sh:datatype xsd:boolean ;
         sh:maxCount 1 ;
         sh:path sils:assayIonMobility ;
-        sh:order 18
+        sh:order 19
     ] .
 
 sils:externalFileLink a rdf:Property .

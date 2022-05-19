@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.stream.*;
 
 import static io.fairspace.saturn.config.ViewsConfig.ColumnType.Date;
+import static io.fairspace.saturn.config.ViewsConfig.ColumnType.Boolean;
 import static io.fairspace.saturn.services.views.Table.idColumn;
 
 /**
@@ -159,6 +160,10 @@ public class ViewStoreReader implements AutoCloseable {
                 }
                 if (filter.max != null) {
                     filter.max = Instant.parse(filter.max.toString());
+                }
+            } else if (column.type == Boolean) {
+                if (filter.booleanValue != null) {
+                    log.error("Boolean filters not supported in Postgres views implementation.");
                 }
             }
         }
