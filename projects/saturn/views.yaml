@@ -10,18 +10,6 @@ views:
         source: https://sils.uva.nl/ontology#externalFileLink
         type: link
     joinColumns:
-      - name: studyName
-        title: Study name
-        source: http://www.w3.org/2000/01/rdf-schema#label
-        sourceClass: https://sils.uva.nl/ontology#Study
-        sourceClassName: Study
-        type: text
-      - name: projectName
-        title: Project name
-        source: http://www.w3.org/2000/01/rdf-schema#label
-        sourceClass: https://sils.uva.nl/ontology#Project
-        sourceClassName: Project
-        type: text
       - name: objectSpecies
         title: Object species
         source: https://sils.uva.nl/ontology#objectSpecies
@@ -29,22 +17,66 @@ views:
         sourceClass: https://sils.uva.nl/ontology#Object
         sourceClassName: Object
         type: term
-      - name: objectAltitude
-        title: Object altitude
-        source: https://sils.uva.nl/ontology#objectAltitude
+      - name: objectCountry
+        title: Object country
+        source: https://sils.uva.nl/ontology#objectCountry
         sourceClass: https://sils.uva.nl/ontology#Object
         sourceClassName: Object
-        type: number
-      - name: objectDepth
-        title: Object depth
-        source: https://sils.uva.nl/ontology#objectDepth
+        type: text
+      - name: objectGenotype
+        title: Object genotype
+        source: https://sils.uva.nl/ontology#objectGenotype
         sourceClass: https://sils.uva.nl/ontology#Object
         sourceClassName: Object
-        type: number
-      - name: sampleCollectionTemperature
-        title: Sample collection temperature
-        source: https://sils.uva.nl/ontology#sampleCollectionTemperature
-        sourceClass: https://sils.uva.nl/ontology#Sample
-        sourceClassName: Sample
-        type: number
-
+        type: text
+      - name: assayType
+        title: Assay type
+        source: https://sils.uva.nl/ontology#assayType
+        rdfType: https://sils.uva.nl/ontology#AssayType
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: term
+      - name: assaySequenceTechnology
+        title: Sequence technology
+        source: https://sils.uva.nl/ontology#sequenceTechnology
+        rdfType: https://sils.uva.nl/ontology#SequenceTechnology
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: term
+      - name: assayPairedEnd
+        title: Paired end
+        source: https://sils.uva.nl/ontology#pairedEnd
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: boolean
+      - name: LCMSAssayMachineTypeLCMS
+        title: LCMS Machine Type
+        source: https://sils.uva.nl/ontology#LCMSAssayMachineType
+        rdfType: https://sils.uva.nl/ontology#LCMSApparatusType
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: term
+      - name: assayPositiveMode
+        title: Positive mode
+        source: https://sils.uva.nl/ontology#assayPositiveMode
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: boolean
+      - name: assayNegativeMode
+        title: Negative mode
+        source: https://sils.uva.nl/ontology#assayNegativeMode
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: boolean
+      - name: assayMS1
+        title: MS1
+        source: https://sils.uva.nl/ontology#assayMS1
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: boolean
+      - name: assayMS2
+        title: MS2
+        source: https://sils.uva.nl/ontology#assayMS2
+        sourceClass: https://sils.uva.nl/ontology#Assay
+        sourceClassName: Assay
+        type: boolean
