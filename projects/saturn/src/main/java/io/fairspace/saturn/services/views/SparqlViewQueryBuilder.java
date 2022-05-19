@@ -31,7 +31,7 @@ import static org.apache.jena.sparql.expr.NodeValue.*;
 @Log4j2
 public class SparqlViewQueryBuilder {
     private final String PLACEHOLDER = " [subquery_column_placeholder] ";
-    private final String ENTITY_DIR_SUFFIX = "dir";
+    private final String ENTITY_DIR_SUFFIX = "Dir";
     private final StringBuilder builder = new StringBuilder();
     private final HashSet<String> entityColumnsWithSubquery = new HashSet<>();
     private final ArrayList<List<Resource>> hierarchy;
@@ -68,7 +68,7 @@ public class SparqlViewQueryBuilder {
                 .append(PLACEHOLDER)
                 .append("\nWHERE {\n");
 
-        builder.append("?dir fs:linkedEntity ?").append(view.name).append(" .\n");
+        builder.append("?").append(ENTITY_DIR_SUFFIX).append(" fs:linkedEntity ?").append(view.name).append(" .\n");
 
         applyHierarchy(ENTITY_DIR_SUFFIX);
         applyOptionalFilters();

@@ -8,7 +8,7 @@ import javax.validation.constraints.*;
 import java.util.*;
 
 public class ViewsConfig {
-    static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
+    public static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     @JsonSetter(nulls = Nulls.AS_EMPTY)
     public List<View> views = new ArrayList<>();

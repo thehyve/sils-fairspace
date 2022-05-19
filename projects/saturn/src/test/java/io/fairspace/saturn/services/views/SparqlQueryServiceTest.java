@@ -1,6 +1,7 @@
 package io.fairspace.saturn.services.views;
 
 import io.fairspace.saturn.config.ConfigLoader;
+import io.fairspace.saturn.config.ViewsConfig;
 import io.fairspace.saturn.rdf.dao.DAO;
 import io.fairspace.saturn.rdf.search.FilteredDatasetGraph;
 import io.fairspace.saturn.rdf.transactions.SimpleTransactions;
@@ -31,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,7 +95,7 @@ public class SparqlQueryServiceTest {
         var filteredDatasetGraph = new FilteredDatasetGraph(ds.asDatasetGraph(), permissions);
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 
-        queryService = new SparqlQueryService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, filteredDataset);
+        queryService = new SparqlQueryService(ConfigLoader.CONFIG.search, loadViewsConfig("src/test/resources/test-views.yaml"), filteredDataset);
         api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), this.permissions, davFactory);
 
         setupUsers(model);
