@@ -21,6 +21,7 @@ public class ViewsConfig {
         TermSet,
         Number,
         Date,
+        Boolean,
         Identifier;
 
         public boolean isSet() {

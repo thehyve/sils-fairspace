@@ -94,9 +94,6 @@ public class SparqlQueryServiceTest {
         var filteredDataset = DatasetImpl.wrap(filteredDatasetGraph);
 
         queryService = new SparqlQueryService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, filteredDataset);
-
-
-
         api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), this.permissions, davFactory);
 
         setupUsers(model);

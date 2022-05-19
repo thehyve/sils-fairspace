@@ -50,10 +50,18 @@ public class ViewService {
 
     private static final Query BOUNDS_QUERY = QueryFactory.create(String.format("""
             PREFIX fs: <%s>
-
             SELECT (MIN(?value) AS ?min) (MAX(?value) AS ?max)
             WHERE {
                ?subject ?predicate ?value
+               FILTER NOT EXISTS { ?subject fs:dateDeleted ?anyDateDeleted }
+            }
+            """, FS.NS));
+
+    private static final Query BOOLEAN_VALUE_QUERY = QueryFactory.create(String.format("""
+            PREFIX fs: <%s>
+            SELECT ?booleanValue
+            WHERE {
+               ?subject ?predicate ?booleanValue
                FILTER NOT EXISTS { ?subject fs:dateDeleted ?anyDateDeleted }
             }
             """, FS.NS));
@@ -92,6 +100,7 @@ public class ViewService {
         List<ValueDTO> values = null;
         Object min = null;
         Object max = null;
+        Boolean booleanValue = null;
 
         switch (column.type) {
             case Term, TermSet -> {
@@ -109,6 +118,19 @@ public class ViewService {
                         var resource = row.getResource("value");
                         var label = row.getLiteral("label").getString();
                         values.add(new ValueDTO(label, resource.getURI()));
+                    }
+                }
+            }
+            case Boolean -> {
+                var binding = new QuerySolutionMap();
+                binding.add("predicate", createResource(column.source));
+                try (var execution = QueryExecutionFactory.create(BOOLEAN_VALUE_QUERY, ds, binding)) {
+                    var rowExec = execution.execSelect();
+                    if (rowExec.hasNext()) {
+                        booleanValue = (Boolean) ofNullable(rowExec.next().getLiteral("booleanValue"))
+                                .map(Literal::getValue)
+                                .map(this::convertLiteralValue)
+                                .orElse(null);
                     }
                 }
             }
@@ -132,7 +154,7 @@ public class ViewService {
             }
         }
 
-        return new FacetDTO(facetNamePrefix + "_" + column.name, column.title, column.type, values, min, max);
+        return new FacetDTO(facetNamePrefix + "_" + column.name, column.title, column.type, values, booleanValue, min, max);
     }
 
     public List<FacetDTO> getFacets() {
@@ -140,9 +162,17 @@ public class ViewService {
                 .stream()
                 .flatMap(view -> Stream.concat(
                         view.columns.stream().map(column -> getFacetInfo(view.name, column, view))
-                                .filter(f -> f.getMin() != null || f.getMax() != null || (f.getValues() != null && f.getValues().size() > 1)),
+                                .filter(f -> (
+                                        f.getMin() != null || f.getMax() != null
+                                                || (f.getValues() != null && f.getValues().size() > 1)
+                                                || f.getBooleanValue() != null
+                                )),
                         view.joinColumns.stream().map(column -> getFacetInfo(column.sourceClassName, column, view))
-                                .filter(f -> f.getMin() != null || f.getMax() != null || (f.getValues() != null && f.getValues().size() > 1))
+                                .filter(f -> (
+                                        f.getMin() != null || f.getMax() != null
+                                                || (f.getValues() != null && f.getValues().size() > 1)
+                                                || f.getBooleanValue() != null
+                                ))
                 ))
                 .collect(toList()));
     }

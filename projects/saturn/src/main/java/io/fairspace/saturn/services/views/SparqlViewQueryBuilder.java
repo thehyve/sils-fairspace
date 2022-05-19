@@ -286,7 +286,10 @@ public class SparqlViewQueryBuilder {
             expr = new E_OneOf(variable, new ExprList(values));
         } else if (filter.prefix != null && !filter.prefix.isBlank()) {
             expr = new E_StrStartsWith(new E_StrLowerCase(variable), makeString(filter.prefix.trim().toLowerCase()));
-        } else {
+        } else if (filter.booleanValue != null) {
+            expr = new E_Equals(variable, makeBoolean(filter.booleanValue));
+        }
+        else {
             return null;
         }
 
@@ -306,6 +309,7 @@ public class SparqlViewQueryBuilder {
             case Text, Set, Link -> makeString(o.toString());
             case Number -> makeDecimal(o.toString());
             case Date -> makeDateTime(convertDateValue(o.toString()));
+            case Boolean -> makeBoolean(convertBooleanValue(o.toString()));
         };
     }
 
@@ -313,6 +317,10 @@ public class SparqlViewQueryBuilder {
         var calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Instant.parse(value).toEpochMilli());
         return calendar;
+    }
+
+    private boolean convertBooleanValue(String value) {
+        return Boolean.getBoolean(value);
     }
 
     private View.Column getColumn(String name) {
