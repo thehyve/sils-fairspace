@@ -258,6 +258,7 @@ const PathMetadata = React.forwardRef((
     const classes = useStyles();
     const uploadDone = () => {
         setUpdateDate(Date.now());
+        onRename();
     };
     let body;
     let linkedEntityType;
