@@ -10,7 +10,7 @@ VERSION, {docdate}
 :icons: font
 :toc: macro
 :toclevels: 3
-:toc-title: Fairspace
+:toc-title: SILS-Fairspace
 
 :Jena: https://jena.apache.org/
 :RDF: https://en.wikipedia.org/wiki/Resource_Description_Framework
@@ -102,7 +102,8 @@ The <<RDF metadata>> API should be used for that instead.
 
 ===== Metadata upload
 
-Another way to update metadata is by uploading a comma-separated values (CSV) file with metadata.
+Another way to update metadata of existing entities that are linked to directories in the directory browser
+is uploading a comma-separated values (CSV) file with metadata.
 This section describes the CSV-based format used for bulk metadata uploads.
 
 The file should be a valid CSV-file:
@@ -120,7 +121,7 @@ For the property columns, the name should match exactly the name of the property
 
 The format of the values is as follows:
 
-* _DirectoryName_: the of a directory in the current folder.
+* _DirectoryName_: the name of existing directory in the current folder.
 * _Entity types_ can be referenced by ID or unique label. If a label is not unique, the ID needs to be used, otherwise an error will be returned.
 * Multiple values must be separated by the pipe symbol ``|``, e.g.,
 use ``test|lab`` to enter the values ``test`` and ``lab``.
@@ -349,14 +350,6 @@ For OpenID Connect:
 AUTH_HEADER="Bearer ${ACCESS_TOKEN}"
 curl -i -H "Authorization: ${AUTH_HEADER}" "${FAIRSPACE_URL}/api/users/current"
 ----
-
-
-
-===== Automatic authentication in Jupyter Hub
-
-If Jupyter Hub extension is added, after opening Jupyter users are automatically authenticated and can directly connect to the
-local API address without adding authentication headers.
-
 
 ==== WebDAV
 
@@ -2043,7 +2036,6 @@ We provide a number of charts for various components that can be used in combina
 - _Fairspace Keycloak_: Installs Keycloak and configures an ingress node for Keycloak. This chart is not required if Keycloak is already installed separately. You still need to <<Configure a Keycloak realm for Fairspace,configure a Keycloak realm for Fairspace>>.
 (Chart source: https://github.com/thehyve/fairspace-keycloak[].)
 - _Fairspace_: Installs the Fairspace application, including the _saturn_ backend, _pluto_ proxy and _mercury_ frontend, and configures an ingress node for Fairspace.
-- _Jupyter_: Installs a version of Jupyter Hub that uses Keycloak for authentication and launches a link:https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-datascience-notebook[jupyter-datascience-notebook] based Jupyter notebook with the Fairspace collections file system mounted automatically. (Chart source: https://github.com/thehyve/fairspace-jupyter[].)
 
 ==== Instructions for deploying to Google Cloud
 
@@ -2275,52 +2267,6 @@ pluto:
   maxFileSize: 1GB    # max total size of file(s) that can be uploaded
   maxRequestSize: 1GB  # max total size of the request (should be > maxFileSize)
 
-----
-
-===== Deploy Jupyter Hub
-Create a new Kubernetes namespace:
-[source, shell]
-----
-kubectl create namespace jupyterhub-new
-----
-Create a new deployment (called _release_ in helm terminology) and
-install the Jupyter Hub chart:
-[source, shell]
-----
-~/bin/helm/helm install jupyterhub-new fairspace/jupyter --version 0.8.9 --namespace jupyterhub-new \
--f /path/to/values.yaml
-----
-You can pass values files with ``-f``.
-
-Example ``values.yaml`` file:
-[source, yaml]
-----
-ingress:
-  domain: jupyterhub.example.com
-
-# Specific settings for JupyterHub subchart
-jupyterhub:
-  hub:
-    extraEnv:
-      JUPYTERHUB_CRYPT_KEY: xxx # A random string, you can use 'openssl rand -hex 32'
-    config:
-      FairspaceOAuthenticator:
-        client_id: fairspace-example-private
-        client_secret: # Copy the client secret from Keycloak
-        authorize_url: https://keycloak.example.com/auth/realms/fairspace/protocol/openid-connect/auth
-        token_url: https://keycloak.example.com/auth/realms/fairspace/protocol/openid-connect/token
-        userdata_url: https://keycloak.example.com/auth/realms/fairspace/protocol/openid-connect/userinfo
-        logout_redirect_url: https://keycloak.example.com/auth/realms/fairspace/protocol/openid-connect/logout?redirect_uri=https://jupyterhub.example.com
-    image:
-      pullPolicy: Always
-  singleuser:
-    image:
-      pullPolicy: Always
-    extraEnv:
-      TARGET_URL: https://fairspace.example.com
-      # EXTERNAL_TARGETS: external   # Comma-separated list of names of external storages configured in Fairspace
-  proxy:
-    secretToken: # Generate strong secret
 ----
 
 ===== Update an existing deployment
@@ -2563,9 +2509,7 @@ There are three core components of Fairspace: Mercury front-end, Pluto proxy and
 Together with storages and Keycloak as an identity and access management solution
 they create a complete Fairspace environment.
 
-There could be additional applications integrated within the Fairspace environment,
-like Jupyter Hub and external storage systems.
-
+_Components that are greyed out, like Jupyter Hub and external storage systems, are a part of the original setup, but are not maintained within SILS-Fairspace project, so may not work correctly._
 
 === Mercury
 
@@ -2648,16 +2592,13 @@ using Fairspace Helm chart described in previous sections.
 
 image:docs/images/diagrams/Kubernetes architecture.png[Kubernetes architecture]
 
-If Keycloak and JupyterHub are deployed together with Fairspace, they should be placed in separate namespaces of
+If Keycloak is deployed together with Fairspace, it should be placed in separate namespaces of
 the same Kubernetes cluster.
-
-For details on JupyterHub and Kubernetes see link:https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/architecture.html[The JupyterHub Architecture documentation].
 
 
 == Acknowledgement
 
-This project was realized thanks to and funded by Swammerdam Institute for Life Sciences (SILS).
-
+This project is based on link:https://github.com/thehyve/fairspace[https://github.com/thehyve/fairspace] and was realized thanks to and funded by Swammerdam Institute for Life Sciences (SILS).
 
 == License
 
