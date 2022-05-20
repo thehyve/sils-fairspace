@@ -37,6 +37,7 @@ public class Services {
     public static final Symbol FS_ROOT = Symbol.create("file_system_root");
     public static final Symbol USER_SERVICE = Symbol.create("user_service");
     public static final Symbol METADATA_SERVICE = Symbol.create("metadata_service");
+    public static final Symbol METADATA_PERMISSIONS = Symbol.create("metadata_permissions");
 
     private final Config config;
     private final Transactions transactions;
@@ -67,6 +68,7 @@ public class Services {
         davServlet = new WebDAVServlet(davFactory, transactions, blobStore);
 
         metadataPermissions = new MetadataPermissions(userService, VOCABULARY);
+        dataset.getContext().set(METADATA_PERMISSIONS, metadataPermissions);
 
         var metadataValidator = new ComposedValidator(
                 new MachineOnlyClassesValidator(VOCABULARY),

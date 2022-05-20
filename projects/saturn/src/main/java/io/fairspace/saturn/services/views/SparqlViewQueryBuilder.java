@@ -30,64 +30,58 @@ import static org.apache.jena.sparql.expr.NodeValue.*;
 
 @Log4j2
 public class SparqlViewQueryBuilder {
-    private StringBuilder builder;
-    private final View view;
-    private HashSet<String> entityColumnsWithSubquery;
     private final String PLACEHOLDER = " [subquery_column_placeholder] ";
-    private HashMap<String, List<String>> entityTypes;
+    private final String ENTITY_DIR_SUFFIX = "Dir";
+    private final StringBuilder builder = new StringBuilder();
+    private final HashSet<String> entityColumnsWithSubquery = new HashSet<>();
+    private final ArrayList<List<Resource>> hierarchy;
+    private final HashMap<String, List<String>> entityTypes;
+    private final View view;
+    private final long limit;
+    private final long offset;
+
 
     public SparqlViewQueryBuilder(View view) {
         this.view = view;
+        this.limit = -1L;
+        this.offset = -1L;
+        this.entityTypes = fetchTypes(view);
+        this.hierarchy = getHierarchyTree();
+    }
+
+    public SparqlViewQueryBuilder(View view, int page, int size) {
+        this.view = view;
+        this.limit = (size + 1);
+        this.offset = ((page - 1) * size);
+        this.entityTypes = fetchTypes(view);
+        this.hierarchy = getHierarchyTree();
     }
 
     public Query getQuery(List<ViewFilter> viewFilters) {
-        builder = new StringBuilder();
-        entityColumnsWithSubquery = new HashSet<>();
-        entityTypes = new HashMap<>();
-
-        fetchTypes(view); //TODO init types on the class init
-
-        appNamespace("fs", FS.NS);
-        appNamespace("rdf", RDF.getURI());
-        appNamespace("rdfs", RDFS.getURI());
-        appNamespace("sh", SHACL.NS);
+        applyAppNamespace("fs", FS.NS);
+        applyAppNamespace("rdf", RDF.getURI());
+        applyAppNamespace("rdfs", RDFS.getURI());
+        applyAppNamespace("sh", SHACL.NS);
 
         builder.append("\nSELECT DISTINCT ?")
                 .append(view.name)
                 .append(PLACEHOLDER)
                 .append("\nWHERE {\n");
 
-        builder.append("?dir fs:linkedEntity ?").append(view.name).append(" .\n")
-                .append("FILTER NOT EXISTS { ?dir fs:dateDeleted ?anydate } .\n");
+        builder.append("?").append(ENTITY_DIR_SUFFIX).append(" fs:linkedEntity ?").append(view.name).append(" .\n");
 
-        applyHierarchy();
-        applyFilters(viewFilters);
+        applyHierarchy(ENTITY_DIR_SUFFIX);
+        applyOptionalFilters();
+        applyViewFilters(viewFilters);
 
-        if (view.types.size() == 1) {
-            builder.append("?")
-                    .append(view.name)
-                    .append(" rdf:type <").append(view.types.get(0)).append("> .\n");
-        } else {
-            builder.append("?")
-                    .append(view.name)
-                    .append(" a ?type .\nFILTER (?type IN (")
-                    .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", ")))
-                    .append("))\n");
-        }
-
-        builder.append("FILTER NOT EXISTS { ?")
-                .append(view.name)
-                .append(" fs:dateDeleted ?any }\n}");
-
+        builder.append("\n}");
         String query = builder.toString();
         query = addSubqueryColumns(query);
 
         return QueryFactory.create(query);
     }
 
-    private void applyHierarchy() {
-        ArrayList<List<Resource>> hierarchy = getHierarchyTree();
-
+    private void applyHierarchy(String dirSuffix) {
         int hierarchyIndexDesc = 0;
         for (int i = 0; i < hierarchy.size(); i++) {
             if (hierarchy.get(i).stream().anyMatch(r -> r.getURI().equals(view.types.get(0)))) {
@@ -95,11 +89,11 @@ public class SparqlViewQueryBuilder {
             }
         }
         ListIterator<List<Resource>> hierarchyIteratorDesc = hierarchy.listIterator(hierarchyIndexDesc);
-        String descDirAlias = "dir";
+        String descDirAlias = dirSuffix;
         while (hierarchyIteratorDesc.hasPrevious()) {
             List<Resource> resources = hierarchyIteratorDesc.previous();
             String currentDirAlias = resources.stream()
-                    .map(r -> getEntityDirAlias(Objects.requireNonNull(getStringProperty(r, SHACLM.name))))
+                    .map(r -> getEntityDirAlias(Objects.requireNonNull(getStringProperty(r, SHACLM.name)), dirSuffix))
                     .collect(joining("_"));
             applyHierarchyLevelCriteria(resources, descDirAlias, currentDirAlias, true);
             descDirAlias = currentDirAlias;
@@ -107,11 +101,11 @@ public class SparqlViewQueryBuilder {
 
         int hierarchyIndexAsc = hierarchyIndexDesc < (hierarchy.size() - 1) ? (hierarchyIndexDesc + 1) : hierarchy.size();
         ListIterator<List<Resource>> hierarchyIteratorAsc = hierarchy.listIterator(hierarchyIndexAsc);
-        String ascDirAlias = "dir";
+        String ascDirAlias = dirSuffix;
         while (hierarchyIteratorAsc.hasNext()) {
             List<Resource> resources = hierarchyIteratorAsc.next();
             String currentDirAlias = resources.stream()
-                    .map(r -> getEntityDirAlias(Objects.requireNonNull(getStringProperty(r, SHACLM.name))))
+                    .map(r -> getEntityDirAlias(Objects.requireNonNull(getStringProperty(r, SHACLM.name)), dirSuffix))
                     .collect(joining("_"));
             applyHierarchyLevelCriteria(resources, ascDirAlias, currentDirAlias, false);
             ascDirAlias = currentDirAlias;
@@ -137,17 +131,45 @@ public class SparqlViewQueryBuilder {
         }
     }
 
-    private void applyFilters(List<ViewFilter> viewFilters) {
-        addLocationFilter(viewFilters);
-        createSubqueriesForFacetFilters(viewFilters);
-        createSubqueriesForOptionalFilters(viewFilters);
+    private void applyViewFilters(List<ViewFilter> viewFilters) {
+        var nestedQueryDirAlias = "dirNested";
+        builder.append("{\nSELECT DISTINCT ?")
+                .append(view.name)
+                .append(" WHERE {\n");
+
+        builder.append("?").append(nestedQueryDirAlias).append(" fs:linkedEntity ?").append(view.name).append(" .\n");
+        applyHierarchy(nestedQueryDirAlias);
+        addLocationFilter(viewFilters, nestedQueryDirAlias);
+        createSubqueriesForFacetFilters(viewFilters, nestedQueryDirAlias);
+
+        if (view.types.size() == 1) {
+            builder.append("?")
+                    .append(view.name)
+                    .append(" rdf:type <").append(view.types.get(0)).append("> .\n");
+        } else {
+            builder.append("?")
+                    .append(view.name)
+                    .append(" a ?type .\nFILTER (?type IN (")
+                    .append(view.types.stream().map(t -> "<" + t + ">").collect(joining(", ")))
+                    .append("))\n");
+        }
+
+        builder.append("FILTER NOT EXISTS { ?").append(view.name).append(" fs:dateDeleted ?any } .\n");
+        builder.append("FILTER NOT EXISTS { ?").append(nestedQueryDirAlias).append(" fs:dateDeleted ?anydate } .\n");
+        builder.append("}\n");
+
+        if (limit > -1L && offset > -1L) {
+            builder.append(" LIMIT ").append(limit)
+                    .append(" OFFSET ").append(offset);
+        }
+        builder.append("\n}");
     }
 
-    private String getEntityDirAlias(String entityName) {
-        return entityName.toLowerCase().replaceAll("\\s+", "") + "Dir";
+    private String getEntityDirAlias(String entityName, String suffix) {
+        return entityName.toLowerCase().replaceAll("\\s+", "") + suffix;
     }
 
-    private void appNamespace(String alias, String namespace) {
+    private void applyAppNamespace(String alias, String namespace) {
         builder.append("PREFIX ")
                 .append(alias)
                 .append(": <")
@@ -155,7 +177,7 @@ public class SparqlViewQueryBuilder {
                 .append(">\n");
     }
 
-    private void createSubqueriesForFacetFilters(List<ViewFilter> filters) {
+    private void createSubqueriesForFacetFilters(List<ViewFilter> filters, String dirSuffix) {
         var entitiesWithFilter = filters.stream()
                 .filter(f -> !f.field.equals("location")) // location filters are processed separate
                 .map(f -> f.field)
@@ -170,38 +192,34 @@ public class SparqlViewQueryBuilder {
                     .sorted(comparing(f -> f.field.contains("_") ? getColumn(f.field).priority : 0))
                     .toList();
             for (var filter : entityFilters) {
-                addSingleFilter(filter, entity, filter.getField());
+                addSingleFilter(filter, entity, filter.getField(), dirSuffix);
             }
         });
-        builder.append("\n");
     }
 
-    private void createSubqueriesForOptionalFilters(List<ViewFilter> filters) {
+    private void applyOptionalFilters() {
         for (var jc : view.joinColumns) {
             var name = jc.sourceClassName + "_" + jc.name;
-            if (filters.stream().anyMatch(f -> f.field.equals(name))) {
-                continue;
-            }
             builder.append("OPTIONAL\n");
-            addSingleFilter(null, jc.sourceClassName, name);
+            addSingleFilter(null, jc.sourceClassName, name, ENTITY_DIR_SUFFIX);
         }
     }
 
-    private void addLocationFilter(List<ViewFilter> filters) {
+    private void addLocationFilter(List<ViewFilter> filters, String dirAlias) {
         filters.stream()
                 .filter(f -> f.field.equals("location"))
                 .findFirst()
                 .ifPresent(locationFilter -> {
                     if (locationFilter.values != null && !locationFilter.values.isEmpty()) {
                         locationFilter.values.forEach(v -> validateIRI(v.toString()));
-                        builder.append("?dir fs:belongsTo* ?location .\n FILTER (?location IN (")
+                        builder.append("?").append(dirAlias).append(" fs:belongsTo* ?location .\n FILTER (?location IN (")
                                 .append(locationFilter.values.stream().map(v -> "<" + v + ">").collect(joining(", ")))
                                 .append("))\n");
                     }
                 });
     }
 
-    private void addSingleFilter(ViewFilter filter, String entity, String filterField) {
+    private void addSingleFilter(ViewFilter filter, String entity, String filterField, String dirSuffix) {
         String condition, property, field;
 
         if (filterField.equals(entity)) {
@@ -218,7 +236,7 @@ public class SparqlViewQueryBuilder {
 
         if (!entity.equals(view.name)) {
             builder.append("?")
-                    .append(getEntityDirAlias(entity))
+                    .append(getEntityDirAlias(entity, dirSuffix))
                     .append(" fs:linkedEntity ?")
                     .append(entity)
                     .append(" .\n");
@@ -268,7 +286,10 @@ public class SparqlViewQueryBuilder {
             expr = new E_OneOf(variable, new ExprList(values));
         } else if (filter.prefix != null && !filter.prefix.isBlank()) {
             expr = new E_StrStartsWith(new E_StrLowerCase(variable), makeString(filter.prefix.trim().toLowerCase()));
-        } else {
+        } else if (filter.booleanValue != null) {
+            expr = new E_Equals(variable, makeBoolean(filter.booleanValue));
+        }
+        else {
             return null;
         }
 
@@ -288,6 +309,7 @@ public class SparqlViewQueryBuilder {
             case Text, Set, Link -> makeString(o.toString());
             case Number -> makeDecimal(o.toString());
             case Date -> makeDateTime(convertDateValue(o.toString()));
+            case Boolean -> makeBoolean(convertBooleanValue(o.toString()));
         };
     }
 
@@ -295,6 +317,10 @@ public class SparqlViewQueryBuilder {
         var calendar = Calendar.getInstance();
         calendar.setTimeInMillis(Instant.parse(value).toEpochMilli());
         return calendar;
+    }
+
+    private boolean convertBooleanValue(String value) {
+        return Boolean.getBoolean(value);
     }
 
     private View.Column getColumn(String name) {
@@ -326,15 +352,13 @@ public class SparqlViewQueryBuilder {
      * <p>
      * Both have type information, extract here for later usage, because client doesn't send it.
      */
-    private void fetchTypes(View view) {
+    private HashMap<String, List<String>> fetchTypes(View view) {
+        HashMap<String, List<String>> types = new HashMap<>();
         if (view.types == null || view.types.isEmpty()) {
             throw new RuntimeException("View " + view.name + " has empty 'types' list");
         }
-
-        entityTypes.put(view.name, view.types);
-
-        view.joinColumns.forEach(column -> {
-            entityTypes.put(column.sourceClassName, List.of(column.sourceClass));
-        });
+        types.put(view.name, view.types);
+        view.joinColumns.forEach(column -> types.put(column.sourceClassName, List.of(column.sourceClass)));
+        return types;
     }
 }

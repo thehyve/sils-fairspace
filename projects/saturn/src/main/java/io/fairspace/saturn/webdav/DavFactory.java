@@ -1,6 +1,7 @@
 package io.fairspace.saturn.webdav;
 
 import io.fairspace.saturn.rdf.ModelUtils;
+import io.fairspace.saturn.services.metadata.MetadataPermissions;
 import io.fairspace.saturn.services.users.UserService;
 import io.fairspace.saturn.vocabulary.FS;
 import io.milton.http.ResourceFactory;
@@ -16,6 +17,7 @@ import java.net.URI;
 import java.util.Optional;
 
 import static io.fairspace.saturn.auth.RequestContext.getUserURI;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.rdf.SparqlUtils.generateMetadataIri;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static io.fairspace.saturn.webdav.DavUtils.*;
@@ -102,7 +104,7 @@ public class DavFactory implements ResourceFactory {
     public void validateChildNameUniqueness(org.apache.jena.rdf.model.Resource subject, String childName) throws ConflictException {
         var existing = getResourceByType(childSubject(subject, childName), Access.Manage);
         if (existing != null) {
-            var message = "Target directory with name: " + childName +  " already exists.";
+            var message = "Target directory with name: " + childName + " already exists.";
             setErrorMessage(message);
             throw new ConflictException(message);
         }
@@ -126,27 +128,33 @@ public class DavFactory implements ResourceFactory {
         return rootSubject.getModel().createResource(getUserURI().getURI());
     }
 
-    public boolean isFileSystemResource(org.apache.jena.rdf.model.Resource resource) {
-        return resource.getURI().startsWith(rootSubject.getURI());
-    }
-
-    public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
-        var linkedEntity = getNewLinkedEntity(subject);
+    public void linkEntityToSubject(org.apache.jena.rdf.model.Resource subject) throws BadRequestException, NotAuthorizedException {
+        var linkedEntity = getLinkedEntity(subject);
         subject.addProperty(FS.linkedEntity, linkedEntity);
         subject.addProperty(FS.linkedEntityType, linkedEntity.getPropertyResourceValue(RDF.type));
     }
 
-    private org.apache.jena.rdf.model.Resource getNewLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException {
+    public void validateCanWrite(String typeUri) throws NotAuthorizedException {
+        MetadataPermissions metadataPermissions = context.get(METADATA_PERMISSIONS);
+        if (!metadataPermissions.canWriteMetadataByUri(typeUri)) {
+            throw new NotAuthorizedException();
+        }
+    }
+
+    private org.apache.jena.rdf.model.Resource getLinkedEntity(org.apache.jena.rdf.model.Resource subject) throws BadRequestException, NotAuthorizedException {
         var linkedEntityIri = linkedEntityIri();
         if (linkedEntityIri != null && !linkedEntityIri.isBlank()) {
+            validateCanWrite(linkedEntityIri);
             return getExistingEntityToLink(subject, linkedEntityIri);
         } else {
             var type = entityType();
+
             if (type == null || type.isBlank()) {
                 var message = "The linked entity type and the linked entity IRI are empty.";
                 setErrorMessage(message);
                 throw new BadRequestException(message);
             }
+            validateCanWrite(type);
             var typeResource = createResource(type);
             validateLinkedEntityType(typeResource);
             var parentType = Optional.ofNullable(subject.getPropertyResourceValue(FS.belongsTo))

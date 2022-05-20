@@ -38,6 +38,7 @@ import java.util.Map;
 
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.config.Services.METADATA_SERVICE;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static org.apache.jena.query.DatasetFactory.wrap;
@@ -84,12 +85,13 @@ public class DirectoryResourceTest {
 
     @Before
     public void before() throws NotAuthorizedException, BadRequestException, ConflictException, IOException {
+        Context context = new Context();
         var dsg = DatasetGraphFactory.createTxnMem();
         Dataset ds = wrap(dsg);
         Transactions tx = new SimpleTransactions(ds);
         model = ds.getDefaultModel();
         MetadataPermissions permissions = new MetadataPermissions(userService, VOCABULARY);
-        Context context = new Context();
+        context.set(METADATA_PERMISSIONS, permissions);
         davFactory = new DavFactory(model.createResource(baseUri), store, userService, context);
         metadataService = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
         context.set(METADATA_SERVICE, metadataService);
@@ -109,19 +111,17 @@ public class DirectoryResourceTest {
 
         var taxonomies = model.read("taxonomies.ttl");
         metadataService.put(taxonomies);
+        var testdata = model.read("testdata.ttl");
+        metadataService.put(testdata);
 
         var blob = new BlobInfo("id", FILE_SIZE, "md5");
         when(request.getAttribute("BLOB")).thenReturn(blob);
-//        when(blobFileItem.getBlob()).thenReturn(blob);
         when(file.getInputStream()).thenAnswer(invocation -> new ByteArrayInputStream(new byte[FILE_SIZE]));
 
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
         var coll1 = (PutableResource) root.createCollection("coll1");
-        var coll2 = (PutableResource) root.createCollection("coll2");
         coll1.createNew("coffee.jpg", null, 0L, "image/jpeg");
-
-        var testdata = model.read("testdata.ttl");
-        metadataService.put(testdata);
+        root.createCollection("coll2");
     }
 
     @Ignore("File upload functionality currently not supported.")

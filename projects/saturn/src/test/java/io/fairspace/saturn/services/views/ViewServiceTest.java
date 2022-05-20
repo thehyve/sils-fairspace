@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import static io.fairspace.saturn.TestUtils.*;
 import static io.fairspace.saturn.auth.RequestContext.getCurrentRequest;
 import static io.fairspace.saturn.config.Services.FS_ROOT;
+import static io.fairspace.saturn.config.Services.METADATA_PERMISSIONS;
 import static io.fairspace.saturn.rdf.ModelUtils.EMPTY_MODEL;
 import static io.fairspace.saturn.vocabulary.Vocabularies.VOCABULARY;
 import static org.apache.jena.query.DatasetFactory.wrap;
@@ -74,6 +75,9 @@ public class ViewServiceTest {
         viewService = new ViewService(ConfigLoader.CONFIG.search, ConfigLoader.VIEWS_CONFIG, ds, null);
 
         when(permissions.canWriteMetadata(any())).thenReturn(true);
+        when(permissions.canWriteMetadataByUri(any())).thenReturn(true);
+        context.set(METADATA_PERMISSIONS, permissions);
+
         api = new MetadataService(tx, VOCABULARY, new ComposedValidator(new DeletionValidator()), permissions, davFactory);
 
         setupRequestContext();
@@ -89,6 +93,7 @@ public class ViewServiceTest {
 
         when(request.getHeader("Entity-Type")).thenReturn("https://sils.uva.nl/ontology#Department");
 
+        selectAdmin();
         var root = (MakeCollectionableResource) ((ResourceFactory) davFactory).getResource(null, BASE_PATH);
         root.createCollection("Dep1");
 
@@ -100,9 +105,13 @@ public class ViewServiceTest {
     public void testFetchViewConfig() {
         var facets = viewService.getFacets();
         var selection = facets.stream()
-                .filter(facet -> facet.getType() == ViewsConfig.ColumnType.Number)
+                .filter(facet -> facet.getType() == ViewsConfig.ColumnType.Boolean)
                 .collect(Collectors.toList());
         Assert.assertEquals(1, selection.size());
         viewService.getViews();
+    }
+
+    private void selectAdmin() {
+        lenient().when(userService.currentUser()).thenReturn(createTestUser("admin", true));
     }
 }

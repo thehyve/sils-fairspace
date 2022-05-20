@@ -4,5 +4,7 @@
         <cpe>cpe:/a:netty:netty:4.1.32</cpe>
         <!-- Keycloak dependency vulnerability not fixed yet in the latest keycloak-admin-client:16.1.1 -->
         <cpe>cpe:/a:apache:james:0.6</cpe>
+        <!-- Vulnerability introduced by org.apache.jena:jena-fuseki-main, not fixed yet in 4.3.2 and 4.5.0 -->
+        <cpe>cpe:/a:eclipse:jetty:4.0.6</cpe>
     </suppress>
 </suppressions>

@@ -9,6 +9,7 @@ import DateSelectionFacet from "./facets/DateSelectionFacet";
 import NumericalRangeSelectionFacet from "./facets/NumericalRangeSelectionFacet";
 
 import styles from "./MetadataViewFacetFactory.styles";
+import BooleanSelectionFacet from "./facets/BooleanSelectionFacet";
 
 export type Option = {
     value: string;
@@ -37,6 +38,8 @@ const getFacet = (props: MetadataViewFacetProperties) => {
             return <NumericalRangeSelectionFacet {...props} />;
         case "Date":
             return <DateSelectionFacet {...props} />;
+        case "Boolean":
+            return <BooleanSelectionFacet {...props} />;
         default:
             return <></>;
     }

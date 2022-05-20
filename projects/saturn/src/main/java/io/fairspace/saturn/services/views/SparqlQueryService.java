@@ -38,16 +38,12 @@ public class SparqlQueryService implements QueryService {
     }
 
     public ViewPageDTO retrieveViewPage(ViewRequest request) {
-        var query = new SparqlViewQueryBuilder(getView(request.getView()))
-                .getQuery(request.getFilters());
-        log.debug("Executing query:\n{}", query);
-
         var page = (request.getPage() != null && request.getPage() >= 1) ? request.getPage() : 1;
         var size = (request.getSize() != null && request.getSize() >= 1) ? request.getSize() : 20;
-        query.setLimit(size + 1);
-        query.setOffset((page - 1) * size);
-        log.debug("Query with filters and pagination applied: \n{}", query);
+        var query = new SparqlViewQueryBuilder(getView(request.getView()), page, size)
+                .getQuery(request.getFilters());
 
+        log.debug("Executing query with filters and pagination:\n{}", query);
         var selectExecution = QueryExecutionFactory.create(query, ds);
         selectExecution.setTimeout(config.pageRequestTimeout);
 
@@ -73,7 +69,7 @@ public class SparqlQueryService implements QueryService {
             for (var row : results) {
                 var resourceUri = row.getResource(request.getView());
 
-                if(uniqueIris.size() < size) {
+                if (uniqueIris.size() < size) {
                     uniqueIris.add(resourceUri);
                 } else {
                     hasNext = true;
@@ -219,15 +215,20 @@ public class SparqlQueryService implements QueryService {
         var execution = QueryExecutionFactory.create(query, ds);
         execution.setTimeout(config.countRequestTimeout);
 
+        var uniqueIris = new HashSet<Resource>();
+
         return calculateRead(ds, () -> {
-            long count = 0;
             try (execution) {
-                for (var it = execution.execSelect(); it.hasNext(); it.next()) {
-                    count++;
+                var it = execution.execSelect();
+                while (it.hasNext()) {
+                    var row = it.next();
+                    var resourceUri = row.getResource(request.getView());
+                    uniqueIris.add(resourceUri);
                 }
-                return new CountDTO(count, false);
+
+                return new CountDTO(uniqueIris.size(), false);
             } catch (QueryCancelledException e) {
-                return new CountDTO(count, true);
+                return new CountDTO(uniqueIris.size(), true);
             }
         });
     }
