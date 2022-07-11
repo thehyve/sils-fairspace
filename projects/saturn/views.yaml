@@ -31,7 +31,7 @@ views:
         type: text
       - name: assayType
         title: Assay type
-        source: https://sils.uva.nl/ontology#assayType
+        source: https://sils.uva.nl/ontology#isOfAssayType
         rdfType: https://sils.uva.nl/ontology#AssayType
         sourceClass: https://sils.uva.nl/ontology#Assay
         sourceClassName: Assay
@@ -49,7 +49,7 @@ views:
         sourceClass: https://sils.uva.nl/ontology#Assay
         sourceClassName: Assay
         type: boolean
-      - name: LCMSAssayMachineTypeLCMS
+      - name: LCMSAssayMachineType
         title: LCMS Machine Type
         source: https://sils.uva.nl/ontology#LCMSAssayMachineType
         rdfType: https://sils.uva.nl/ontology#LCMSApparatusType
